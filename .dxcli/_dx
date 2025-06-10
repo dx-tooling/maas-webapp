@@ -1,0 +1,148 @@
+#compdef dx
+# ZSH completion script for dx (Developer Experience CLI)
+
+# Function to find the nearest .dxcli/dxcli.sh by traversing up the directory tree
+_find_dxcli_installations() {
+  local current_dir="$PWD"
+  local installations=()
+  
+  # Find all parent installations
+  while [[ "$current_dir" != "/" ]]; do
+    if [[ -d "$current_dir/.dxcli" ]]; then
+      installations+=("$current_dir/.dxcli")
+    fi
+    current_dir="$(dirname "$current_dir")"
+  done
+  
+  echo "${installations[@]}"
+}
+
+# Function to get command metadata from a script
+_get_command_metadata() {
+  local script_path=$1
+  local in_metadata=0
+  local name=""
+  local description=""
+
+  while IFS= read -r line; do
+    # Start of metadata block
+    if [[ "$line" == "#@metadata-start" ]]; then
+      in_metadata=1
+      continue
+    fi
+
+    # End of metadata block
+    if [[ "$line" == "#@metadata-end" ]]; then
+      break
+    fi
+
+    # Inside metadata block
+    if [[ $in_metadata -eq 1 ]]; then
+      # Parse name
+      if [[ "$line" =~ ^#@name[[:space:]]*(.+)$ ]]; then
+        name="${match[1]}"
+      fi
+      # Parse description
+      if [[ "$line" =~ ^#@description[[:space:]]*(.+)$ ]]; then
+        description="${match[1]}"
+      fi
+    fi
+  done < "$script_path"
+
+  # Return metadata as a formatted string
+  if [[ -n "$name" && -n "$description" ]]; then
+    echo "$name:$description"
+  fi
+}
+
+# Function to get all available commands from stacked installations
+_get_stacked_commands() {
+  local -A command_map=() # Use associative array to track unique commands
+  local installations=($(_find_dxcli_installations))
+  
+  # Process each installation, with closer ones taking precedence
+  for installation in "${installations[@]}"; do
+    local subcommands_dir="$installation/subcommands"
+    
+    if [[ -d "$subcommands_dir" ]]; then
+      # Find all executable shell scripts
+      for script in "$subcommands_dir"/*.sh; do
+        if [[ -f "$script" && -x "$script" ]]; then
+          local metadata=$(_get_command_metadata "$script")
+          if [[ -n "$metadata" ]]; then
+            local name="${metadata%%:*}"
+            local description="${metadata#*:}"
+            # Only add if not already in the map (closer ones take precedence)
+            if [[ -z "${command_map[$name]}" ]]; then
+              command_map[$name]="$description"
+            fi
+          fi
+        fi
+      done
+    fi
+  done
+  
+  # Return commands
+  for name in "${(k)command_map[@]}"; do
+    echo "$name:${command_map[$name]}"
+  done
+}
+
+# Function to get all available metacommands
+_get_metacommands() {
+  # Define the available metacommands with their descriptions
+  local metacmds=(
+    ".install-commands:Install subcommands from a git repository"
+    ".install-globally:Install a dxcli wrapper script globally (run once per user)"
+    ".update:Update the dxcli installation in the current project"
+  )
+  
+  # Return metacommands
+  for cmd in "${metacmds[@]}"; do
+    echo "$cmd"
+  done
+}
+
+# Main completion function
+_dx() {
+  local curcontext="$curcontext" state line
+  typeset -A opt_args
+
+  _arguments -C \
+    '1: :->command' \
+    '*:: :->args'
+
+  case $state in
+    command)
+      local -a commands=()
+      local -a metacommands=()
+      
+      # Get all commands
+      while IFS=: read -r name description; do
+        if [[ -n "$name" ]]; then
+          commands+=("$name:$description")
+        fi
+      done < <(_get_stacked_commands)
+      
+      # Get all metacommands
+      while IFS=: read -r name description; do
+        if [[ -n "$name" ]]; then
+          metacommands+=("$name:$description")
+        fi
+      done < <(_get_metacommands)
+      
+      # Add help command
+      commands+=("help:Show help message with available commands")
+      
+      # Combine all commands for completion
+      _describe -t commands 'dx commands' commands
+      _describe -t metacommands 'dx metacommands' metacommands
+      ;;
+    args)
+      # Handle command-specific arguments here if needed
+      # For now, we don't provide completion for command arguments
+      ;;
+  esac
+}
+
+_dx "$@" 

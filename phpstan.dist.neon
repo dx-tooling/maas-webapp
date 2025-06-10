@@ -1,0 +1,27 @@
+parameters:
+    level: 9
+    paths:
+        - bin/
+        - config/
+        - public/
+        - src/
+        - tests/
+        - migrations/
+    type_coverage:
+        return: 100
+        param: 100
+        property: 100
+        constant: 100
+    ergebnis:
+        final:
+            enabled: false
+        noExtends:
+            enabled: false
+        noNullableReturnTypeDeclaration:
+            enabled: false
+        noConstructorParameterWithDefaultValue:
+            enabled: false
+        noParameterWithNullDefaultValue:
+            enabled: false
+        noParameterWithNullableTypeDeclaration:
+            enabled: false

@@ -1,0 +1,6 @@
+User-agent: *
+Disallow: /live-demo/demo-faq
+
+# Disallow all other /live-demo/ paths as well, just in case?
+# Maybe better to be specific for now.
+# Disallow: /live-demo/

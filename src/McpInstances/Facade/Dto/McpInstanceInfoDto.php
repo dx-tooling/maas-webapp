@@ -12,7 +12,7 @@ readonly class McpInstanceInfoDto
         public int    $mcpPort,
         public int    $vncPort,
         public int    $websocketPort,
-        public string $websocketPassword,
+        public string $password,
     ) {
     }
 }

@@ -46,7 +46,7 @@
                         <th class="etfswui-table-header">MCP Port</th>
                         <th class="etfswui-table-header">VNC Port</th>
                         <th class="etfswui-table-header">WebSocket Port</th>
-                        <th class="etfswui-table-header">WebSocket Password</th>
+                        <th class="etfswui-table-header">Password</th>
                         <th class="etfswui-table-header">Actions</th>
                     </tr>
                 </thead>
@@ -68,7 +68,7 @@
                         <td class="etfswui-table-cell">
                             <a href="#ws-{{ instance.websocketPort }}" class="etfswui-link {% if not websocketPorts[instance.websocketPort]|default(false) %}etfswui-text-red{% endif %}">{{ instance.websocketPort }}</a>
                         </td>
-                        <td class="etfswui-table-cell">{{ instance.websocketPassword }}</td>
+                        <td class="etfswui-table-cell">{{ instance.password }}</td>
                         <td class="etfswui-table-cell">
                             <form method="post" action="{{ path('os_process_management.presentation.stop_instance') }}" style="display:inline">
                                 <input type="hidden" name="displayNumber" value="{{ instance.displayNumber }}">

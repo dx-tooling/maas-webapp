@@ -25,30 +25,6 @@ doctrine:
                 dir: "%kernel.project_dir%/src/Common/Presentation/Entity"
                 prefix: 'App\Common\Presentation\Entity'
 
-            App\LiveDemo\Domain\Entity:
-                type: attribute
-                is_bundle: false
-                dir: "%kernel.project_dir%/src/LiveDemo/Domain/Entity"
-                prefix: 'App\LiveDemo\Domain\Entity'
-
-            App\ContentRetrieval\Domain\Entity:
-                type: attribute
-                is_bundle: false
-                dir: "%kernel.project_dir%/src/ContentRetrieval/Domain/Entity"
-                prefix: 'App\ContentRetrieval\Domain\Entity'
-
-            App\Business\Domain\Entity:
-                type: attribute
-                is_bundle: false
-                dir: "%kernel.project_dir%/src/Business/Domain/Entity"
-                prefix: 'App\Business\Domain\Entity'
-
-            App\CustomerSupportPackage\Domain\Entity:
-                type: attribute
-                is_bundle: false
-                dir: "%kernel.project_dir%/src/CustomerSupportPackage/Domain/Entity"
-                prefix: 'App\CustomerSupportPackage\Domain\Entity'
-
         controller_resolver:
             auto_mapping: false
 

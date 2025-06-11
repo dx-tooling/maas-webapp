@@ -3,15 +3,10 @@ framework:
         # The paths to make available to the asset mapper.
         paths:
             - assets/
-            - src/LiveDemo/Presentation/Resources/stimulus_controllers/
         missing_import_mode: strict
 
 sensiolabs_typescript:
-    source_dir:
-        [
-            "%kernel.project_dir%/assets/",
-            "%kernel.project_dir%/src/LiveDemo/Presentation/Resources/stimulus_controllers/",
-        ]
+    source_dir: ["%kernel.project_dir%/assets/"]
 
 when@prod:
     framework:

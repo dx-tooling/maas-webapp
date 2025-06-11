@@ -4,7 +4,6 @@ twig:
     paths:
         "src/Common/Presentation/Resources/templates": "common.presentation"
         "src/WebsiteContent/Presentation/Resources/templates": "website_content.presentation"
-        "src/LiveDemo/Presentation/Resources/templates": "live_demo.presentation"
 
 when@test:
     twig:

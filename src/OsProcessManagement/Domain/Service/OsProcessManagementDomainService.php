@@ -8,9 +8,15 @@ use App\OsProcessManagement\Domain\Dto\PlaywrightMcpProcessInfoDto;
 use App\OsProcessManagement\Domain\Dto\VirtualFramebufferProcessInfoDto;
 use App\OsProcessManagement\Domain\Dto\VncServerProcessInfoDto;
 use App\OsProcessManagement\Domain\Dto\VncWebsocketProcessInfoDto;
+use Psr\Log\LoggerInterface;
 
-class OsProcessManagementDomainService
+readonly class OsProcessManagementDomainService
 {
+    public function __construct(
+        private LoggerInterface $logger
+    ) {
+    }
+
     public function launchVirtualFramebuffer(
         int $displayNumber,
         int $screenWidth,
@@ -48,9 +54,9 @@ class OsProcessManagementDomainService
         int $port,
         int $displayNumber
     ): bool {
-        shell_exec(
-            "cd /mcp ; DISPLAY=:$displayNumber nohup npx @playwright/mcp@latest --port $port --no-sandbox --isolated --browser chromium --host 0.0.0.0 >/var/tmp/launchPlaywrightMcp.$port.log 2>&1 &"
-        );
+        $cmdLine = "/usr/bin/env bash /var/www/prod/playwright-mcp-cloud-webapp/bin/launch-playwright-mcp.sh $displayNumber $port";
+        $this->logger->info("[launchPlaywrightMcp] Running command line: '$cmdLine'.");
+        shell_exec($cmdLine);
 
         return true;
     }

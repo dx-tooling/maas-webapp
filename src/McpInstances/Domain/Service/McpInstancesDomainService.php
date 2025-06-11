@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\McpInstances\Domain\Service;
 
 use App\McpInstances\Domain\Entity\McpInstance;
-use App\McpInstances\Facade\McpInstancesFacade;
 use App\OsProcessManagement\Facade\OsProcessManagementFacadeInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use LogicException;
@@ -40,7 +39,7 @@ readonly class McpInstancesDomainService
 
         // Gather all used port numbers (across all types)
         $allInstances = $repo->findAll();
-        $usedPorts = [];
+        $usedPorts    = [];
         foreach ($allInstances as $i) {
             $usedPorts[] = $i->getMcpPort();
             $usedPorts[] = $i->getMcpProxyPort();
@@ -78,7 +77,6 @@ readonly class McpInstancesDomainService
         $this->entityManager->flush();
 
         $this->osProcessMgmtFacade->launchPlaywrightSetup(
-            McpInstancesFacade::mcpInstancesToMcpInstanceInfoDtos($this->getAllMcpInstances()),
             $displayNumber,
             $screenWidth,
             $screenHeight,
@@ -100,7 +98,6 @@ readonly class McpInstancesDomainService
             throw new LogicException('No MCP instance for this account.');
         }
         $this->osProcessMgmtFacade->stopPlaywrightSetup(
-            McpInstancesFacade::mcpInstancesToMcpInstanceInfoDtos($this->getAllMcpInstances()),
             $instance->getDisplayNumber(),
             $instance->getMcpPort(),
             $instance->getVncPort(),
@@ -115,11 +112,11 @@ readonly class McpInstancesDomainService
      */
     private static function findRandomFreeNumber(int $min, int $max, array $used): int
     {
-        $used = array_flip($used);
+        $used        = array_flip($used);
         $maxAttempts = 1000;
         for ($attempt = 0; $attempt < $maxAttempts; ++$attempt) {
             $candidate = random_int($min, $max);
-            if (!isset($used[$candidate])) {
+            if (!array_key_exists($candidate, $used)) {
                 return $candidate;
             }
         }

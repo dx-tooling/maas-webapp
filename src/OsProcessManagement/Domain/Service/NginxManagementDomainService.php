@@ -44,13 +44,8 @@ readonly class NginxManagementDomainService
         return $config;
     }
 
-    /**
-     * @param array<McpInstanceInfoDto> $mcpInstanceInfos
-     */
-    public function reconfigureAndRestartNginx(array $mcpInstanceInfos): void
+    public function reconfigureAndRestartNginx(): void
     {
-        $config = self::generateNginxConfig($mcpInstanceInfos);
-        // write config file
-        // restart nginx
+        exec('/var/www/prod/playwright-mcp-cloud-webapp/bin/generate-mcp-proxies-wrapper.sh');
     }
 }

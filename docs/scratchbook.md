@@ -29,11 +29,14 @@ apt update
 apt install software-properties-common
 add-apt-repository ppa:ondrej/php
 apt update
-apt install vim curl nginx mariadb-server php8.4-cli php8.4-xml php8.4-mysql composer xvfb x11vnc novnc websockify python3-websockify tigervnc-standalone-server
+apt install vim curl nginx certbot python3-certbot-nginx mariadb-server php8.4-cli php8.4-xml php8.4-fpm php8.4-mysql composer xvfb x11vnc novnc websockify python3-websockify tigervnc-standalone-server
+
+# nginx einrichten
+sudo certbot --nginx -d example.org
 
 service mariadb start
-mysql -uroot -e "CREATE DATABASE playwright_mcp_cloud_webapp_dev;"
-mysql -uroot -e "GRANT ALL PRIVILEGES ON *.* TO 'root'@'localhost' IDENTIFIED BY 'secret';"
+mysql -uroot -e "CREATE DATABASE playwright_mcp_cloud_webapp_prod;"
+mysql -uroot -e "GRANT ALL PRIVILEGES ON playwright_mcp_cloud_webapp_prod.* TO 'prod'@'localhost' IDENTIFIED BY 'Jiouejrf3483HXxbzbrf23';"
 
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
 export NVM_DIR="$HOME/.nvm"

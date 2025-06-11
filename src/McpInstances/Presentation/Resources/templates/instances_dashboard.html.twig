@@ -72,16 +72,19 @@
                             </div>
                             <div>
                                 <div class="etfswui-text-small mb-1">cURL Example (SSE):</div>
-                                <pre class="etfswui-form-input bg-dark-100 dark:bg-dark-900 text-sm p-3 overflow-x-auto select-all"><code>curl \
+                                <pre class="etfswui-form-input bg-dark-100 dark:bg-dark-900 text-sm p-3 overflow-x-auto select-all">
+<code id="curl-example">
+curl \
   -H "Authorization: Bearer {{ instance.password }}" \
-  http://127.0.0.1:{{ instance.mcpProxyPort }}/sse</code></pre>
+  http://HOSTNAME:{{ instance.mcpProxyPort }}/sse</code></pre>
                             </div>
                             <div>
                                 <div class="etfswui-text-small mb-1">Cursor IDE .cursor/mcp.json Example:</div>
-                                <pre class="etfswui-form-input bg-dark-100 dark:bg-dark-900 text-sm p-3 overflow-x-auto select-all"><code>{
+                                <pre class="etfswui-form-input bg-dark-100 dark:bg-dark-900 text-sm p-3 overflow-x-auto select-all">
+<code id="cursor-example">{
   "mcpServers": {
     "playwright-remote": {
-        "url": "http://127.0.0.1:{{ instance.mcpProxyPort }}/mcp",
+        "url": "http://HOSTNAME:{{ instance.mcpProxyPort }}/mcp",
         "headers": {
             "Authorization": "Bearer {{ instance.password }}"
         }
@@ -99,12 +102,42 @@
                         </div>
                         <input type="text" class="etfswui-form-input w-full max-w-xs mb-4" value="{{ instance.password }}" readonly onclick="this.select()" aria-label="VNC Password" />
                         <div class="flex gap-2 items-center">
-                            <a href="http://127.0.0.1:{{ instance.websocketPort }}/vnc.html?host=127.0.0.1&port={{ instance.websocketPort }}"
+                            <a id="vnc-web-client-link"
+                               href="#"
                                class="etfswui-link-as-button-secondary"
                                target="_blank" rel="noopener noreferrer">
                                 Open VNC Web Client
                             </a>
                         </div>
+                        <script>
+                            (function() {
+                                const port = {{ instance.websocketPort|json_encode|raw }};
+                                const proxyPort = {{ instance.mcpProxyPort|json_encode|raw }};
+                                const password = {{ instance.password|json_encode|raw }};
+                                const hostname = window.location.hostname;
+
+                                // VNC Web Client link
+                                const vncUrl = `http://${hostname}:${port}/vnc.html?host=${hostname}&port=${port}`;
+                                document.getElementById('vnc-web-client-link').setAttribute('href', vncUrl);
+
+                                // cURL Example
+                                const curlExample = `curl \\\n  -H \"Authorization: Bearer ${password}\" \\\n  http://${hostname}:${proxyPort}/sse`;
+                                document.getElementById('curl-example').textContent = curlExample;
+
+                                // Cursor IDE Example
+                                const cursorExample = `{
+  \"mcpServers\": {
+    \"playwright-remote\": {
+        \"url\": \"http://${hostname}:${proxyPort}/mcp\",
+        \"headers\": {
+            \"Authorization\": \"Bearer ${password}\"
+        }
+    }
+  }
+}`;
+                                document.getElementById('cursor-example').textContent = cursorExample;
+                            })();
+                        </script>
                     </div>
 
                     <form method="post" action="{{ path('mcp_instances.presentation.stop') }}">

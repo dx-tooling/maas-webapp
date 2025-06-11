@@ -1,48 +1,90 @@
 {% extends '@Webui/base_appshell.html.twig' %}
 
 {% block body %}
-    <h1 class="etfswui-pagetitle mb-10">Playwright MCP Instance Dashboard</h1>
-    <div class="max-w-2xl mx-auto">
+    <div class="max-w-4xl mx-auto px-4">
+        <h1 class="etfswui-pagetitle mb-10 text-left">Playwright MCP Instance Dashboard</h1>
         {% if instance is null %}
-            <div class="etfswui-card mb-8">
+            <div class="etfswui-card mb-12 text-left">
                 <div class="etfswui-card-title">
                     <span class="etfswui-card-title-text">No MCP Instance</span>
                 </div>
-                <div class="etfswui-card-content">
-                    <p class="etfswui-text mb-4">You do not have a Playwright MCP Instance yet.</p>
+                <div class="etfswui-card-content space-y-6">
+                    <p class="etfswui-text">You do not have a Playwright MCP Instance yet. Click below to create one.</p>
                     <form method="post" action="{{ path('mcp_instances.presentation.create') }}">
                         <button type="submit" class="etfswui-button-default">Create Instance</button>
                     </form>
                 </div>
             </div>
         {% else %}
-            <div class="etfswui-card mb-8">
-                <div class="etfswui-card-title">
+            <div class="etfswui-card mb-12 text-left">
+                <div class="etfswui-card-title flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-6">
+                    <span class="etfswui-badge etfswui-badge-success">Active</span>
                     <span class="etfswui-card-title-text">Your MCP Instance is Running</span>
                 </div>
-                <div class="etfswui-card-content space-y-4">
-                    <div class="flex items-center gap-2">
-                        <span class="etfswui-badge etfswui-badge-success">Active</span>
-                        <span class="etfswui-text-small">Instance ID: <code>{{ instance.id }}</code></span>
-                    </div>
-                    <div>
-                        <div class="etfswui-text mb-2 font-semibold">Endpoints:</div>
-                        <div class="etfswui-text-small mb-1">
-                            <span class="font-semibold">Playwright SSE Endpoint:</span>
-                            <code>http://127.0.0.1/sse/{{ instance.id }}</code>
+                <div class="etfswui-card-content space-y-10">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div class="space-y-4">
+                            <div>
+                                <div class="etfswui-text font-semibold mb-1">Instance ID</div>
+                                <input type="text" class="etfswui-form-input w-full max-w-xs" value="{{ instance.id }}" readonly onclick="this.select()" aria-label="Instance ID" />
+                            </div>
                         </div>
-                        <div class="etfswui-text-small mb-1">
-                            <span class="font-semibold">VNC Web Client:</span>
-                            <code>http://127.0.0.1:{{ instance.websocketPort }}/vnc.html?host=127.0.0.1&port={{ instance.websocketPort }}</code>
+                        <div class="space-y-4">
+                            <div>
+                                <div class="etfswui-text font-semibold mb-1">Password (for both endpoints)</div>
+                                <div class="flex gap-2 items-center">
+                                    <input type="text" class="etfswui-form-input w-full max-w-xs" value="{{ instance.password }}" readonly onclick="this.select()" aria-label="Instance Password" />
+                                </div>
+                                <div class="etfswui-text-small text-dark-400 mt-1">Use as Bearer token for SSE, and as VNC password.</div>
+                            </div>
                         </div>
                     </div>
-                    <div>
-                        <div class="etfswui-text mb-2 font-semibold">Password (for both endpoints):</div>
-                        <div class="flex items-center gap-2">
-                            <code class="etfswui-text-small">{{ instance.password }}</code>
+
+                    <div class="etfswui-card bg-dark-50 dark:bg-dark-800/50 border border-dark-200 dark:border-dark-700 p-6 mt-8 text-left">
+                        <div class="etfswui-card-title">
+                            <span class="etfswui-card-title-text">Playwright SSE Endpoint</span>
                         </div>
-                        <div class="etfswui-text-small text-dark-400 mt-1">Use as Bearer token for SSE, and as VNC password.</div>
+                        <div class="etfswui-card-content space-y-4 bg-green-50 dark:bg-green-900/10">
+                            <div>
+                                <div class="etfswui-text-small mb-1">Endpoint URL:</div>
+                                <input type="text" class="etfswui-form-input w-full max-w-xl" value="http://127.0.0.1/sse/{{ instance.id|replace({'-':''}) }}" readonly onclick="this.select()" aria-label="SSE Endpoint" />
+                            </div>
+                            <div>
+                                <div class="etfswui-text-small mb-1">cURL Example:</div>
+                                <pre class="etfswui-form-input bg-dark-100 dark:bg-dark-900 text-sm p-3 overflow-x-auto select-all"><code>curl \
+  -H "Authorization: Bearer {{ instance.password }}" \
+  http://127.0.0.1/sse/{{ instance.id|replace({'-':''}) }}</code></pre>
+                            </div>
+                            <div>
+                                <div class="etfswui-text-small mb-1">cURL Example (Basic Auth):</div>
+                                <pre class="etfswui-form-input bg-dark-100 dark:bg-dark-900 text-sm p-3 overflow-x-auto select-all"><code>curl \
+  -u user{{ instance.id|replace({'-':''}) }}:{{ instance.password }} \
+  http://127.0.0.1/sse-basic-auth/{{ instance.id|replace({'-':''}) }}</code></pre>
+                            </div>
+                            <div>
+                                <div class="etfswui-text-small mb-1">Cursor IDE .cursor/mcp.json Example:</div>
+                                <pre class="etfswui-form-input bg-dark-100 dark:bg-dark-900 text-sm p-3 overflow-x-auto select-all"><code>{
+  "mcpServers": {
+    "playwright-remote": {
+        "url": "http://user{{ instance.id|replace({'-':''}) }}:{{ instance.password }}@127.0.0.1/sse-basic-auth/{{ instance.id|replace({'-':''}) }}"
+        }
+  }
+}</code></pre>
+                            </div>
+                        </div>
                     </div>
+
+                    <div class="mt-8">
+                        <div class="etfswui-text font-semibold mb-1">VNC Web Client</div>
+                        <div class="flex gap-2 items-center">
+                            <a href="http://127.0.0.1:{{ instance.websocketPort }}/vnc.html?host=127.0.0.1&port={{ instance.websocketPort }}"
+                               class="etfswui-link-as-button-secondary"
+                               target="_blank" rel="noopener noreferrer">
+                                Open VNC Web Client
+                            </a>
+                        </div>
+                    </div>
+
                     <form method="post" action="{{ path('mcp_instances.presentation.stop') }}">
                         <button type="submit" class="etfswui-button-danger">Stop & Remove Instance</button>
                     </form>

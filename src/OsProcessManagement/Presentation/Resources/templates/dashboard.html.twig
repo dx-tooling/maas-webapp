@@ -44,6 +44,7 @@
                         <th class="etfswui-table-header">ID</th>
                         <th class="etfswui-table-header">Display #</th>
                         <th class="etfswui-table-header">MCP Port</th>
+                        <th class="etfswui-table-header">Proxy Port</th>
                         <th class="etfswui-table-header">VNC Port</th>
                         <th class="etfswui-table-header">WebSocket Port</th>
                         <th class="etfswui-table-header">Password</th>
@@ -63,6 +64,13 @@
                             <a href="#mcp-{{ instance.mcpPort }}" class="etfswui-link {% if not mcpPorts[instance.mcpPort]|default(false) %}etfswui-text-red{% endif %}">{{ instance.mcpPort }}</a>
                         </td>
                         <td class="etfswui-table-cell">
+                            <a href="#proxy-{{ instance.mcpProxyPort }}" class="etfswui-link">{{ instance.mcpProxyPort }}</a>
+                            <div class="text-sm text-gray-500">
+                                <div>Bearer: {{ instance.password }}</div>
+                                <div>Basic: user{{ instance.id|replace({'-': ''}) }}:{{ instance.password }}</div>
+                            </div>
+                        </td>
+                        <td class="etfswui-table-cell">
                             <a href="#vnc-{{ instance.vncPort }}" class="etfswui-link {% if not vncPorts[instance.vncPort]|default(false) %}etfswui-text-red{% endif %}">{{ instance.vncPort }}</a>
                         </td>
                         <td class="etfswui-table-cell">
@@ -80,7 +88,7 @@
                         </td>
                     </tr>
                 {% else %}
-                    <tr><td class="etfswui-table-cell" colspan="6">No known MCP instances.</td></tr>
+                    <tr><td class="etfswui-table-cell" colspan="8">No known MCP instances.</td></tr>
                 {% endfor %}
                 </tbody>
             </table>

@@ -10,6 +10,7 @@ readonly class McpInstanceInfoDto
         public ?string $id,
         public int     $displayNumber,
         public int     $mcpPort,
+        public int     $mcpProxyPort,
         public int     $vncPort,
         public int     $websocketPort,
         public string  $password,

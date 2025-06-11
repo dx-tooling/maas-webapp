@@ -31,11 +31,32 @@
                         </div>
                         <div class="space-y-4">
                             <div>
-                                <div class="etfswui-text font-semibold mb-1">Password (for both endpoints)</div>
-                                <div class="flex gap-2 items-center">
-                                    <input type="text" class="etfswui-form-input w-full max-w-xs" value="{{ instance.password }}" readonly onclick="this.select()" aria-label="Instance Password" />
-                                </div>
-                                <div class="etfswui-text-small text-dark-400 mt-1">Use as Bearer token for SSE, and as VNC password.</div>
+                                <div class="etfswui-text font-semibold mb-1">Display Number</div>
+                                <input type="text" class="etfswui-form-input w-full max-w-xs" value="{{ instance.displayNumber }}" readonly onclick="this.select()" aria-label="Display Number" />
+                            </div>
+                        </div>
+                        <div class="space-y-4">
+                            <div>
+                                <div class="etfswui-text font-semibold mb-1">MCP Port</div>
+                                <input type="text" class="etfswui-form-input w-full max-w-xs" value="{{ instance.mcpPort }}" readonly onclick="this.select()" aria-label="MCP Port" />
+                            </div>
+                        </div>
+                        <div class="space-y-4">
+                            <div>
+                                <div class="etfswui-text font-semibold mb-1">Proxy Port</div>
+                                <input type="text" class="etfswui-form-input w-full max-w-xs" value="{{ instance.mcpProxyPort }}" readonly onclick="this.select()" aria-label="Proxy Port" />
+                            </div>
+                        </div>
+                        <div class="space-y-4">
+                            <div>
+                                <div class="etfswui-text font-semibold mb-1">VNC Port</div>
+                                <input type="text" class="etfswui-form-input w-full max-w-xs" value="{{ instance.vncPort }}" readonly onclick="this.select()" aria-label="VNC Port" />
+                            </div>
+                        </div>
+                        <div class="space-y-4">
+                            <div>
+                                <div class="etfswui-text font-semibold mb-1">WebSocket Port</div>
+                                <input type="text" class="etfswui-form-input w-full max-w-xs" value="{{ instance.websocketPort }}" readonly onclick="this.select()" aria-label="WebSocket Port" />
                             </div>
                         </div>
                     </div>
@@ -47,27 +68,24 @@
                         <div class="etfswui-card-content space-y-4 bg-green-50 dark:bg-green-900/10">
                             <div>
                                 <div class="etfswui-text-small mb-1">Endpoint URL:</div>
-                                <input type="text" class="etfswui-form-input w-full max-w-xl" value="http://127.0.0.1/sse/{{ instance.id|replace({'-':''}) }}" readonly onclick="this.select()" aria-label="SSE Endpoint" />
+                                <input type="text" class="etfswui-form-input w-full max-w-xl" value="http://127.0.0.1:{{ instance.mcpProxyPort }}" readonly onclick="this.select()" aria-label="SSE Endpoint" />
                             </div>
                             <div>
                                 <div class="etfswui-text-small mb-1">cURL Example:</div>
                                 <pre class="etfswui-form-input bg-dark-100 dark:bg-dark-900 text-sm p-3 overflow-x-auto select-all"><code>curl \
   -H "Authorization: Bearer {{ instance.password }}" \
-  http://127.0.0.1/sse/{{ instance.id|replace({'-':''}) }}</code></pre>
-                            </div>
-                            <div>
-                                <div class="etfswui-text-small mb-1">cURL Example (Basic Auth):</div>
-                                <pre class="etfswui-form-input bg-dark-100 dark:bg-dark-900 text-sm p-3 overflow-x-auto select-all"><code>curl \
-  -u user{{ instance.id|replace({'-':''}) }}:{{ instance.password }} \
-  http://127.0.0.1/sse-basic-auth/{{ instance.id|replace({'-':''}) }}</code></pre>
+  http://127.0.0.1:{{ instance.mcpProxyPort }}/mcp</code></pre>
                             </div>
                             <div>
                                 <div class="etfswui-text-small mb-1">Cursor IDE .cursor/mcp.json Example:</div>
                                 <pre class="etfswui-form-input bg-dark-100 dark:bg-dark-900 text-sm p-3 overflow-x-auto select-all"><code>{
   "mcpServers": {
     "playwright-remote": {
-        "url": "http://user{{ instance.id|replace({'-':''}) }}:{{ instance.password }}@127.0.0.1/sse-basic-auth/{{ instance.id|replace({'-':''}) }}"
+        "url": "http://127.0.0.1:{{ instance.mcpProxyPort }}/mcp",
+        "headers": {
+            "Authorization": "Bearer {{ instance.password }}"
         }
+    }
   }
 }</code></pre>
                             </div>

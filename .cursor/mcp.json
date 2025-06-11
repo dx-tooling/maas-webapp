@@ -1,7 +1,10 @@
 {
     "mcpServers": {
         "playwright": {
-            "url": "http://127.0.0.1:44444/sse/1f046d55345661488cc7c31a557d8355"
+            "url": "http://127.0.0.1:44444/mcp",
+            "headers": {
+                "Authorization": "Bearer b94vQ7fTihIjkFPkuySLu_k0o0tRKlFG"
+            }
         }
     }
 }

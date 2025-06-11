@@ -25,6 +25,7 @@ class McpInstance
         int    $screenHeight,
         int    $colorDepth,
         int    $mcpPort,
+        int    $mcpProxyPort,
         int    $vncPort,
         int    $websocketPort,
         string $vncPassword
@@ -35,6 +36,7 @@ class McpInstance
         $this->screenHeight  = $screenHeight;
         $this->colorDepth    = $colorDepth;
         $this->mcpPort       = $mcpPort;
+        $this->mcpProxyPort  = $mcpProxyPort;
         $this->vncPort       = $vncPort;
         $this->websocketPort = $websocketPort;
         $this->vncPassword   = $vncPassword;
@@ -85,6 +87,9 @@ class McpInstance
     private int $mcpPort;
 
     #[ORM\Column(type: Types::INTEGER, nullable: false)]
+    private int $mcpProxyPort;
+
+    #[ORM\Column(type: Types::INTEGER, nullable: false)]
     private int $vncPort;
 
     #[ORM\Column(type: Types::INTEGER, nullable: false)]
@@ -121,6 +126,11 @@ class McpInstance
     public function getMcpPort(): int
     {
         return $this->mcpPort;
+    }
+
+    public function getMcpProxyPort(): int
+    {
+        return $this->mcpProxyPort;
     }
 
     public function getVncPort(): int

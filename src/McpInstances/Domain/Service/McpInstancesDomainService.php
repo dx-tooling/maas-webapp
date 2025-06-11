@@ -41,11 +41,13 @@ readonly class McpInstancesDomainService
         // Generate unique display/port numbers
         $usedDisplays       = array_map(fn (McpInstance $i): int => $i->getDisplayNumber(), $repo->findAll());
         $usedMcpPorts       = array_map(fn (McpInstance $i): int => $i->getMcpPort(), $repo->findAll());
+        $usedMcpProxyPorts  = array_map(fn (McpInstance $i): int => $i->getMcpProxyPort(), $repo->findAll());
         $usedVncPorts       = array_map(fn (McpInstance $i): int => $i->getVncPort(), $repo->findAll());
         $usedWebsocketPorts = array_map(fn (McpInstance $i): int => $i->getWebsocketPort(), $repo->findAll());
 
         $displayNumber = self::findFreeNumber(100, 199, $usedDisplays);
         $mcpPort       = self::findFreeNumber(11111, 11200, $usedMcpPorts);
+        $mcpProxyPort  = self::findFreeNumber(9100, 9199, $usedMcpProxyPorts);
         $vncPort       = self::findFreeNumber(22222, 22300, $usedVncPorts);
         $websocketPort = self::findFreeNumber(33333, 33400, $usedWebsocketPorts);
         $screenWidth   = 1280;
@@ -60,6 +62,7 @@ readonly class McpInstancesDomainService
             $screenHeight,
             $colorDepth,
             $mcpPort,
+            $mcpProxyPort,
             $vncPort,
             $websocketPort,
             $vncPassword

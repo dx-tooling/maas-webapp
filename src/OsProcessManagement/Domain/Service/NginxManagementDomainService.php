@@ -13,56 +13,33 @@ readonly class NginxManagementDomainService
      */
     public static function generateNginxConfig(array $instanceInfos): string
     {
-        $config = "# Port mappings\n";
-        $config .= "map \$instance_id \$backend_port {\n";
-        $config .= "    default \"\";\n";
-        foreach ($instanceInfos as $instance) {
-            $sanitizedId = str_replace('-', '', $instance->id ?? '');
-            $config .= sprintf("    %s \"%d\";\n", $sanitizedId, $instance->mcpPort);
-        }
-        $config .= "}\n\n";
+        $config = "";
 
-        // Generate token validation maps for each instance
+        // Generate server blocks for each instance
         foreach ($instanceInfos as $instance) {
-            $sanitizedId = str_replace('-', '', $instance->id ?? '');
-            $config .= sprintf("# Token validation for instance %s\n", $instance->id);
-            $config .= sprintf("map \$http_authorization \$is_valid_%s {\n", $sanitizedId);
-            $config .= "    default \"0\";\n";
-            $config .= sprintf("    \"Bearer %s\" \"1\";\n", $instance->password);
+            $config .= sprintf("# Server block for instance %s\n", $instance->id);
+            $config .= sprintf("server {\n");
+            $config .= sprintf("    listen %d;\n", $instance->mcpProxyPort);
+            $config .= "    server_name 127.0.0.1;\n\n";
+
+            $config .= "    # Access and error logs\n";
+            $config .= sprintf("    access_log /var/log/nginx/mcp-proxy-%s.access.log;\n", $instance->id);
+            $config .= sprintf("    error_log /var/log/nginx/mcp-proxy-%s.error.log;\n\n", $instance->id);
+
+            // Bearer token validation
+            $config .= "    # Bearer token validation\n";
+            $config .= "    if (\$http_authorization !~ \"^Bearer " . $instance->password . "$\") {\n";
+            $config .= "        return 401 'Unauthorized';\n";
+            $config .= "    }\n\n";
+
+            // Proxy to the MCP server
+            $config .= "    # Proxy to MCP server\n";
+            $config .= sprintf("    set \$backend_port %d;\n", $instance->mcpPort);
+            $config .= sprintf("    location / {\n");
+            $config .= "        proxy_pass http://127.0.0.1:\$backend_port;\n";
+            $config .= "    }\n";
             $config .= "}\n\n";
         }
-
-        // Generate basic auth validation maps for each instance
-        foreach ($instanceInfos as $instance) {
-            $sanitizedId = str_replace('-', '', $instance->id ?? '');
-            $username    = 'user' . $sanitizedId;
-            $basicAuth   = base64_encode($username . ':' . $instance->password);
-            $config .= sprintf("# Basic Auth validation for instance %s\n", $instance->id);
-            $config .= sprintf("map \$http_authorization \$is_valid_basic_%s {\n", $sanitizedId);
-            $config .= "    default \"0\";\n";
-            $config .= sprintf("    \"Basic %s\" \"1\";\n", $basicAuth);
-            $config .= "}\n\n";
-        }
-
-        // Generate final validation map
-        $config .= "# Final validation map\n";
-        $config .= "map \$instance_id \$is_valid {\n";
-        $config .= "    default \"0\";\n";
-        foreach ($instanceInfos as $instance) {
-            $sanitizedId = str_replace('-', '', $instance->id ?? '');
-            $config .= sprintf("    %s \$is_valid_%s;\n", $sanitizedId, $sanitizedId);
-        }
-        $config .= "}\n\n";
-
-        // Generate final basic auth validation map
-        $config .= "# Final basic auth validation map\n";
-        $config .= "map \$instance_id \$is_valid_basic {\n";
-        $config .= "    default \"0\";\n";
-        foreach ($instanceInfos as $instance) {
-            $sanitizedId = str_replace('-', '', $instance->id ?? '');
-            $config .= sprintf("    %s \$is_valid_basic_%s;\n", $sanitizedId, $sanitizedId);
-        }
-        $config .= "}\n";
 
         return $config;
     }

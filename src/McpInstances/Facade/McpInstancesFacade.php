@@ -30,6 +30,7 @@ readonly class McpInstancesFacade implements McpInstancesFacadeInterface
                 $i->getId(),
                 $i->getDisplayNumber(),
                 $i->getMcpPort(),
+                $i->getMcpProxyPort(),
                 $i->getVncPort(),
                 $i->getWebsocketPort(),
                 $i->getVncPassword()
@@ -55,6 +56,7 @@ readonly class McpInstancesFacade implements McpInstancesFacadeInterface
                 $i->getId(),
                 $i->getDisplayNumber(),
                 $i->getMcpPort(),
+                $i->getMcpProxyPort(),
                 $i->getVncPort(),
                 $i->getWebsocketPort(),
                 $i->getVncPassword()
@@ -71,6 +73,7 @@ readonly class McpInstancesFacade implements McpInstancesFacadeInterface
             $instance->getId(),
             $instance->getDisplayNumber(),
             $instance->getMcpPort(),
+            $instance->getMcpProxyPort(),
             $instance->getVncPort(),
             $instance->getWebsocketPort(),
             $instance->getVncPassword()

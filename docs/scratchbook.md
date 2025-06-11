@@ -3,6 +3,14 @@ https://www.reddit.com/r/mcp/comments/1jr75bi/playwright_mcp_as_an_external_serv
 https://github.com/microsoft/playwright-mcp
 
 
+docker run -it \
+-v "$(pwd):/source" -v mcp-hdd:/mcp \
+-p 127.0.0.1:11111:11111 \
+-p 127.0.0.1:22222:22222 \
+-p 127.0.0.1:33333:33333 \
+-p 127.0.0.1:44444:44444 \
+ubuntu:24.04 /bin/bash
+
 AWS Infra Account (herodot infra webapp prod): 230024871185, us-west-1
 
 
@@ -14,26 +22,37 @@ curl http://54.176.83.80/sse/10001 -H "Authorization: Bearer token1a"
 
 10001 -> service ID -> MCP at port 8001
 
-sudo apt update
-sudo apt install xvfb
-Xvfb :99 -screen 0 1024x768x24 &
-export DISPLAY=:99
 
 
+
+apt update
+apt install software-properties-common
+add-apt-repository ppa:ondrej/php
+apt update
+apt install vim curl mariadb-server php8.4-cli php8.4-xml php8.4-mysql composer xvfb x11vnc novnc websockify python3-websockify tigervnc-standalone-server
+
+service mariadb start
+mysql -uroot -e "CREATE DATABASE playwright_mcp_cloud_webapp_dev;"
+mysql -uroot -e "GRANT ALL PRIVILEGES ON *.* TO 'root'@'localhost' IDENTIFIED BY 'secret';"
+
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+nvm install 22
+npm init
+npm install @playwright/mcp@latest
 npx playwright install-deps
 npx playwright install chromium
-npx @playwright/mcp@latest --port 8931 --headless --browser chromium --isolated --no-sandbox --host 127.0.0.1
+
+php bin/console doctrine:migrations:migrate
 
 
 
-
-
-sudo apt install novnc websockify python3-websockify tigervnc-standalone-server
-
-vncpasswd
+echo "test123" | vncpasswd -f > test.pwd
 
 mkdir -p ~/.vnc
-nano ~/.vnc/xstartup
+vim ~/.vnc/xstartup
 
 #!/bin/bash
 unset SESSION_MANAGER
@@ -45,8 +64,19 @@ dbus-launch --exit-with-session xfce4-session &
 
 chmod +x ~/.vnc/xstartup
 
-x11vnc -display :99 -forever -shared -rfbport 5901 -rfbauth ~/.vnc/passwd
-
-websockify --web=/usr/share/novnc/ 80 localhost:5901
 
 
+
+# launch virtual frame buffer
+Xvfb :99 -screen 0 1024x768x24
+
+# launch playwright mcp using the vfb as its display
+export DISPLAY=:99
+npx @playwright/mcp@latest --port 11111 --headless --browser chromium --isolated --no-sandbox --host 0.0.0.0
+
+# set up and launch the vnc server on the vfb display
+echo "test123" | vncpasswd -f > /var/tmp/22222.pwd
+x11vnc -display :99 -forever -shared -rfbport 22222 -rfbauth /var/tmp/22222.pwd
+
+# make the vnc server reachable via a web client
+websockify --web=/usr/share/novnc/ 33333 localhost:22222

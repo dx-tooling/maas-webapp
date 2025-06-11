@@ -38,18 +38,25 @@ readonly class McpInstancesDomainService
             throw new LogicException('Account already has an MCP instance.');
         }
 
-        // Generate unique display/port numbers
-        $usedDisplays       = array_map(fn (McpInstance $i): int => $i->getDisplayNumber(), $repo->findAll());
-        $usedMcpPorts       = array_map(fn (McpInstance $i): int => $i->getMcpPort(), $repo->findAll());
-        $usedMcpProxyPorts  = array_map(fn (McpInstance $i): int => $i->getMcpProxyPort(), $repo->findAll());
-        $usedVncPorts       = array_map(fn (McpInstance $i): int => $i->getVncPort(), $repo->findAll());
-        $usedWebsocketPorts = array_map(fn (McpInstance $i): int => $i->getWebsocketPort(), $repo->findAll());
+        // Gather all used port numbers (across all types)
+        $allInstances = $repo->findAll();
+        $usedPorts = [];
+        foreach ($allInstances as $i) {
+            $usedPorts[] = $i->getMcpPort();
+            $usedPorts[] = $i->getMcpProxyPort();
+            $usedPorts[] = $i->getVncPort();
+            $usedPorts[] = $i->getWebsocketPort();
+        }
 
-        $displayNumber = self::findFreeNumber(100, 199, $usedDisplays);
-        $mcpPort       = self::findFreeNumber(11111, 11200, $usedMcpPorts);
-        $mcpProxyPort  = self::findFreeNumber(9100, 9199, $usedMcpProxyPorts);
-        $vncPort       = self::findFreeNumber(22222, 22300, $usedVncPorts);
-        $websocketPort = self::findFreeNumber(33333, 33400, $usedWebsocketPorts);
+        $displayNumber = self::findRandomFreeNumber(100, 2147483647, array_map(fn (McpInstance $i): int => $i->getDisplayNumber(), $allInstances));
+        $mcpPort       = self::findRandomFreeNumber(10000, 65000, $usedPorts);
+        $usedPorts[]   = $mcpPort;
+        $mcpProxyPort  = self::findRandomFreeNumber(10000, 65000, $usedPorts);
+        $usedPorts[]   = $mcpProxyPort;
+        $vncPort       = self::findRandomFreeNumber(10000, 65000, $usedPorts);
+        $usedPorts[]   = $vncPort;
+        $websocketPort = self::findRandomFreeNumber(10000, 65000, $usedPorts);
+        $usedPorts[]   = $websocketPort;
         $screenWidth   = 1280;
         $screenHeight  = 720;
         $colorDepth    = 24;
@@ -106,13 +113,16 @@ readonly class McpInstancesDomainService
     /**
      * @param int[] $used
      */
-    private static function findFreeNumber(int $min, int $max, array $used): int
+    private static function findRandomFreeNumber(int $min, int $max, array $used): int
     {
-        for ($i = $min; $i <= $max; ++$i) {
-            if (!in_array($i, $used, true)) {
-                return $i;
+        $used = array_flip($used);
+        $maxAttempts = 1000;
+        for ($attempt = 0; $attempt < $maxAttempts; ++$attempt) {
+            $candidate = random_int($min, $max);
+            if (!isset($used[$candidate])) {
+                return $candidate;
             }
         }
-        throw new RuntimeException('No free number in range.');
+        throw new RuntimeException('No free number found in range after many attempts.');
     }
 }

@@ -65,10 +65,6 @@
                         </td>
                         <td class="etfswui-table-cell">
                             <a href="#proxy-{{ instance.mcpProxyPort }}" class="etfswui-link">{{ instance.mcpProxyPort }}</a>
-                            <div class="text-sm text-gray-500">
-                                <div>Bearer: {{ instance.password }}</div>
-                                <div>Basic: user{{ instance.id|replace({'-': ''}) }}:{{ instance.password }}</div>
-                            </div>
                         </td>
                         <td class="etfswui-table-cell">
                             <a href="#vnc-{{ instance.vncPort }}" class="etfswui-link {% if not vncPorts[instance.vncPort]|default(false) %}etfswui-text-red{% endif %}">{{ instance.vncPort }}</a>

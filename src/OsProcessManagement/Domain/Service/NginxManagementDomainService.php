@@ -13,7 +13,7 @@ readonly class NginxManagementDomainService
      */
     public static function generateNginxConfig(array $instanceInfos): string
     {
-        $config = "";
+        $config = '';
 
         // Generate server blocks for each instance
         foreach ($instanceInfos as $instance) {
@@ -28,7 +28,7 @@ readonly class NginxManagementDomainService
 
             // Bearer token validation
             $config .= "    # Bearer token validation\n";
-            $config .= "    if (\$http_authorization !~ \"^Bearer " . $instance->password . "$\") {\n";
+            $config .= '    if ($http_authorization !~ "^Bearer ' . $instance->password . "$\") {\n";
             $config .= "        return 401 'Unauthorized';\n";
             $config .= "    }\n\n";
 

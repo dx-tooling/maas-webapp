@@ -37,8 +37,8 @@
                         </div>
                         <div class="space-y-4">
                             <div>
-                                <div class="etfswui-text font-semibold mb-1">MCP Port</div>
-                                <input type="text" class="etfswui-form-input w-full max-w-xs" value="{{ instance.mcpPort }}" readonly onclick="this.select()" aria-label="MCP Port" />
+                                <div class="etfswui-text font-semibold mb-1">Password</div>
+                                <input type="text" class="etfswui-form-input w-full max-w-xs" value="{{ instance.password }}" readonly onclick="this.select()" aria-label="Password" />
                             </div>
                         </div>
                         <div class="space-y-4">
@@ -63,7 +63,7 @@
 
                     <div class="etfswui-card bg-dark-50 dark:bg-dark-800/50 border border-dark-200 dark:border-dark-700 p-6 mt-8 text-left">
                         <div class="etfswui-card-title">
-                            <span class="etfswui-card-title-text">Playwright SSE Endpoint</span>
+                            <span class="etfswui-card-title-text">Playwright MCP Endpoint</span>
                         </div>
                         <div class="etfswui-card-content space-y-4 bg-green-50 dark:bg-green-900/10">
                             <div>
@@ -71,10 +71,10 @@
                                 <input type="text" class="etfswui-form-input w-full max-w-xl" value="http://127.0.0.1:{{ instance.mcpProxyPort }}" readonly onclick="this.select()" aria-label="SSE Endpoint" />
                             </div>
                             <div>
-                                <div class="etfswui-text-small mb-1">cURL Example:</div>
+                                <div class="etfswui-text-small mb-1">cURL Example (SSE):</div>
                                 <pre class="etfswui-form-input bg-dark-100 dark:bg-dark-900 text-sm p-3 overflow-x-auto select-all"><code>curl \
   -H "Authorization: Bearer {{ instance.password }}" \
-  http://127.0.0.1:{{ instance.mcpProxyPort }}/mcp</code></pre>
+  http://127.0.0.1:{{ instance.mcpProxyPort }}/sse</code></pre>
                             </div>
                             <div>
                                 <div class="etfswui-text-small mb-1">Cursor IDE .cursor/mcp.json Example:</div>
@@ -94,6 +94,10 @@
 
                     <div class="mt-8">
                         <div class="etfswui-text font-semibold mb-1">VNC Web Client</div>
+                        <div class="etfswui-text mb-2">
+                            This allows you to access the Playwright MCP browser session via VNC. When prompted for a password, use:
+                        </div>
+                        <input type="text" class="etfswui-form-input w-full max-w-xs mb-4" value="{{ instance.password }}" readonly onclick="this.select()" aria-label="VNC Password" />
                         <div class="flex gap-2 items-center">
                             <a href="http://127.0.0.1:{{ instance.websocketPort }}/vnc.html?host=127.0.0.1&port={{ instance.websocketPort }}"
                                class="etfswui-link-as-button-secondary"

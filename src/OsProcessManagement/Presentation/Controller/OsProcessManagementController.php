@@ -21,7 +21,7 @@ class OsProcessManagementController extends AbstractController
     }
 
     #[Route(
-        path   : '/os-process-management/dashboard',
+        path   : '/admin/os-process-management/dashboard',
         name   : 'os_process_management.presentation.dashboard',
         methods: [Request::METHOD_GET]
     )]
@@ -111,7 +111,7 @@ class OsProcessManagementController extends AbstractController
     }
 
     #[Route(
-        path   : '/os-process-management/launch',
+        path   : '/admin/os-process-management/launch',
         name   : 'os_process_management.presentation.launch',
         methods: [Request::METHOD_POST]
     )]
@@ -143,7 +143,7 @@ class OsProcessManagementController extends AbstractController
     }
 
     #[Route(
-        path   : '/os-process-management/stop-instance',
+        path   : '/admin/os-process-management/stop-instance',
         name   : 'os_process_management.presentation.stop_instance',
         methods: [Request::METHOD_POST]
     )]
@@ -166,7 +166,7 @@ class OsProcessManagementController extends AbstractController
     }
 
     #[Route(
-        path   : '/os-process-management/stop-process',
+        path   : '/admin/os-process-management/stop-process',
         name   : 'os_process_management.presentation.stop_process',
         methods: [Request::METHOD_POST]
     )]

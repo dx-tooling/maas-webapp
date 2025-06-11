@@ -55,6 +55,13 @@ readonly class MainNavigationPresentationService extends AbstractMainNavigationS
             )
         ];
 
+        if ($this->security->isGranted('ROLE_ADMIN')) {
+            $entries[] = $this->generateEntry(
+                'OS Process Management',
+                'os_process_management.presentation.dashboard',
+            );
+        }
+
         return $entries;
     }
 
@@ -68,12 +75,14 @@ readonly class MainNavigationPresentationService extends AbstractMainNavigationS
      */
     protected function getSecondaryMainNavigationEntries(): array
     {
-        $entries = [
-            $this->generateEntry(
-                'About',
-                'website_content.presentation.about',
-            )
-        ];
+        if ($this->security->isGranted('PUBLIC_ACCESS')) {
+            $entries = [
+                $this->generateEntry(
+                    'About',
+                    'website_content.presentation.about',
+                )
+            ];
+        }
 
         // Add account-related entries
         if ($this->security->isGranted('ROLE_USER')) {

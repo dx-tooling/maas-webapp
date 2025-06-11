@@ -1,45 +1,30 @@
 {% extends '@common.presentation/base_appshell.html.twig' %}
 
 {% block body %}
-    <div class="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-        <div class="max-w-7xl mx-auto">
-            <div class="bg-white shadow overflow-hidden sm:rounded-lg">
-                <div class="px-4 py-5 sm:px-6">
-                    <h3 class="text-lg leading-6 font-medium text-gray-900">
-                        Account Dashboard
-                    </h3>
-                    <p class="mt-1 max-w-2xl text-sm text-gray-500">
-                        Welcome back, {{ app.user.email }}!
-                    </p>
+    <h1 class="etfswui-pagetitle mb-10">Account Dashboard</h1>
+    <div class="etfswui-card max-w-2xl mb-8">
+        <div class="etfswui-card-title">
+            <h2 class="etfswui-card-title-text">Account Information</h2>
+        </div>
+        <div class="etfswui-card-content">
+            <p class="mb-6 text-gray-500">Welcome back, {{ app.user.email }}!</p>
+            <dl class="etfswui-description-list">
+                <div class="etfswui-description-list-item">
+                    <dt class="etfswui-description-list-term">Email address</dt>
+                    <dd class="etfswui-description-list-description">{{ app.user.email }}</dd>
                 </div>
-                <div class="border-t border-gray-200 px-4 py-5 sm:px-6">
-                    <dl class="grid grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-2">
-                        <div class="sm:col-span-1">
-                            <dt class="text-sm font-medium text-gray-500">
-                                Email address
-                            </dt>
-                            <dd class="mt-1 text-sm text-gray-900">
-                                {{ app.user.email }}
-                            </dd>
-                        </div>
-                        <div class="sm:col-span-1">
-                            <dt class="text-sm font-medium text-gray-500">
-                                Account created
-                            </dt>
-                            <dd class="mt-1 text-sm text-gray-900">
-                                {{ app.user.createdAt|date('Y-m-d H:i:s') }}
-                            </dd>
-                        </div>
-                    </dl>
+                <div class="etfswui-description-list-item">
+                    <dt class="etfswui-description-list-term">Account created</dt>
+                    <dd class="etfswui-description-list-description">{{ app.user.createdAt|date('Y-m-d H:i:s') }}</dd>
                 </div>
-                <div class="px-4 py-5 sm:px-6">
-                    <form action="{{ path('account.presentation.sign_out') }}" method="post" class="inline">
-                        <input type="hidden" name="_csrf_token" value="{{ csrf_token('logout') }}">
-                        <button type="submit" class="etfswui-button-danger">
-                            Sign out
-                        </button>
-                    </form>
-                </div>
+            </dl>
+            <div class="mt-8">
+                <form action="{{ path('account.presentation.sign_out') }}" method="post" class="inline">
+                    <input type="hidden" name="_csrf_token" value="{{ csrf_token('logout') }}">
+                    <button type="submit" class="etfswui-button-danger">
+                        Sign out
+                    </button>
+                </form>
             </div>
         </div>
     </div>

@@ -35,6 +35,7 @@ security:
         - { path: ^/account/dashboard, roles: ROLE_USER }
         - { path: ^/account/sign-in, roles: PUBLIC_ACCESS }
         - { path: ^/account/sign-up, roles: PUBLIC_ACCESS }
+        - { path: ^/admin, roles: ROLE_ADMIN }
 
 when@test:
     security:

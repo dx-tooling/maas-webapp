@@ -1,66 +1,62 @@
-{% extends '@common.presentation/base_appshell.html.twig' %}
+{% extends '@common.presentation/base_fullcontent.html.twig' %}
 
 {% block body %}
-    <div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-        <div class="etfswui-card max-w-md w-full">
-            <div class="etfswui-card-title">
-                <h2 class="etfswui-card-title-text">Sign in to your account</h2>
-            </div>
-            <div class="etfswui-card-content">
-                {% for message in app.flashes('error') %}
-                    <div class="etfswui-alert etfswui-alert-danger mb-6">
+    <h1 class="etfswui-pagetitle mb-10 text-center">Sign in to your account</h1>
+    <div class="etfswui-card max-w-md mx-auto mb-8">
+        <div class="etfswui-card-content">
+            {% for message in app.flashes('error') %}
+                <div class="etfswui-alert etfswui-alert-danger mb-6">
+                    <div class="etfswui-alert-body">
+                        <p class="etfswui-alert-danger-text">{{ message }}</p>
+                    </div>
+                </div>
+            {% endfor %}
+
+            {% for message in app.flashes('success') %}
+                <div class="etfswui-alert etfswui-alert-success mb-6">
+                    <div class="etfswui-alert-body">
+                        <p class="etfswui-alert-success-text">{{ message }}</p>
+                    </div>
+                </div>
+            {% endfor %}
+
+            <form action="{{ path('account.presentation.sign_in') }}" method="post" class="space-y-6">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+
+                <div>
+                    <label for="email" class="etfswui-form-label">Email address</label>
+                    <input id="email" name="email" type="email" required
+                           class="etfswui-form-input"
+                           placeholder="Enter your email"
+                           value="{{ last_username }}">
+                </div>
+
+                <div>
+                    <label for="password" class="etfswui-form-label">Password</label>
+                    <input id="password" name="password" type="password" required
+                           class="etfswui-form-input"
+                           placeholder="Enter your password">
+                </div>
+
+                {% if error %}
+                    <div class="etfswui-alert etfswui-alert-danger">
                         <div class="etfswui-alert-body">
-                            <p class="etfswui-alert-danger-text">{{ message }}</p>
+                            <p class="etfswui-alert-danger-text">
+                                {{ error.messageKey|trans(error.messageData, 'security') }}
+                            </p>
                         </div>
                     </div>
-                {% endfor %}
+                {% endif %}
 
-                {% for message in app.flashes('success') %}
-                    <div class="etfswui-alert etfswui-alert-success mb-6">
-                        <div class="etfswui-alert-body">
-                            <p class="etfswui-alert-success-text">{{ message }}</p>
-                        </div>
-                    </div>
-                {% endfor %}
-
-                <form action="{{ path('account.presentation.sign_in') }}" method="post" class="space-y-6">
-                    <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
-
-                    <div>
-                        <label for="email" class="etfswui-form-label">Email address</label>
-                        <input id="email" name="email" type="email" required
-                               class="etfswui-form-input"
-                               placeholder="Enter your email"
-                               value="{{ last_username }}">
-                    </div>
-
-                    <div>
-                        <label for="password" class="etfswui-form-label">Password</label>
-                        <input id="password" name="password" type="password" required
-                               class="etfswui-form-input"
-                               placeholder="Enter your password">
-                    </div>
-
-                    {% if error %}
-                        <div class="etfswui-alert etfswui-alert-danger">
-                            <div class="etfswui-alert-body">
-                                <p class="etfswui-alert-danger-text">
-                                    {{ error.messageKey|trans(error.messageData, 'security') }}
-                                </p>
-                            </div>
-                        </div>
-                    {% endif %}
-
-                    <div class="etfswui-card-actions">
-                        <a href="{{ path('account.presentation.sign_up') }}" class="etfswui-link-as-button-secondary">
-                            Create account
-                        </a>
-                        <button type="submit" class="etfswui-button-default">
-                            Sign in
-                        </button>
-                    </div>
-                </form>
-            </div>
+                <div class="etfswui-card-actions">
+                    <a href="{{ path('account.presentation.sign_up') }}" class="etfswui-link-as-button-secondary">
+                        Create account
+                    </a>
+                    <button type="submit" class="etfswui-button-default">
+                        Sign in
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
-{% endblock %} 
+{% endblock %}

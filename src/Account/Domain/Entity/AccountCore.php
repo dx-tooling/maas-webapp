@@ -84,7 +84,7 @@ class AccountCore implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(
         type: Types::JSON
     )]
-    private readonly array $roles;
+    private array $roles;
 
     /**
      * @return string[]
@@ -92,6 +92,14 @@ class AccountCore implements UserInterface, PasswordAuthenticatedUserInterface
     public function getRoles(): array
     {
         return $this->roles;
+    }
+
+    /**
+     * @param string[] $roles
+     */
+    public function setRoles(array $roles): void
+    {
+        $this->roles = $roles;
     }
 
     public function eraseCredentials(): void

@@ -8,6 +8,10 @@
             background-color: #e0e7ff;
             transition: background-color 0.5s;
         }
+        .etfswui-text-red {
+            color: #dc2626;
+            font-weight: bold;
+        }
     </style>
 {% endblock %}
 
@@ -43,6 +47,7 @@
                         <th class="etfswui-table-header">VNC Port</th>
                         <th class="etfswui-table-header">WebSocket Port</th>
                         <th class="etfswui-table-header">WebSocket Password</th>
+                        <th class="etfswui-table-header">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -52,18 +57,27 @@
                             <a href="{{ path('os_process_management.presentation.dashboard', {'instance': instance.id}) }}" class="etfswui-link">{{ instance.id }}</a>
                         </td>
                         <td class="etfswui-table-cell">
-                            <a href="#xvfb-{{ instance.displayNumber }}" class="etfswui-link">:{{ instance.displayNumber }}</a>
+                            <a href="#xvfb-{{ instance.displayNumber }}" class="etfswui-link {% if not displayNumbers[instance.displayNumber]|default(false) %}etfswui-text-red{% endif %}">:{{ instance.displayNumber }}</a>
                         </td>
                         <td class="etfswui-table-cell">
-                            <a href="#mcp-{{ instance.mcpPort }}" class="etfswui-link">{{ instance.mcpPort }}</a>
+                            <a href="#mcp-{{ instance.mcpPort }}" class="etfswui-link {% if not mcpPorts[instance.mcpPort]|default(false) %}etfswui-text-red{% endif %}">{{ instance.mcpPort }}</a>
                         </td>
                         <td class="etfswui-table-cell">
-                            <a href="#vnc-{{ instance.vncPort }}" class="etfswui-link">{{ instance.vncPort }}</a>
+                            <a href="#vnc-{{ instance.vncPort }}" class="etfswui-link {% if not vncPorts[instance.vncPort]|default(false) %}etfswui-text-red{% endif %}">{{ instance.vncPort }}</a>
                         </td>
                         <td class="etfswui-table-cell">
-                            <a href="#ws-{{ instance.websocketPort }}" class="etfswui-link">{{ instance.websocketPort }}</a>
+                            <a href="#ws-{{ instance.websocketPort }}" class="etfswui-link {% if not websocketPorts[instance.websocketPort]|default(false) %}etfswui-text-red{% endif %}">{{ instance.websocketPort }}</a>
                         </td>
                         <td class="etfswui-table-cell">{{ instance.websocketPassword }}</td>
+                        <td class="etfswui-table-cell">
+                            <form method="post" action="{{ path('os_process_management.presentation.stop_instance') }}" style="display:inline">
+                                <input type="hidden" name="displayNumber" value="{{ instance.displayNumber }}">
+                                <input type="hidden" name="mcpPort" value="{{ instance.mcpPort }}">
+                                <input type="hidden" name="vncPort" value="{{ instance.vncPort }}">
+                                <input type="hidden" name="websocketPort" value="{{ instance.websocketPort }}">
+                                <button type="submit" class="etfswui-button-danger etfswui-button-xs">Stop</button>
+                            </form>
+                        </td>
                     </tr>
                 {% else %}
                     <tr><td class="etfswui-table-cell" colspan="6">No known MCP instances.</td></tr>
@@ -127,6 +141,7 @@
                 <table class="etfswui-table">
                     <thead class="bg-dark-50 dark:bg-dark-700/50">
                         <tr>
+                            <th class="etfswui-table-header">Actions</th>
                             <th class="etfswui-table-header">Instance</th>
                             <th class="etfswui-table-header">PID</th>
                             <th class="etfswui-table-header">Display</th>
@@ -138,6 +153,14 @@
                     <tbody>
                     {% for row in virtualFramebuffers %}
                         <tr class="etfswui-content-table-row" id="xvfb-{{ row.proc.displayNumber }}">
+                            <td class="etfswui-table-cell">
+                                <form method="post" action="{{ path('os_process_management.presentation.stop_process') }}" style="display:inline">
+                                    <input type="hidden" name="pid" value="{{ row.proc.pid }}">
+                                    <input type="hidden" name="type" value="xvfb">
+                                    <input type="hidden" name="displayNumber" value="{{ row.proc.displayNumber }}">
+                                    <button type="submit" class="etfswui-button-danger etfswui-button-xs">Stop</button>
+                                </form>
+                            </td>
                             <td class="etfswui-table-cell">{% if row.instanceId %}<a href="{{ path('os_process_management.presentation.dashboard', {'instance': row.instanceId}) }}" class="etfswui-link">{{ row.instanceId }}</a>{% endif %}</td>
                             <td class="etfswui-table-cell">{{ row.proc.pid }}</td>
                             <td class="etfswui-table-cell">:{{ row.proc.displayNumber }}</td>
@@ -161,6 +184,7 @@
                 <table class="etfswui-table">
                     <thead class="bg-dark-50 dark:bg-dark-700/50">
                         <tr>
+                            <th class="etfswui-table-header">Actions</th>
                             <th class="etfswui-table-header">Instance</th>
                             <th class="etfswui-table-header">PID</th>
                             <th class="etfswui-table-header">Port</th>
@@ -172,6 +196,14 @@
                     <tbody>
                     {% for row in playwrightMcps %}
                         <tr class="etfswui-content-table-row" id="mcp-{{ row.proc.mcpPort }}">
+                            <td class="etfswui-table-cell">
+                                <form method="post" action="{{ path('os_process_management.presentation.stop_process') }}" style="display:inline">
+                                    <input type="hidden" name="pid" value="{{ row.proc.pid }}">
+                                    <input type="hidden" name="type" value="mcp">
+                                    <input type="hidden" name="mcpPort" value="{{ row.proc.mcpPort }}">
+                                    <button type="submit" class="etfswui-button-danger etfswui-button-xs">Stop</button>
+                                </form>
+                            </td>
                             <td class="etfswui-table-cell">{% if row.instanceId %}<a href="{{ path('os_process_management.presentation.dashboard', {'instance': row.instanceId}) }}" class="etfswui-link">{{ row.instanceId }}</a>{% endif %}</td>
                             <td class="etfswui-table-cell">{{ row.proc.pid }}</td>
                             <td class="etfswui-table-cell">{{ row.proc.mcpPort }}</td>
@@ -195,6 +227,7 @@
                 <table class="etfswui-table">
                     <thead class="bg-dark-50 dark:bg-dark-700/50">
                         <tr>
+                            <th class="etfswui-table-header">Actions</th>
                             <th class="etfswui-table-header">Instance</th>
                             <th class="etfswui-table-header">PID</th>
                             <th class="etfswui-table-header">Display</th>
@@ -207,6 +240,15 @@
                     <tbody>
                     {% for row in vncServers %}
                         <tr class="etfswui-content-table-row" id="vnc-{{ row.proc.port }}">
+                            <td class="etfswui-table-cell">
+                                <form method="post" action="{{ path('os_process_management.presentation.stop_process') }}" style="display:inline">
+                                    <input type="hidden" name="pid" value="{{ row.proc.pid }}">
+                                    <input type="hidden" name="type" value="vnc">
+                                    <input type="hidden" name="vncPort" value="{{ row.proc.port }}">
+                                    <input type="hidden" name="displayNumber" value="{{ row.proc.displayNumber }}">
+                                    <button type="submit" class="etfswui-button-danger etfswui-button-xs">Stop</button>
+                                </form>
+                            </td>
                             <td class="etfswui-table-cell">{% if row.instanceId %}<a href="{{ path('os_process_management.presentation.dashboard', {'instance': row.instanceId}) }}" class="etfswui-link">{{ row.instanceId }}</a>{% endif %}</td>
                             <td class="etfswui-table-cell">{{ row.proc.pid }}</td>
                             <td class="etfswui-table-cell">:{{ row.proc.displayNumber }}</td>
@@ -231,6 +273,7 @@
                 <table class="etfswui-table">
                     <thead class="bg-dark-50 dark:bg-dark-700/50">
                         <tr>
+                            <th class="etfswui-table-header">Actions</th>
                             <th class="etfswui-table-header">Instance</th>
                             <th class="etfswui-table-header">PID</th>
                             <th class="etfswui-table-header">HTTP Port</th>
@@ -243,6 +286,14 @@
                     <tbody>
                     {% for row in vncWebsockets %}
                         <tr class="etfswui-content-table-row" id="ws-{{ row.proc.httpPort }}">
+                            <td class="etfswui-table-cell">
+                                <form method="post" action="{{ path('os_process_management.presentation.stop_process') }}" style="display:inline">
+                                    <input type="hidden" name="pid" value="{{ row.proc.pid }}">
+                                    <input type="hidden" name="type" value="ws">
+                                    <input type="hidden" name="websocketPort" value="{{ row.proc.httpPort }}">
+                                    <button type="submit" class="etfswui-button-danger etfswui-button-xs">Stop</button>
+                                </form>
+                            </td>
                             <td class="etfswui-table-cell">{% if row.instanceId %}<a href="{{ path('os_process_management.presentation.dashboard', {'instance': row.instanceId}) }}" class="etfswui-link">{{ row.instanceId }}</a>{% endif %}</td>
                             <td class="etfswui-table-cell">{{ row.proc.pid }}</td>
                             <td class="etfswui-table-cell">{{ row.proc.httpPort }}</td>

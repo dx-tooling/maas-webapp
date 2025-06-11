@@ -75,6 +75,24 @@ class OsProcessManagementController extends AbstractController
         $vncServers          = $annotate($service->getRunningVncServers(), 'vnc');
         $vncWebsockets       = $annotate($service->getRunningVncWebsockets(), 'ws');
 
+        // Collect sets of numbers/ports present in the process lists
+        $displayNumbers = [];
+        foreach ($service->getRunningVirtualFramebuffers() as $proc) {
+            $displayNumbers[$proc->displayNumber] = true;
+        }
+        $mcpPorts = [];
+        foreach ($service->getRunningPlaywrightMcps() as $proc) {
+            $mcpPorts[$proc->mcpPort] = true;
+        }
+        $vncPorts = [];
+        foreach ($service->getRunningVncServers() as $proc) {
+            $vncPorts[$proc->port] = true;
+        }
+        $websocketPorts = [];
+        foreach ($service->getRunningVncWebsockets() as $proc) {
+            $websocketPorts[$proc->httpPort] = true;
+        }
+
         return $this->render(
             '@os_process_management.presentation/dashboard.html.twig',
             [
@@ -84,6 +102,10 @@ class OsProcessManagementController extends AbstractController
                 'vncWebsockets'       => $vncWebsockets,
                 'mcpInstances'        => $mcpInstances,
                 'selectedInstanceId'  => $selectedInstanceId,
+                'displayNumbers'      => $displayNumbers,
+                'mcpPorts'            => $mcpPorts,
+                'vncPorts'            => $vncPorts,
+                'websocketPorts'      => $websocketPorts,
             ]
         );
     }
@@ -116,6 +138,53 @@ class OsProcessManagementController extends AbstractController
         );
 
         $this->addFlash('success', 'Playwright setup launched successfully.');
+
+        return $this->redirectToRoute('os_process_management.presentation.dashboard');
+    }
+
+    #[Route(
+        path   : '/os-process-management/stop-instance',
+        name   : 'os_process_management.presentation.stop_instance',
+        methods: [Request::METHOD_POST]
+    )]
+    public function stopInstanceAction(Request $request, OsProcessManagementDomainService $service): RedirectResponse
+    {
+        $displayNumber = (int)$request->request->get('displayNumber');
+        $mcpPort       = (int)$request->request->get('mcpPort');
+        $vncPort       = (int)$request->request->get('vncPort');
+        $websocketPort = (int)$request->request->get('websocketPort');
+
+        // Stop processes in reverse order of their dependencies
+        $service->stopPlaywrightMcp($mcpPort);
+        $service->stopVncWebsocket($websocketPort);
+        $service->stopVncServer($vncPort, $displayNumber);
+        $service->stopVirtualFramebuffer($displayNumber);
+
+        $this->addFlash('success', 'Stopped all processes for instance.');
+
+        return $this->redirectToRoute('os_process_management.presentation.dashboard');
+    }
+
+    #[Route(
+        path   : '/os-process-management/stop-process',
+        name   : 'os_process_management.presentation.stop_process',
+        methods: [Request::METHOD_POST]
+    )]
+    public function stopProcessAction(Request $request, OsProcessManagementDomainService $service): RedirectResponse
+    {
+        $type  = (string)$request->request->get('type');
+        $extra = $request->request->all();
+        // Stop the process by type
+        if ($type === 'xvfb') {
+            $service->stopVirtualFramebuffer((int)($extra['displayNumber'] ?? 0));
+        } elseif ($type === 'mcp') {
+            $service->stopPlaywrightMcp((int)($extra['mcpPort'] ?? 0));
+        } elseif ($type === 'vnc') {
+            $service->stopVncServer((int)($extra['vncPort'] ?? 0), (int)($extra['displayNumber'] ?? 0));
+        } elseif ($type === 'ws') {
+            $service->stopVncWebsocket((int)($extra['websocketPort'] ?? 0));
+        }
+        $this->addFlash('success', 'Stopped process.');
 
         return $this->redirectToRoute('os_process_management.presentation.dashboard');
     }

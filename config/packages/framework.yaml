@@ -6,7 +6,7 @@ framework:
         cookie_samesite: "none"
         cookie_secure: true
         cookie_httponly: true
-        name: PHPSESSID_JA
+        name: PHPSESSID_PMCW
         handler_id: Symfony\Component\HttpFoundation\Session\Storage\Handler\PdoSessionHandler
 
     #esi: true

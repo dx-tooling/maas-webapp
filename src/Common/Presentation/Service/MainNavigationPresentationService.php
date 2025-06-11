@@ -6,6 +6,7 @@ namespace App\Common\Presentation\Service;
 
 use EnterpriseToolingForSymfony\WebuiBundle\Entity\MainNavigationEntry;
 use EnterpriseToolingForSymfony\WebuiBundle\Service\AbstractMainNavigationService;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Routing\RouterInterface;
@@ -17,6 +18,7 @@ readonly class MainNavigationPresentationService extends AbstractMainNavigationS
         RouterInterface               $router,
         RequestStack                  $requestStack,
         private ParameterBagInterface $parameterBag,
+        private Security              $security,
     ) {
         $symfonyEnvironment = $this->parameterBag->get('kernel.environment');
 
@@ -72,6 +74,23 @@ readonly class MainNavigationPresentationService extends AbstractMainNavigationS
                 'website_content.presentation.about',
             )
         ];
+
+        // Add account-related entries
+        if ($this->security->isGranted('ROLE_USER')) {
+            $entries[] = $this->generateEntry(
+                'Dashboard',
+                'account.presentation.dashboard',
+            );
+        } else {
+            $entries[] = $this->generateEntry(
+                'Sign In',
+                'account.presentation.sign_in',
+            );
+            $entries[] = $this->generateEntry(
+                'Sign Up',
+                'account.presentation.sign_up',
+            );
+        }
 
         return $entries;
     }

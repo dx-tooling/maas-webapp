@@ -66,6 +66,12 @@ class LaunchPlaywrightSetupCommand extends EnhancedCommand
                 InputArgument::REQUIRED,
                 'Port for WebSocket service',
                 null
+            )
+            ->addArgument(
+                'vncPassword',
+                InputArgument::REQUIRED,
+                'Password for VNC server',
+                null
             );
     }
 
@@ -73,10 +79,17 @@ class LaunchPlaywrightSetupCommand extends EnhancedCommand
         InputInterface  $input,
         OutputInterface $output
     ): int {
-        $displayNumber = self::toInt($input->getArgument('displayNumber'));
-        $mcpPort       = self::toInt($input->getArgument('mcpPort'));
-        $vncPort       = self::toInt($input->getArgument('vncPort'));
-        $websocketPort = self::toInt($input->getArgument('websocketPort'));
+        $displayNumber  = self::toInt($input->getArgument('displayNumber'));
+        $mcpPort        = self::toInt($input->getArgument('mcpPort'));
+        $vncPort        = self::toInt($input->getArgument('vncPort'));
+        $websocketPort  = self::toInt($input->getArgument('websocketPort'));
+        $vncPasswordRaw = $input->getArgument('vncPassword');
+        if (!is_string($vncPasswordRaw)) {
+            $output->writeln('<error>VNC password must be a string.</error>');
+
+            return self::FAILURE;
+        }
+        $vncPassword = $vncPasswordRaw;
 
         if (!$this->validatePorts($mcpPort, $vncPort, $websocketPort)) {
             $output->writeln('<error>Port conflict detected. Each service must use a unique port.</error>');
@@ -99,7 +112,7 @@ class LaunchPlaywrightSetupCommand extends EnhancedCommand
         $launched = $this->processMgmtService->launchVncServer(
             $vncPort,
             $displayNumber,
-            'test123'
+            $vncPassword
         );
 
         $launched = $this->processMgmtService->launchVncWebsocket(

@@ -86,8 +86,7 @@ class StopPlaywrightSetupCommand extends EnhancedCommand
 
         // Stop processes in reverse order of their dependencies
         $this->processMgmtService->stopPlaywrightMcp(
-            $mcpPort,
-            $displayNumber
+            $mcpPort
         );
 
         $this->processMgmtService->stopVncWebsocket($websocketPort);

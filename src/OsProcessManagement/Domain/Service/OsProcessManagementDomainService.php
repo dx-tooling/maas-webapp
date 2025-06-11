@@ -37,8 +37,7 @@ class OsProcessManagementDomainService
     }
 
     public function stopPlaywrightMcp(
-        int $port,
-        int $displayNumber
+        int $port
     ): bool {
         // Find the main npm process that started the MCP server
         $cmd = "ps aux | grep 'npm exec @playwright/mcp@latest --port $port' | grep -v grep | awk '{print $2}'";

@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace App\OsProcessManagement\Domain\Service;
 
 use App\OsProcessManagement\Domain\Dto\PlaywrightMcpProcessInfoDto;
+use App\OsProcessManagement\Domain\Dto\VirtualFramebufferProcessInfoDto;
+use App\OsProcessManagement\Domain\Dto\VncServerProcessInfoDto;
+use App\OsProcessManagement\Domain\Dto\VncWebsocketProcessInfoDto;
 
 class OsProcessManagementDomainService
 {
@@ -75,12 +78,6 @@ class OsProcessManagementDomainService
         }
 
         return true;
-    }
-
-    public function getPlaywrightMcpProcessInfo(
-        int $port
-    ): PlaywrightMcpProcessInfoDto {
-        return new PlaywrightMcpProcessInfoDto();
     }
 
     public function launchVncServer(
@@ -166,7 +163,7 @@ class OsProcessManagementDomainService
         foreach ($lines as $line) {
             // Match: ... Xvfb :<display> ...
             if (preg_match('/^(\S+)\s+(\d+)\s+([\d\.]+)\s+([\d\.]+)\s+\d+\s+\d+\s+\S+\s+\S+\s+\S+.*Xvfb :([0-9]+)/', $line, $m)) {
-                $result[] = new \App\OsProcessManagement\Domain\Dto\VirtualFramebufferProcessInfoDto(
+                $result[] = new VirtualFramebufferProcessInfoDto(
                     (int)$m[2], // pid
                     (float)$m[3], // cpu
                     (float)$m[4], // mem
@@ -214,7 +211,7 @@ class OsProcessManagementDomainService
         foreach ($lines as $line) {
             // Match: ... x11vnc -display :<display> ... -rfbport <port>
             if (preg_match('/^(\S+)\s+(\d+)\s+([\d\.]+)\s+([\d\.]+)\s+\d+\s+\d+\s+\S+\s+\S+\s+\S+.*x11vnc -display :([0-9]+).* -rfbport (\d+)/', $line, $m)) {
-                $result[] = new \App\OsProcessManagement\Domain\Dto\VncServerProcessInfoDto(
+                $result[] = new VncServerProcessInfoDto(
                     (int)$m[2], // pid
                     (float)$m[3], // cpu
                     (float)$m[4], // mem
@@ -239,7 +236,7 @@ class OsProcessManagementDomainService
         foreach ($lines as $line) {
             // Match: ... websockify --web=... <httpPort> localhost:<vncPort>
             if (preg_match('/^(\S+)\s+(\d+)\s+([\d\.]+)\s+([\d\.]+)\s+\d+\s+\d+\s+\S+\s+\S+\s+\S+.*websockify [^ ]* (\d+) localhost:(\d+)/', $line, $m)) {
-                $result[] = new \App\OsProcessManagement\Domain\Dto\VncWebsocketProcessInfoDto(
+                $result[] = new VncWebsocketProcessInfoDto(
                     (int)$m[2], // pid
                     (float)$m[3], // cpu
                     (float)$m[4], // mem

@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\OsProcessManagement\Facade;
 
+use App\OsProcessManagement\Domain\Service\NginxManagementDomainService;
 use App\OsProcessManagement\Domain\Service\OsProcessManagementDomainService;
 
 readonly class OsProcessManagementFacade implements OsProcessManagementFacadeInterface
 {
     public function __construct(
-        private OsProcessManagementDomainService $processMgmtService
+        private OsProcessManagementDomainService $processMgmtService,
+        private NginxManagementDomainService     $nginxMgmtService,
     ) {
     }
 
@@ -45,6 +47,8 @@ readonly class OsProcessManagementFacade implements OsProcessManagementFacadeInt
             $websocketPort,
             $vncPort
         );
+
+        $this->nginxMgmtService->reconfigureAndRestartNginx();
     }
 
     public function stopPlaywrightSetup(
@@ -57,5 +61,7 @@ readonly class OsProcessManagementFacade implements OsProcessManagementFacadeInt
         $this->processMgmtService->stopVncServer($vncPort, $displayNumber);
         $this->processMgmtService->stopPlaywrightMcp($mcpPort);
         $this->processMgmtService->stopVirtualFramebuffer($displayNumber);
+
+        $this->nginxMgmtService->reconfigureAndRestartNginx();
     }
 }

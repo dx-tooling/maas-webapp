@@ -29,11 +29,11 @@ class InstancesController extends AbstractController
         $accountCoreInfoDto = new AccountCoreInfoDto($user->getUserIdentifier());
         $instances          = $this->facade->getMcpInstanceInfosForAccount($accountCoreInfoDto);
         $instance           = $instances[0] ?? null;
-        $instance_id_nohyphen = $instance ? str_replace('-', '', $instance->id) : null;
+        $instanceId         = str_replace('-', '', $instance->id ?? '');
 
         return $this->render('@mcp_instances.presentation/instances_dashboard.html.twig', [
-            'instance' => $instance,
-            'instance_id_nohyphen' => $instance_id_nohyphen,
+            'instance'             => $instance,
+            'instance_id_nohyphen' => $instanceId,
         ]);
     }
 

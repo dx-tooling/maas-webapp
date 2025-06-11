@@ -17,14 +17,14 @@ readonly class NginxManagementDomainService
         $config .= "map \$instance_id \$backend_port {\n";
         $config .= "    default \"\";\n";
         foreach ($instanceInfos as $instance) {
-            $sanitizedId = str_replace('-', '', $instance->id);
+            $sanitizedId = str_replace('-', '', $instance->id ?? '');
             $config .= sprintf("    %s \"%d\";\n", $sanitizedId, $instance->mcpPort);
         }
         $config .= "}\n\n";
 
         // Generate token validation maps for each instance
         foreach ($instanceInfos as $instance) {
-            $sanitizedId = str_replace('-', '', $instance->id);
+            $sanitizedId = str_replace('-', '', $instance->id ?? '');
             $config .= sprintf("# Token validation for instance %s\n", $instance->id);
             $config .= sprintf("map \$http_authorization \$is_valid_%s {\n", $sanitizedId);
             $config .= "    default \"0\";\n";
@@ -34,9 +34,9 @@ readonly class NginxManagementDomainService
 
         // Generate basic auth validation maps for each instance
         foreach ($instanceInfos as $instance) {
-            $sanitizedId = str_replace('-', '', $instance->id);
-            $username = 'user' . $sanitizedId;
-            $basicAuth = base64_encode($username . ':' . $instance->password);
+            $sanitizedId = str_replace('-', '', $instance->id ?? '');
+            $username    = 'user' . $sanitizedId;
+            $basicAuth   = base64_encode($username . ':' . $instance->password);
             $config .= sprintf("# Basic Auth validation for instance %s\n", $instance->id);
             $config .= sprintf("map \$http_authorization \$is_valid_basic_%s {\n", $sanitizedId);
             $config .= "    default \"0\";\n";
@@ -49,7 +49,7 @@ readonly class NginxManagementDomainService
         $config .= "map \$instance_id \$is_valid {\n";
         $config .= "    default \"0\";\n";
         foreach ($instanceInfos as $instance) {
-            $sanitizedId = str_replace('-', '', $instance->id);
+            $sanitizedId = str_replace('-', '', $instance->id ?? '');
             $config .= sprintf("    %s \$is_valid_%s;\n", $sanitizedId, $sanitizedId);
         }
         $config .= "}\n\n";
@@ -59,7 +59,7 @@ readonly class NginxManagementDomainService
         $config .= "map \$instance_id \$is_valid_basic {\n";
         $config .= "    default \"0\";\n";
         foreach ($instanceInfos as $instance) {
-            $sanitizedId = str_replace('-', '', $instance->id);
+            $sanitizedId = str_replace('-', '', $instance->id ?? '');
             $config .= sprintf("    %s \$is_valid_basic_%s;\n", $sanitizedId, $sanitizedId);
         }
         $config .= "}\n";

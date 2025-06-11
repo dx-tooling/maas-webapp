@@ -60,7 +60,6 @@ readonly class MainNavigationPresentationService extends AbstractMainNavigationS
                 )
             ];
         }
-    
 
         if ($this->security->isGranted('ROLE_USER')) {
             $entries[] = $this->generateEntry(
@@ -98,13 +97,12 @@ readonly class MainNavigationPresentationService extends AbstractMainNavigationS
                 'Your Account',
                 'account.presentation.dashboard',
             );
-            
-            $entries[] = 
-                $this->generateEntry(
+
+            $entries[] = $this->generateEntry(
                     'About',
                     'website_content.presentation.about',
                 )
-        ;
+            ;
         } else {
             $entries[] = $this->generateEntry(
                 'Sign In',

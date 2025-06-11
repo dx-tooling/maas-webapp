@@ -29,7 +29,7 @@ apt update
 apt install software-properties-common
 add-apt-repository ppa:ondrej/php
 apt update
-apt install vim curl mariadb-server php8.4-cli php8.4-xml php8.4-mysql composer xvfb x11vnc novnc websockify python3-websockify tigervnc-standalone-server
+apt install vim curl nginx mariadb-server php8.4-cli php8.4-xml php8.4-mysql composer xvfb x11vnc novnc websockify python3-websockify tigervnc-standalone-server
 
 service mariadb start
 mysql -uroot -e "CREATE DATABASE playwright_mcp_cloud_webapp_dev;"

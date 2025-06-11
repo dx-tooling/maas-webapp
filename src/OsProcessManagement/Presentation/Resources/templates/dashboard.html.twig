@@ -1,5 +1,16 @@
 {% extends '@common.presentation/base_appshell.html.twig' %}
 
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        tr:target {
+            outline: 2px solid #2563eb;
+            background-color: #e0e7ff;
+            transition: background-color 0.5s;
+        }
+    </style>
+{% endblock %}
+
 {% block body %}
     <h1 class="etfswui-pagetitle mb-10">OS Process Management Dashboard</h1>
 
@@ -10,6 +21,57 @@
             </div>
         </div>
     {% endfor %}
+
+    {% if selectedInstanceId %}
+        <div class="mb-4">
+            <span class="font-bold">Filtering by instance:</span> <span class="text-blue-700">{{ selectedInstanceId }}</span>
+            <a href="{{ path('os_process_management.presentation.dashboard') }}" class="ml-4 etfswui-link">Reset filter</a>
+        </div>
+    {% endif %}
+
+    <section class="etfswui-card mb-12">
+        <div class="etfswui-card-title">
+            <h2 class="etfswui-card-title-text">Known MCP Instances</h2>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="etfswui-table">
+                <thead class="bg-dark-50 dark:bg-dark-700/50">
+                    <tr>
+                        <th class="etfswui-table-header">ID</th>
+                        <th class="etfswui-table-header">Display #</th>
+                        <th class="etfswui-table-header">MCP Port</th>
+                        <th class="etfswui-table-header">VNC Port</th>
+                        <th class="etfswui-table-header">WebSocket Port</th>
+                        <th class="etfswui-table-header">WebSocket Password</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for instance in mcpInstances %}
+                    <tr class="etfswui-content-table-row">
+                        <td class="etfswui-table-cell">
+                            <a href="{{ path('os_process_management.presentation.dashboard', {'instance': instance.id}) }}" class="etfswui-link">{{ instance.id }}</a>
+                        </td>
+                        <td class="etfswui-table-cell">
+                            <a href="#xvfb-{{ instance.displayNumber }}" class="etfswui-link">:{{ instance.displayNumber }}</a>
+                        </td>
+                        <td class="etfswui-table-cell">
+                            <a href="#mcp-{{ instance.mcpPort }}" class="etfswui-link">{{ instance.mcpPort }}</a>
+                        </td>
+                        <td class="etfswui-table-cell">
+                            <a href="#vnc-{{ instance.vncPort }}" class="etfswui-link">{{ instance.vncPort }}</a>
+                        </td>
+                        <td class="etfswui-table-cell">
+                            <a href="#ws-{{ instance.websocketPort }}" class="etfswui-link">{{ instance.websocketPort }}</a>
+                        </td>
+                        <td class="etfswui-table-cell">{{ instance.websocketPassword }}</td>
+                    </tr>
+                {% else %}
+                    <tr><td class="etfswui-table-cell" colspan="6">No known MCP instances.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
 
     <section class="etfswui-card mb-12">
         <div class="etfswui-card-title">
@@ -65,6 +127,7 @@
                 <table class="etfswui-table">
                     <thead class="bg-dark-50 dark:bg-dark-700/50">
                         <tr>
+                            <th class="etfswui-table-header">Instance</th>
                             <th class="etfswui-table-header">PID</th>
                             <th class="etfswui-table-header">Display</th>
                             <th class="etfswui-table-header">CPU %</th>
@@ -73,16 +136,17 @@
                         </tr>
                     </thead>
                     <tbody>
-                    {% for proc in virtualFramebuffers %}
-                        <tr class="etfswui-content-table-row">
-                            <td class="etfswui-table-cell">{{ proc.pid }}</td>
-                            <td class="etfswui-table-cell">:{{ proc.displayNumber }}</td>
-                            <td class="etfswui-table-cell">{{ proc.percentCpuUsage }}</td>
-                            <td class="etfswui-table-cell">{{ proc.percentMemoryUsage }}</td>
-                            <td class="etfswui-table-cell">{{ proc.commandLine }}</td>
+                    {% for row in virtualFramebuffers %}
+                        <tr class="etfswui-content-table-row" id="xvfb-{{ row.proc.displayNumber }}">
+                            <td class="etfswui-table-cell">{% if row.instanceId %}<a href="{{ path('os_process_management.presentation.dashboard', {'instance': row.instanceId}) }}" class="etfswui-link">{{ row.instanceId }}</a>{% endif %}</td>
+                            <td class="etfswui-table-cell">{{ row.proc.pid }}</td>
+                            <td class="etfswui-table-cell">:{{ row.proc.displayNumber }}</td>
+                            <td class="etfswui-table-cell">{{ row.proc.percentCpuUsage }}</td>
+                            <td class="etfswui-table-cell">{{ row.proc.percentMemoryUsage }}</td>
+                            <td class="etfswui-table-cell">{{ row.proc.commandLine }}</td>
                         </tr>
                     {% else %}
-                        <tr><td class="etfswui-table-cell" colspan="5">No running Xvfb processes.</td></tr>
+                        <tr><td class="etfswui-table-cell" colspan="6">No running Xvfb processes.</td></tr>
                     {% endfor %}
                     </tbody>
                 </table>
@@ -97,6 +161,7 @@
                 <table class="etfswui-table">
                     <thead class="bg-dark-50 dark:bg-dark-700/50">
                         <tr>
+                            <th class="etfswui-table-header">Instance</th>
                             <th class="etfswui-table-header">PID</th>
                             <th class="etfswui-table-header">Port</th>
                             <th class="etfswui-table-header">CPU %</th>
@@ -105,16 +170,17 @@
                         </tr>
                     </thead>
                     <tbody>
-                    {% for proc in playwrightMcps %}
-                        <tr class="etfswui-content-table-row">
-                            <td class="etfswui-table-cell">{{ proc.pid }}</td>
-                            <td class="etfswui-table-cell">{{ proc.mcpPort }}</td>
-                            <td class="etfswui-table-cell">{{ proc.percentCpuUsage }}</td>
-                            <td class="etfswui-table-cell">{{ proc.percentMemoryUsage }}</td>
-                            <td class="etfswui-table-cell">{{ proc.commandLine }}</td>
+                    {% for row in playwrightMcps %}
+                        <tr class="etfswui-content-table-row" id="mcp-{{ row.proc.mcpPort }}">
+                            <td class="etfswui-table-cell">{% if row.instanceId %}<a href="{{ path('os_process_management.presentation.dashboard', {'instance': row.instanceId}) }}" class="etfswui-link">{{ row.instanceId }}</a>{% endif %}</td>
+                            <td class="etfswui-table-cell">{{ row.proc.pid }}</td>
+                            <td class="etfswui-table-cell">{{ row.proc.mcpPort }}</td>
+                            <td class="etfswui-table-cell">{{ row.proc.percentCpuUsage }}</td>
+                            <td class="etfswui-table-cell">{{ row.proc.percentMemoryUsage }}</td>
+                            <td class="etfswui-table-cell">{{ row.proc.commandLine }}</td>
                         </tr>
                     {% else %}
-                        <tr><td class="etfswui-table-cell" colspan="5">No running Playwright MCP processes.</td></tr>
+                        <tr><td class="etfswui-table-cell" colspan="6">No running Playwright MCP processes.</td></tr>
                     {% endfor %}
                     </tbody>
                 </table>
@@ -129,6 +195,7 @@
                 <table class="etfswui-table">
                     <thead class="bg-dark-50 dark:bg-dark-700/50">
                         <tr>
+                            <th class="etfswui-table-header">Instance</th>
                             <th class="etfswui-table-header">PID</th>
                             <th class="etfswui-table-header">Display</th>
                             <th class="etfswui-table-header">Port</th>
@@ -138,17 +205,18 @@
                         </tr>
                     </thead>
                     <tbody>
-                    {% for proc in vncServers %}
-                        <tr class="etfswui-content-table-row">
-                            <td class="etfswui-table-cell">{{ proc.pid }}</td>
-                            <td class="etfswui-table-cell">:{{ proc.displayNumber }}</td>
-                            <td class="etfswui-table-cell">{{ proc.port }}</td>
-                            <td class="etfswui-table-cell">{{ proc.percentCpuUsage }}</td>
-                            <td class="etfswui-table-cell">{{ proc.percentMemoryUsage }}</td>
-                            <td class="etfswui-table-cell">{{ proc.commandLine }}</td>
+                    {% for row in vncServers %}
+                        <tr class="etfswui-content-table-row" id="vnc-{{ row.proc.port }}">
+                            <td class="etfswui-table-cell">{% if row.instanceId %}<a href="{{ path('os_process_management.presentation.dashboard', {'instance': row.instanceId}) }}" class="etfswui-link">{{ row.instanceId }}</a>{% endif %}</td>
+                            <td class="etfswui-table-cell">{{ row.proc.pid }}</td>
+                            <td class="etfswui-table-cell">:{{ row.proc.displayNumber }}</td>
+                            <td class="etfswui-table-cell">{{ row.proc.port }}</td>
+                            <td class="etfswui-table-cell">{{ row.proc.percentCpuUsage }}</td>
+                            <td class="etfswui-table-cell">{{ row.proc.percentMemoryUsage }}</td>
+                            <td class="etfswui-table-cell">{{ row.proc.commandLine }}</td>
                         </tr>
                     {% else %}
-                        <tr><td class="etfswui-table-cell" colspan="6">No running VNC servers.</td></tr>
+                        <tr><td class="etfswui-table-cell" colspan="7">No running VNC servers.</td></tr>
                     {% endfor %}
                     </tbody>
                 </table>
@@ -163,6 +231,7 @@
                 <table class="etfswui-table">
                     <thead class="bg-dark-50 dark:bg-dark-700/50">
                         <tr>
+                            <th class="etfswui-table-header">Instance</th>
                             <th class="etfswui-table-header">PID</th>
                             <th class="etfswui-table-header">HTTP Port</th>
                             <th class="etfswui-table-header">VNC Port</th>
@@ -172,17 +241,18 @@
                         </tr>
                     </thead>
                     <tbody>
-                    {% for proc in vncWebsockets %}
-                        <tr class="etfswui-content-table-row">
-                            <td class="etfswui-table-cell">{{ proc.pid }}</td>
-                            <td class="etfswui-table-cell">{{ proc.httpPort }}</td>
-                            <td class="etfswui-table-cell">{{ proc.vncPort }}</td>
-                            <td class="etfswui-table-cell">{{ proc.percentCpuUsage }}</td>
-                            <td class="etfswui-table-cell">{{ proc.percentMemoryUsage }}</td>
-                            <td class="etfswui-table-cell">{{ proc.commandLine }}</td>
+                    {% for row in vncWebsockets %}
+                        <tr class="etfswui-content-table-row" id="ws-{{ row.proc.httpPort }}">
+                            <td class="etfswui-table-cell">{% if row.instanceId %}<a href="{{ path('os_process_management.presentation.dashboard', {'instance': row.instanceId}) }}" class="etfswui-link">{{ row.instanceId }}</a>{% endif %}</td>
+                            <td class="etfswui-table-cell">{{ row.proc.pid }}</td>
+                            <td class="etfswui-table-cell">{{ row.proc.httpPort }}</td>
+                            <td class="etfswui-table-cell">{{ row.proc.vncPort }}</td>
+                            <td class="etfswui-table-cell">{{ row.proc.percentCpuUsage }}</td>
+                            <td class="etfswui-table-cell">{{ row.proc.percentMemoryUsage }}</td>
+                            <td class="etfswui-table-cell">{{ row.proc.commandLine }}</td>
                         </tr>
                     {% else %}
-                        <tr><td class="etfswui-table-cell" colspan="6">No running VNC websocket processes.</td></tr>
+                        <tr><td class="etfswui-table-cell" colspan="7">No running VNC websocket processes.</td></tr>
                     {% endfor %}
                     </tbody>
                 </table>

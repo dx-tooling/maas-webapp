@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\McpInstances\Facade;
 
-use App\OsProcessManagement\Domain\Dto\PlaywrightMcpProcessInfoDto;
+use App\McpInstances\Facade\Dto\McpInstanceInfoDto;
 
 interface McpInstancesFacadeInterface
 {
-    /** @return PlaywrightMcpProcessInfoDto[] */
+    /** @return McpInstanceInfoDto[] */
     public function getMcpInstanceInfos(): array;
 }

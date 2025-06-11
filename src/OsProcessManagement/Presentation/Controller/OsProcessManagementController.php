@@ -50,13 +50,13 @@ class OsProcessManagementController extends AbstractController
             $result = [];
             foreach ($processes as $proc) {
                 $instanceId = null;
-                if ($type === 'xvfb' && isset($displayToInstance[$proc->displayNumber])) {
+                if ($type === 'xvfb' && array_key_exists($proc->displayNumber, $displayToInstance)) {
                     $instanceId = $displayToInstance[$proc->displayNumber];
-                } elseif ($type === 'mcp' && isset($mcpPortToInstance[$proc->mcpPort])) {
+                } elseif ($type === 'mcp' && array_key_exists($proc->mcpPort, $mcpPortToInstance)) {
                     $instanceId = $mcpPortToInstance[$proc->mcpPort];
-                } elseif ($type === 'vnc' && isset($vncPortToInstance[$proc->port])) {
+                } elseif ($type === 'vnc' && array_key_exists($proc->port, $vncPortToInstance)) {
                     $instanceId = $vncPortToInstance[$proc->port];
-                } elseif ($type === 'ws' && isset($websocketPortToInstance[$proc->httpPort])) {
+                } elseif ($type === 'ws' && array_key_exists($proc->httpPort, $websocketPortToInstance)) {
                     $instanceId = $websocketPortToInstance[$proc->httpPort];
                 }
                 if ($selectedInstanceId === null || $instanceId === $selectedInstanceId) {

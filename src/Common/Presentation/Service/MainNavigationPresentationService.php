@@ -103,6 +103,6 @@ readonly class MainNavigationPresentationService extends AbstractMainNavigationS
 
     public function getBrandLogoHtml(): string
     {
-        return '<strong class="etfswui-h1-gradient-span">Email Support Buddy</strong>';
+        return '<strong class="etfswui-h1-gradient-span">Playwright MCP Cloud</strong>';
     }
 }

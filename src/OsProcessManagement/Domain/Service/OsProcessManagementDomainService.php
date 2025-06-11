@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\OsProcessManagement\Domain\Service;
 
+use App\OsProcessManagement\Domain\Dto\PlaywrightMcpProcessInfoDto;
+
 class OsProcessManagementDomainService
 {
     public function launchVirtualFramebuffer(
@@ -21,6 +23,20 @@ class OsProcessManagementDomainService
             $displayNumber
         );
         shell_exec($cmd);
+
+        return true;
+    }
+
+    public function stopVirtualFramebuffer(
+        int $displayNumber
+    ): bool {
+        // Find and kill the Xvfb process
+        $cmd = "ps aux | grep 'Xvfb :$displayNumber' | grep -v grep | awk '{print $2}'";
+        $pid = (int) shell_exec($cmd);
+
+        if ($pid > 0) {
+            shell_exec("kill -9 $pid");
+        }
 
         return true;
     }
@@ -59,6 +75,12 @@ class OsProcessManagementDomainService
         }
 
         return true;
+    }
+
+    public function getPlaywrightMcpProcessInfo(
+        int $port
+    ): PlaywrightMcpProcessInfoDto {
+        return new PlaywrightMcpProcessInfoDto();
     }
 
     public function launchVncServer(
@@ -133,17 +155,101 @@ class OsProcessManagementDomainService
         return true;
     }
 
-    public function stopVirtualFramebuffer(
-        int $displayNumber
-    ): bool {
-        // Find and kill the Xvfb process
-        $cmd = "ps aux | grep 'Xvfb :$displayNumber' | grep -v grep | awk '{print $2}'";
-        $pid = (int) shell_exec($cmd);
-
-        if ($pid > 0) {
-            shell_exec("kill -9 $pid");
+    /**
+     * @return VirtualFramebufferProcessInfoDto[]
+     */
+    public function getRunningVirtualFramebuffers(): array
+    {
+        $output = shell_exec("ps aux | grep '[X]vfb :' | grep -v grep");
+        $lines  = $output ? explode("\n", trim($output)) : [];
+        $result = [];
+        foreach ($lines as $line) {
+            // Match: ... Xvfb :<display> ...
+            if (preg_match('/^(\S+)\s+(\d+)\s+([\d\.]+)\s+([\d\.]+)\s+\d+\s+\d+\s+\S+\s+\S+\s+\S+.*Xvfb :([0-9]+)/', $line, $m)) {
+                $result[] = new \App\OsProcessManagement\Domain\Dto\VirtualFramebufferProcessInfoDto(
+                    (int)$m[2], // pid
+                    (float)$m[3], // cpu
+                    (float)$m[4], // mem
+                    (int)$m[5], // display number
+                    $line // command
+                );
+            }
         }
 
-        return true;
+        return $result;
+    }
+
+    /**
+     * @return PlaywrightMcpProcessInfoDto[]
+     */
+    public function getRunningPlaywrightMcps(): array
+    {
+        $output = shell_exec("ps aux | grep 'playwright/mcp@' | grep -v grep");
+        $lines  = $output ? explode("\n", trim($output)) : [];
+        $result = [];
+        foreach ($lines as $line) {
+            // Match: ... --port <port> ...
+            if (preg_match('/^(\S+)\s+(\d+)\s+([\d\.]+)\s+([\d\.]+)\s+\d+\s+\d+\s+\S+\s+\S+\s+\S+.*--port (\d+)/', $line, $m)) {
+                $result[] = new PlaywrightMcpProcessInfoDto(
+                    (int)$m[2], // pid
+                    (float)$m[3], // cpu
+                    (float)$m[4], // mem
+                    (int)$m[5], // port
+                    $line // command
+                );
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * @return VncServerProcessInfoDto[]
+     */
+    public function getRunningVncServers(): array
+    {
+        $output = shell_exec("ps aux | grep '[x]11vnc ' | grep -v grep");
+        $lines  = $output ? explode("\n", trim($output)) : [];
+        $result = [];
+        foreach ($lines as $line) {
+            // Match: ... x11vnc -display :<display> ... -rfbport <port>
+            if (preg_match('/^(\S+)\s+(\d+)\s+([\d\.]+)\s+([\d\.]+)\s+\d+\s+\d+\s+\S+\s+\S+\s+\S+.*x11vnc -display :([0-9]+).* -rfbport (\d+)/', $line, $m)) {
+                $result[] = new \App\OsProcessManagement\Domain\Dto\VncServerProcessInfoDto(
+                    (int)$m[2], // pid
+                    (float)$m[3], // cpu
+                    (float)$m[4], // mem
+                    (int)$m[5], // display
+                    (int)$m[6], // port
+                    $line // command
+                );
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * @return VncWebsocketProcessInfoDto[]
+     */
+    public function getRunningVncWebsockets(): array
+    {
+        $output = shell_exec("ps aux | grep '[w]ebsockify ' | grep -v grep");
+        $lines  = $output ? explode("\n", trim($output)) : [];
+        $result = [];
+        foreach ($lines as $line) {
+            // Match: ... websockify --web=... <httpPort> localhost:<vncPort>
+            if (preg_match('/^(\S+)\s+(\d+)\s+([\d\.]+)\s+([\d\.]+)\s+\d+\s+\d+\s+\S+\s+\S+\s+\S+.*websockify [^ ]* (\d+) localhost:(\d+)/', $line, $m)) {
+                $result[] = new \App\OsProcessManagement\Domain\Dto\VncWebsocketProcessInfoDto(
+                    (int)$m[2], // pid
+                    (float)$m[3], // cpu
+                    (float)$m[4], // mem
+                    (int)$m[5], // http port
+                    (int)$m[6], // vnc port
+                    $line // command
+                );
+            }
+        }
+
+        return $result;
     }
 }

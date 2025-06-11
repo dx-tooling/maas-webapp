@@ -1,0 +1,192 @@
+{% extends '@common.presentation/base_appshell.html.twig' %}
+
+{% block body %}
+    <h1 class="etfswui-pagetitle mb-10">OS Process Management Dashboard</h1>
+
+    {% for message in app.flashes('success') %}
+        <div class="etfswui-alert etfswui-alert-success mb-6">
+            <div class="etfswui-alert-body">
+                <p class="etfswui-alert-success-text">{{ message }}</p>
+            </div>
+        </div>
+    {% endfor %}
+
+    <section class="etfswui-card mb-12">
+        <div class="etfswui-card-title">
+            <h2 class="etfswui-card-title-text">Launch New Playwright Setup</h2>
+        </div>
+        <div class="etfswui-card-content">
+            <form method="post" action="{{ path('os_process_management.presentation.launch') }}" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="etfswui-form-label" for="displayNumber">Display Number</label>
+                    <input class="etfswui-form-input" type="number" id="displayNumber" name="displayNumber" value="99" min="1" required>
+                </div>
+                <div>
+                    <label class="etfswui-form-label" for="screenWidth">Screen Width</label>
+                    <input class="etfswui-form-input" type="number" id="screenWidth" name="screenWidth" value="1280" min="1" required>
+                </div>
+                <div>
+                    <label class="etfswui-form-label" for="screenHeight">Screen Height</label>
+                    <input class="etfswui-form-input" type="number" id="screenHeight" name="screenHeight" value="720" min="1" required>
+                </div>
+                <div>
+                    <label class="etfswui-form-label" for="colorDepth">Color Depth</label>
+                    <input class="etfswui-form-input" type="number" id="colorDepth" name="colorDepth" value="24" min="8" max="32" required>
+                </div>
+                <div>
+                    <label class="etfswui-form-label" for="mcpPort">MCP Port</label>
+                    <input class="etfswui-form-input" type="number" id="mcpPort" name="mcpPort" value="11111" min="1" max="65535" required>
+                </div>
+                <div>
+                    <label class="etfswui-form-label" for="vncPort">VNC Port</label>
+                    <input class="etfswui-form-input" type="number" id="vncPort" name="vncPort" value="22222" min="1" max="65535" required>
+                </div>
+                <div>
+                    <label class="etfswui-form-label" for="websocketPort">WebSocket Port</label>
+                    <input class="etfswui-form-input" type="number" id="websocketPort" name="websocketPort" value="33333" min="1" max="65535" required>
+                </div>
+                <div>
+                    <label class="etfswui-form-label" for="vncPassword">VNC Password</label>
+                    <input class="etfswui-form-input" type="password" id="vncPassword" name="vncPassword" required>
+                </div>
+                <div class="md:col-span-2 flex justify-end">
+                    <button type="submit" class="etfswui-button-default">Launch Setup</button>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <div class="space-y-12">
+        <section class="etfswui-card">
+            <div class="etfswui-card-title">
+                <h2 class="etfswui-card-title-text">Virtual Framebuffers (Xvfb)</h2>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="etfswui-table">
+                    <thead class="bg-dark-50 dark:bg-dark-700/50">
+                        <tr>
+                            <th class="etfswui-table-header">PID</th>
+                            <th class="etfswui-table-header">Display</th>
+                            <th class="etfswui-table-header">CPU %</th>
+                            <th class="etfswui-table-header">MEM %</th>
+                            <th class="etfswui-table-header">Command</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for proc in virtualFramebuffers %}
+                        <tr class="etfswui-content-table-row">
+                            <td class="etfswui-table-cell">{{ proc.pid }}</td>
+                            <td class="etfswui-table-cell">:{{ proc.displayNumber }}</td>
+                            <td class="etfswui-table-cell">{{ proc.percentCpuUsage }}</td>
+                            <td class="etfswui-table-cell">{{ proc.percentMemoryUsage }}</td>
+                            <td class="etfswui-table-cell">{{ proc.commandLine }}</td>
+                        </tr>
+                    {% else %}
+                        <tr><td class="etfswui-table-cell" colspan="5">No running Xvfb processes.</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="etfswui-card">
+            <div class="etfswui-card-title">
+                <h2 class="etfswui-card-title-text">Playwright MCP</h2>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="etfswui-table">
+                    <thead class="bg-dark-50 dark:bg-dark-700/50">
+                        <tr>
+                            <th class="etfswui-table-header">PID</th>
+                            <th class="etfswui-table-header">Port</th>
+                            <th class="etfswui-table-header">CPU %</th>
+                            <th class="etfswui-table-header">MEM %</th>
+                            <th class="etfswui-table-header">Command</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for proc in playwrightMcps %}
+                        <tr class="etfswui-content-table-row">
+                            <td class="etfswui-table-cell">{{ proc.pid }}</td>
+                            <td class="etfswui-table-cell">{{ proc.mcpPort }}</td>
+                            <td class="etfswui-table-cell">{{ proc.percentCpuUsage }}</td>
+                            <td class="etfswui-table-cell">{{ proc.percentMemoryUsage }}</td>
+                            <td class="etfswui-table-cell">{{ proc.commandLine }}</td>
+                        </tr>
+                    {% else %}
+                        <tr><td class="etfswui-table-cell" colspan="5">No running Playwright MCP processes.</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="etfswui-card">
+            <div class="etfswui-card-title">
+                <h2 class="etfswui-card-title-text">VNC Servers</h2>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="etfswui-table">
+                    <thead class="bg-dark-50 dark:bg-dark-700/50">
+                        <tr>
+                            <th class="etfswui-table-header">PID</th>
+                            <th class="etfswui-table-header">Display</th>
+                            <th class="etfswui-table-header">Port</th>
+                            <th class="etfswui-table-header">CPU %</th>
+                            <th class="etfswui-table-header">MEM %</th>
+                            <th class="etfswui-table-header">Command</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for proc in vncServers %}
+                        <tr class="etfswui-content-table-row">
+                            <td class="etfswui-table-cell">{{ proc.pid }}</td>
+                            <td class="etfswui-table-cell">:{{ proc.displayNumber }}</td>
+                            <td class="etfswui-table-cell">{{ proc.port }}</td>
+                            <td class="etfswui-table-cell">{{ proc.percentCpuUsage }}</td>
+                            <td class="etfswui-table-cell">{{ proc.percentMemoryUsage }}</td>
+                            <td class="etfswui-table-cell">{{ proc.commandLine }}</td>
+                        </tr>
+                    {% else %}
+                        <tr><td class="etfswui-table-cell" colspan="6">No running VNC servers.</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="etfswui-card">
+            <div class="etfswui-card-title">
+                <h2 class="etfswui-card-title-text">VNC Websockets</h2>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="etfswui-table">
+                    <thead class="bg-dark-50 dark:bg-dark-700/50">
+                        <tr>
+                            <th class="etfswui-table-header">PID</th>
+                            <th class="etfswui-table-header">HTTP Port</th>
+                            <th class="etfswui-table-header">VNC Port</th>
+                            <th class="etfswui-table-header">CPU %</th>
+                            <th class="etfswui-table-header">MEM %</th>
+                            <th class="etfswui-table-header">Command</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for proc in vncWebsockets %}
+                        <tr class="etfswui-content-table-row">
+                            <td class="etfswui-table-cell">{{ proc.pid }}</td>
+                            <td class="etfswui-table-cell">{{ proc.httpPort }}</td>
+                            <td class="etfswui-table-cell">{{ proc.vncPort }}</td>
+                            <td class="etfswui-table-cell">{{ proc.percentCpuUsage }}</td>
+                            <td class="etfswui-table-cell">{{ proc.percentMemoryUsage }}</td>
+                            <td class="etfswui-table-cell">{{ proc.commandLine }}</td>
+                        </tr>
+                    {% else %}
+                        <tr><td class="etfswui-table-cell" colspan="6">No running VNC websocket processes.</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+{% endblock %}

@@ -11,7 +11,6 @@ use EnterpriseToolingForSymfony\SharedBundle\DateAndTime\Service\DateAndTimeServ
 use Exception;
 use Symfony\Bridge\Doctrine\IdGenerator\UuidGenerator;
 
-
 #[ORM\Entity]
 #[ORM\Table(name: 'mcp_instances')]
 class McpInstance
@@ -30,7 +29,16 @@ class McpInstance
         int    $websocketPort,
         string $vncPassword
     ) {
-        $this->createdAt = DateAndTimeService::getDateTimeImmutable();
+        $this->accountCoreId = $accountCoreId;
+        $this->displayNumber = $displayNumber;
+        $this->screenWidth   = $screenWidth;
+        $this->screenHeight  = $screenHeight;
+        $this->colorDepth    = $colorDepth;
+        $this->mcpPort       = $mcpPort;
+        $this->vncPort       = $vncPort;
+        $this->websocketPort = $websocketPort;
+        $this->vncPassword   = $vncPassword;
+        $this->createdAt     = DateAndTimeService::getDateTimeImmutable();
     }
 
     #[ORM\Id]
@@ -56,5 +64,86 @@ class McpInstance
     public function getCreatedAt(): DateTimeImmutable
     {
         return $this->createdAt;
+    }
+
+    #[ORM\Column(type: Types::STRING, length: 64, nullable: false)]
+    private string $accountCoreId;
+
+    #[ORM\Column(type: Types::INTEGER, nullable: false)]
+    private int $displayNumber;
+
+    #[ORM\Column(type: Types::INTEGER, nullable: false)]
+    private int $screenWidth;
+
+    #[ORM\Column(type: Types::INTEGER, nullable: false)]
+    private int $screenHeight;
+
+    #[ORM\Column(type: Types::INTEGER, nullable: false)]
+    private int $colorDepth;
+
+    #[ORM\Column(type: Types::INTEGER, nullable: false)]
+    private int $mcpPort;
+
+    #[ORM\Column(type: Types::INTEGER, nullable: false)]
+    private int $vncPort;
+
+    #[ORM\Column(type: Types::INTEGER, nullable: false)]
+    private int $websocketPort;
+
+    #[ORM\Column(type: Types::STRING, length: 128, nullable: false)]
+    private string $vncPassword;
+
+    public function getAccountCoreId(): string
+    {
+        return $this->accountCoreId;
+    }
+
+    public function getDisplayNumber(): int
+    {
+        return $this->displayNumber;
+    }
+
+    public function getScreenWidth(): int
+    {
+        return $this->screenWidth;
+    }
+
+    public function getScreenHeight(): int
+    {
+        return $this->screenHeight;
+    }
+
+    public function getColorDepth(): int
+    {
+        return $this->colorDepth;
+    }
+
+    public function getMcpPort(): int
+    {
+        return $this->mcpPort;
+    }
+
+    public function getVncPort(): int
+    {
+        return $this->vncPort;
+    }
+
+    public function getWebsocketPort(): int
+    {
+        return $this->websocketPort;
+    }
+
+    public function getVncPassword(): string
+    {
+        return $this->vncPassword;
+    }
+
+    public static function generateRandomPassword(int $length = 24): string
+    {
+        if ($length < 1) {
+            $length = 24;
+        }
+
+        return rtrim(strtr(base64_encode(random_bytes($length)), '+/', '-_'), '=');
     }
 }

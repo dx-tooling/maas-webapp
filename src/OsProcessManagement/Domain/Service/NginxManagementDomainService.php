@@ -5,19 +5,11 @@ declare(strict_types=1);
 namespace App\OsProcessManagement\Domain\Service;
 
 use App\McpInstances\Facade\Dto\McpInstanceInfoDto;
-use App\McpInstances\Facade\McpInstancesFacadeInterface;
-
 
 readonly class NginxManagementDomainService
 {
-    public function __construct(
-        private McpInstancesFacadeInterface $mcpInstancesFacade,
-    ) {
-
-    }
-
     /**
-     * @param McpInstanceInfoDto[] $instanceInfos
+     * @param array<McpInstanceInfoDto> $instanceInfos
      */
     public static function generateNginxConfig(array $instanceInfos): string
     {
@@ -50,11 +42,12 @@ readonly class NginxManagementDomainService
         return $config;
     }
 
-    public function reconfigureAndRestartNginx(): void
+    /**
+     * @param array<McpInstanceInfoDto> $mcpInstanceInfos
+     */
+    public function reconfigureAndRestartNginx(array $mcpInstanceInfos): void
     {
-        $config = self::generateNginxConfig(
-            $this->mcpInstancesFacade->getMcpInstanceInfos(),
-        );
+        $config = self::generateNginxConfig($mcpInstanceInfos);
         // write config file
         // restart nginx
     }

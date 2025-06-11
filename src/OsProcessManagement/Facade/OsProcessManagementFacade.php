@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\OsProcessManagement\Facade;
 
+use App\McpInstances\Facade\Dto\McpInstanceInfoDto;
 use App\OsProcessManagement\Domain\Service\NginxManagementDomainService;
 use App\OsProcessManagement\Domain\Service\OsProcessManagementDomainService;
 
@@ -15,7 +16,11 @@ readonly class OsProcessManagementFacade implements OsProcessManagementFacadeInt
     ) {
     }
 
+    /**
+     * @param array<McpInstanceInfoDto> $mcpInstanceInfos
+     */
     public function launchPlaywrightSetup(
+        array  $mcpInstanceInfos,
         int    $displayNumber,
         int    $screenWidth,
         int    $screenHeight,
@@ -48,20 +53,24 @@ readonly class OsProcessManagementFacade implements OsProcessManagementFacadeInt
             $vncPort
         );
 
-        $this->nginxMgmtService->reconfigureAndRestartNginx();
+        $this->nginxMgmtService->reconfigureAndRestartNginx($mcpInstanceInfos);
     }
 
+    /**
+     * @param array<McpInstanceInfoDto> $mcpInstanceInfos
+     */
     public function stopPlaywrightSetup(
-        int $displayNumber,
-        int $mcpPort,
-        int $vncPort,
-        int $websocketPort
+        array $mcpInstanceInfos,
+        int   $displayNumber,
+        int   $mcpPort,
+        int   $vncPort,
+        int   $websocketPort
     ): void {
         $this->processMgmtService->stopVncWebsocket($websocketPort);
         $this->processMgmtService->stopVncServer($vncPort, $displayNumber);
         $this->processMgmtService->stopPlaywrightMcp($mcpPort);
         $this->processMgmtService->stopVirtualFramebuffer($displayNumber);
 
-        $this->nginxMgmtService->reconfigureAndRestartNginx();
+        $this->nginxMgmtService->reconfigureAndRestartNginx($mcpInstanceInfos);
     }
 }

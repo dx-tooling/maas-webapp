@@ -23,8 +23,7 @@ use Throwable;
     description: 'Generates nginx bearer token mappings configuration file based on MCP instance information',
     aliases    : ['gen-nginx-maps']
 )]
-class GenerateNginxBearerMappingsCommand
-    extends EnhancedCommand
+class GenerateNginxBearerMappingsCommand extends EnhancedCommand
 {
     public function __construct(
         RolloutService                                $rolloutService,
@@ -34,8 +33,7 @@ class GenerateNginxBearerMappingsCommand
         ParameterBagInterface                         $parameterBag,
         private readonly McpInstancesFacadeInterface  $mcpInstancesFacade,
         private readonly NginxManagementDomainService $nginxMgmtService,
-    )
-    {
+    ) {
         parent::__construct(
             $rolloutService,
             $entityManager,
@@ -59,8 +57,7 @@ class GenerateNginxBearerMappingsCommand
     public function execute(
         InputInterface  $input,
         OutputInterface $output
-    ): int
-    {
+    ): int {
         $outputFile = $input->getArgument('output_file');
         if (!is_string($outputFile)) {
             $output->writeln('<error>Output file path must be a string.</error>');
@@ -92,9 +89,9 @@ class GenerateNginxBearerMappingsCommand
         } catch (Throwable $e) {
             $this->logger->error(
                 'Failed to generate nginx mappings configuration', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ]
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                ]
             );
             $output->writeln(sprintf('<error>Failed to generate configuration: %s</error>', $e->getMessage()));
 

@@ -115,7 +115,7 @@ class OsProcessManagementController extends AbstractController
         name   : 'os_process_management.presentation.launch',
         methods: [Request::METHOD_POST]
     )]
-    public function launchPlaywrightSetupAction(Request $request): RedirectResponse
+    public function launchPlaywrightSetupAction(Request $request, McpInstancesFacadeInterface $mcpInstancesFacade): RedirectResponse
     {
         $displayNumber = (int)$request->request->get('displayNumber', 99);
         $screenWidth   = (int)$request->request->get('screenWidth', 1280);
@@ -126,7 +126,9 @@ class OsProcessManagementController extends AbstractController
         $websocketPort = (int)$request->request->get('websocketPort', 33333);
         $vncPassword   = (string)$request->request->get('vncPassword', '');
 
+        $mcpInstanceInfos = $mcpInstancesFacade->getMcpInstanceInfos();
         $this->facade->launchPlaywrightSetup(
+            $mcpInstanceInfos,
             $displayNumber,
             $screenWidth,
             $screenHeight,
@@ -147,18 +149,21 @@ class OsProcessManagementController extends AbstractController
         name   : 'os_process_management.presentation.stop_instance',
         methods: [Request::METHOD_POST]
     )]
-    public function stopInstanceAction(Request $request, OsProcessManagementDomainService $service): RedirectResponse
+    public function stopInstanceAction(Request $request, OsProcessManagementDomainService $service, McpInstancesFacadeInterface $mcpInstancesFacade): RedirectResponse
     {
         $displayNumber = (int)$request->request->get('displayNumber');
         $mcpPort       = (int)$request->request->get('mcpPort');
         $vncPort       = (int)$request->request->get('vncPort');
         $websocketPort = (int)$request->request->get('websocketPort');
 
-        // Stop processes in reverse order of their dependencies
-        $service->stopPlaywrightMcp($mcpPort);
-        $service->stopVncWebsocket($websocketPort);
-        $service->stopVncServer($vncPort, $displayNumber);
-        $service->stopVirtualFramebuffer($displayNumber);
+        $mcpInstanceInfos = $mcpInstancesFacade->getMcpInstanceInfos();
+        $this->facade->stopPlaywrightSetup(
+            $mcpInstanceInfos,
+            $displayNumber,
+            $mcpPort,
+            $vncPort,
+            $websocketPort
+        );
 
         $this->addFlash('success', 'Stopped all processes for instance.');
 

@@ -8,5 +8,6 @@ readonly class AccountCoreInfoDto
 {
     public function __construct(
         public string $id,
-    ) {}
+    ) {
+    }
 }

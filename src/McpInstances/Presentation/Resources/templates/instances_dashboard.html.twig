@@ -1,0 +1,53 @@
+{% extends '@Webui/base_appshell.html.twig' %}
+
+{% block body %}
+    <h1 class="etfswui-pagetitle mb-10">Playwright MCP Instance Dashboard</h1>
+    <div class="max-w-2xl mx-auto">
+        {% if instance is null %}
+            <div class="etfswui-card mb-8">
+                <div class="etfswui-card-title">
+                    <span class="etfswui-card-title-text">No MCP Instance</span>
+                </div>
+                <div class="etfswui-card-content">
+                    <p class="etfswui-text mb-4">You do not have a Playwright MCP Instance yet.</p>
+                    <form method="post" action="{{ path('mcp_instances.presentation.create') }}">
+                        <button type="submit" class="etfswui-button-default">Create Instance</button>
+                    </form>
+                </div>
+            </div>
+        {% else %}
+            <div class="etfswui-card mb-8">
+                <div class="etfswui-card-title">
+                    <span class="etfswui-card-title-text">Your MCP Instance is Running</span>
+                </div>
+                <div class="etfswui-card-content space-y-4">
+                    <div class="flex items-center gap-2">
+                        <span class="etfswui-badge etfswui-badge-success">Active</span>
+                        <span class="etfswui-text-small">Instance ID: <code>{{ instance.id }}</code></span>
+                    </div>
+                    <div>
+                        <div class="etfswui-text mb-2 font-semibold">Endpoints:</div>
+                        <div class="etfswui-text-small mb-1">
+                            <span class="font-semibold">Playwright SSE Endpoint:</span>
+                            <code>http://127.0.0.1/sse/{{ instance.id }}</code>
+                        </div>
+                        <div class="etfswui-text-small mb-1">
+                            <span class="font-semibold">VNC Web Client:</span>
+                            <code>http://127.0.0.1:{{ instance.websocketPort }}/vnc.html?host=127.0.0.1&port={{ instance.websocketPort }}</code>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="etfswui-text mb-2 font-semibold">Password (for both endpoints):</div>
+                        <div class="flex items-center gap-2">
+                            <code class="etfswui-text-small">{{ instance.password }}</code>
+                        </div>
+                        <div class="etfswui-text-small text-dark-400 mt-1">Use as Bearer token for SSE, and as VNC password.</div>
+                    </div>
+                    <form method="post" action="{{ path('mcp_instances.presentation.stop') }}">
+                        <button type="submit" class="etfswui-button-danger">Stop & Remove Instance</button>
+                    </form>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}

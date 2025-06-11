@@ -9,14 +9,19 @@ use App\McpInstances\Facade\Dto\McpInstanceInfoDto;
 
 interface McpInstancesFacadeInterface
 {
-    /** @return McpInstanceInfoDto[] */
+    /** @return array<McpInstanceInfoDto> */
     public function getMcpInstanceInfos(): array;
 
+    /** @return array<McpInstanceInfoDto> */
     public function getMcpInstanceInfosForAccount(
         AccountCoreInfoDto $accountCoreInfoDto
     ): array;
 
     public function createMcpInstance(
+        AccountCoreInfoDto $accountCoreInfoDto,
+    ): McpInstanceInfoDto;
+
+    public function stopAndRemoveMcpInstance(
         AccountCoreInfoDto $accountCoreInfoDto,
     ): void;
 }

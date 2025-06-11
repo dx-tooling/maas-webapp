@@ -48,12 +48,26 @@ readonly class MainNavigationPresentationService extends AbstractMainNavigationS
      */
     public function getPrimaryMainNavigationEntries(): array
     {
-        $entries = [
-            $this->generateEntry(
-                'Home',
-                'website_content.presentation.homepage',
-            )
-        ];
+        if (!$this->security->isGranted('ROLE_USER')) {
+            $entries = [
+                $this->generateEntry(
+                    'Home',
+                    'website_content.presentation.homepage',
+                ),
+                $this->generateEntry(
+                    'About',
+                    'website_content.presentation.about',
+                )
+            ];
+        }
+    
+
+        if ($this->security->isGranted('ROLE_USER')) {
+            $entries[] = $this->generateEntry(
+                'Your MCP Servers',
+                'mcp_instances.presentation.dashboard',
+            );
+        }
 
         if ($this->security->isGranted('ROLE_ADMIN')) {
             $entries[] = $this->generateEntry(
@@ -67,7 +81,11 @@ readonly class MainNavigationPresentationService extends AbstractMainNavigationS
 
     public function getSecondaryMainNavigationTitle(): string
     {
-        return 'Other';
+        if ($this->security->isGranted('ROLE_USER')) {
+            return 'Other';
+        } else {
+            return 'Account';
+        }
     }
 
     /**
@@ -75,21 +93,18 @@ readonly class MainNavigationPresentationService extends AbstractMainNavigationS
      */
     protected function getSecondaryMainNavigationEntries(): array
     {
-        if ($this->security->isGranted('PUBLIC_ACCESS')) {
-            $entries = [
+        if ($this->security->isGranted('ROLE_USER')) {
+            $entries[] = $this->generateEntry(
+                'Your Account',
+                'account.presentation.dashboard',
+            );
+            
+            $entries[] = 
                 $this->generateEntry(
                     'About',
                     'website_content.presentation.about',
                 )
-            ];
-        }
-
-        // Add account-related entries
-        if ($this->security->isGranted('ROLE_USER')) {
-            $entries[] = $this->generateEntry(
-                'Dashboard',
-                'account.presentation.dashboard',
-            );
+        ;
         } else {
             $entries[] = $this->generateEntry(
                 'Sign In',

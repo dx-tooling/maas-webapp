@@ -1,5 +1,148 @@
 {% extends '@common.presentation/base_fullcontent.html.twig' %}
 
 {% block body %}
-    Hello, World.
+    <div class="relative">
+        <!-- Hero Section -->
+        <div class="relative overflow-hidden bg-gradient-to-b from-blue-50 to-white dark:from-dark-900 dark:to-dark-800 py-24 sm:py-32">
+            <div class="mx-auto max-w-7xl px-6 lg:px-8">
+                <div class="mx-auto max-w-2xl text-center">
+                    <h1 class="etfswui-h1-gradient">
+                        <span class="etfswui-h1-gradient-span">About Playwright MCP Cloud</span>
+                    </h1>
+                    <p class="mt-6 text-lg leading-8 text-dark-600 dark:text-dark-300">
+                        A detailed look at how our cloud-based MCP Server enables AI agents to interact with real browsers.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Video Demo Section -->
+        <div class="py-24 sm:py-32 bg-dark-50 dark:bg-dark-900/50">
+            <div class="mx-auto max-w-7xl px-6 lg:px-8">
+                <div class="mx-auto max-w-4xl">
+                    <div class="aspect-video w-full overflow-hidden rounded-lg shadow-2xl ring-1 ring-dark-900/10 dark:ring-dark-100/10">
+                        <video 
+                            class="w-full h-full object-cover"
+                            autoplay
+                            muted
+                            playsinline
+                            controls
+                            poster="https://develop-build-deploy.com/playwright-mcp-cloud-assets/2025-06-12-playwright-mcp-cloud-landingpage-demo-video.poster.jpg"
+                        >
+                            <source 
+                                src="https://develop-build-deploy.com/playwright-mcp-cloud-assets/2025-06-12-playwright-mcp-cloud-landingpage-demo-video.mp4" 
+                                type="video/mp4"
+                            >
+                            Your browser does not support the video tag.
+                        </video>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detailed Features Section -->
+        <div class="py-24 sm:py-32">
+            <div class="mx-auto max-w-7xl px-6 lg:px-8">
+                <div class="mx-auto max-w-3xl text-center">
+                    <h2 class="etfswui-h2">How It Works</h2>
+                    <p class="mt-6 text-lg leading-8 text-dark-600 dark:text-dark-300">
+                        Let's break down how Playwright MCP Cloud enables AI agents to interact with real browsers.
+                    </p>
+                </div>
+
+                <div class="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-none">
+                    <div class="grid grid-cols-1 gap-y-16 lg:grid-cols-2 lg:gap-x-8">
+                        <!-- Left Column -->
+                        <div class="space-y-12">
+                            <div class="etfswui-card">
+                                <div class="etfswui-card-content">
+                                    <h3 class="text-lg font-semibold leading-8 text-dark-900 dark:text-dark-100">1. Deploy Your MCP Server</h3>
+                                    <p class="mt-4 text-base leading-7 text-dark-600 dark:text-dark-300">
+                                        With a single click, deploy a full Playwright MCP Server instance in the cloud. We handle all the setup, including:
+                                    </p>
+                                    <ul class="mt-4 list-disc list-inside text-dark-600 dark:text-dark-300 space-y-2">
+                                        <li>Chrome browser installation and configuration</li>
+                                        <li>MCP Server setup and optimization</li>
+                                        <li>VNC server for visual feedback</li>
+                                        <li>Secure access configuration</li>
+                                    </ul>
+                                    <div class="mt-6">
+                                        <a href="{{ path('mcp_instances.presentation.dashboard') }}" class="etfswui-link-as-button-default">
+                                            Deploy Your First MCP Server
+                                        </a>
+                                        <p class="mt-2 text-sm text-dark-500 dark:text-dark-400">Launching an MCP Server takes less than 10 seconds.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="etfswui-card">
+                                <div class="etfswui-card-content">
+                                    <h3 class="text-lg font-semibold leading-8 text-dark-900 dark:text-dark-100">2. Connect Your AI Agent</h3>
+                                    <p class="mt-4 text-base leading-7 text-dark-600 dark:text-dark-300">
+                                        Connect your AI agent to the MCP Server using the provided endpoint and authentication token. The server is:
+                                    </p>
+                                    <ul class="mt-4 list-disc list-inside text-dark-600 dark:text-dark-300 space-y-2">
+                                        <li>Accessible from anywhere on the internet</li>
+                                        <li>Protected by a unique password that only you know</li>
+                                        <li>Ready to accept commands from your AI agent</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Column -->
+                        <div class="space-y-12">
+                            <div class="etfswui-card">
+                                <div class="etfswui-card-content">
+                                    <h3 class="text-lg font-semibold leading-8 text-dark-900 dark:text-dark-100">3. Monitor & Debug</h3>
+                                    <p class="mt-4 text-base leading-7 text-dark-600 dark:text-dark-300">
+                                        Watch and interact with the browser session through our integrated VNC client:
+                                    </p>
+                                    <ul class="mt-4 list-disc list-inside text-dark-600 dark:text-dark-300 space-y-2">
+                                        <li>View the browser exactly as your AI agent sees it</li>
+                                        <li>Interact with the browser yourself - click, type, scroll</li>
+                                        <li>Take control to help your AI agent when needed</li>
+                                        <li>Secure VNC access protected by your unique password</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <div class="etfswui-card">
+                                <div class="etfswui-card-content">
+                                    <h3 class="text-lg font-semibold leading-8 text-dark-900 dark:text-dark-100">4. Integration Options</h3>
+                                    <p class="mt-4 text-base leading-7 text-dark-600 dark:text-dark-300">
+                                        Our MCP Server integrates seamlessly with various AI platforms and tools:
+                                    </p>
+                                    <ul class="mt-4 list-disc list-inside text-dark-600 dark:text-dark-300 space-y-2">
+                                        <li>n8n workflows and automations</li>
+                                        <li>Custom AI applications</li>
+                                        <li>Testing and monitoring systems</li>
+                                        <li>Development and debugging tools</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CTA Section -->
+        <div class="bg-white dark:bg-dark-800 py-24 sm:py-32">
+            <div class="mx-auto max-w-7xl px-6 lg:px-8">
+                <div class="mx-auto max-w-2xl text-center">
+                    <h2 class="etfswui-h2">Ready to Get Started?</h2>
+                    <p class="mt-6 text-lg leading-8 text-dark-600 dark:text-dark-300">
+                        Deploy your first MCP Server instance and start enabling your AI agents to interact with real browsers.
+                    </p>
+                    <div class="mt-10 flex items-center justify-center gap-x-6">
+                        <a href="{{ path('mcp_instances.presentation.dashboard') }}" class="etfswui-link-as-button-default">
+                            Deploy Your First MCP Server
+                        </a>
+                    </div>
+                    <p class="mt-2 text-sm text-dark-500 dark:text-dark-400">Launching an MCP Server takes less than 10 seconds.</p>
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock %}

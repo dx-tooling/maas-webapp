@@ -48,6 +48,8 @@ readonly class MainNavigationPresentationService extends AbstractMainNavigationS
      */
     public function getPrimaryMainNavigationEntries(): array
     {
+        $entries = [];
+
         if (!$this->security->isGranted('ROLE_USER')) {
             $entries = [
                 $this->generateEntry(
@@ -55,8 +57,12 @@ readonly class MainNavigationPresentationService extends AbstractMainNavigationS
                     'website_content.presentation.homepage',
                 ),
                 $this->generateEntry(
-                    'About',
-                    'website_content.presentation.about',
+                    'Sign In',
+                    'account.presentation.sign_in',
+                ),
+                $this->generateEntry(
+                    'Sign Up',
+                    'account.presentation.sign_up',
                 )
             ];
         }
@@ -83,7 +89,7 @@ readonly class MainNavigationPresentationService extends AbstractMainNavigationS
         if ($this->security->isGranted('ROLE_USER')) {
             return 'Other';
         } else {
-            return 'Account';
+            return '';
         }
     }
 
@@ -92,25 +98,21 @@ readonly class MainNavigationPresentationService extends AbstractMainNavigationS
      */
     protected function getSecondaryMainNavigationEntries(): array
     {
+        $entries = [];
+
+        if (!$this->security->isGranted('ROLE_USER')) {
+            $entries = [
+                $this->generateEntry(
+                    'Learn more',
+                    'website_content.presentation.about',
+                )
+            ];
+        }
+
         if ($this->security->isGranted('ROLE_USER')) {
             $entries[] = $this->generateEntry(
                 'Your Account',
                 'account.presentation.dashboard',
-            );
-
-            $entries[] = $this->generateEntry(
-                    'About',
-                    'website_content.presentation.about',
-                )
-            ;
-        } else {
-            $entries[] = $this->generateEntry(
-                'Sign In',
-                'account.presentation.sign_in',
-            );
-            $entries[] = $this->generateEntry(
-                'Sign Up',
-                'account.presentation.sign_up',
             );
         }
 
@@ -132,12 +134,16 @@ readonly class MainNavigationPresentationService extends AbstractMainNavigationS
      */
     public function getTertiaryMainNavigationEntries(): array
     {
-        $entries = [
-            $this->generateEntry(
-                'Living Styleguide',
-                'webui.living_styleguide.show',
-            )
-        ];
+        $entries = [];
+
+        if ($this->security->isGranted('ROLE_ADMIN')) {
+            $entries = [
+                $this->generateEntry(
+                    'Living Styleguide',
+                    'webui.living_styleguide.show',
+                )
+            ];
+        }
 
         return $entries;
     }

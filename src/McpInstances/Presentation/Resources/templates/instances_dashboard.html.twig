@@ -68,7 +68,7 @@
                         <div class="etfswui-card-content space-y-4 bg-green-50 dark:bg-green-900/10">
                             <div>
                                 <div class="etfswui-text-small mb-1">Endpoint URL:</div>
-                                <input type="text" class="etfswui-form-input w-full max-w-xl" value="http://127.0.0.1:{{ instance.mcpProxyPort }}" readonly onclick="this.select()" aria-label="SSE Endpoint" />
+                                <input type="text" class="etfswui-form-input w-full max-w-xl" value="http://127.0.0.1:{{ instance.mcpProxyPort }}" readonly onclick="this.select()" aria-label="SSE Endpoint" id="endpoint-url" />
                             </div>
                             <div>
                                 <div class="etfswui-text-small mb-1">cURL Example (SSE):</div>
@@ -115,6 +115,10 @@ curl \
                                 const proxyPort = {{ instance.mcpProxyPort|json_encode|raw }};
                                 const password = {{ instance.password|json_encode|raw }};
                                 const hostname = window.location.hostname;
+
+                                // Endpoint URL
+                                const endpointUrl = `http://${hostname}:${proxyPort}`;
+                                document.getElementById('endpoint-url').value = endpointUrl;
 
                                 // VNC Web Client link
                                 const vncUrl = `http://${hostname}:${port}/vnc.html?host=${hostname}&port=${port}`;

@@ -150,6 +150,6 @@ readonly class MainNavigationPresentationService extends AbstractMainNavigationS
 
     public function getBrandLogoHtml(): string
     {
-        return '<strong class="etfswui-h1-gradient-span">Playwright MCP Cloud</strong>';
+        return '<span class="etfswui-brand-logo"><span class="etfswui-brand-logo-main">Playwright MCP</span><span class="etfswui-brand-logo-sub">Cloud</span></span>';
     }
 }

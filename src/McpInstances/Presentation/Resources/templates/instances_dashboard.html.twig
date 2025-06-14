@@ -16,71 +16,63 @@
                 </div>
             </div>
         {% else %}
-            <div class="etfswui-card mb-12 text-left">
-                <div class="etfswui-card-title flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-6">
-                    <span class="etfswui-badge etfswui-badge-success">Active</span>
-                    <span class="etfswui-card-title-text">Your MCP Instance is Running</span>
+            {# 1. General Instance Data #}
+            <div class="etfswui-card mb-8 text-left">
+                <div class="etfswui-card-title flex items-center justify-between">
+                    <span class="etfswui-card-title-text">General Instance Data</span>
+                    <span class="flex items-center gap-2">
+                        <span class="etfswui-pulse-green" aria-label="Instance is running">
+                            <span class="etfswui-pulse-green-ring"></span>
+                            <span class="etfswui-pulse-green-dot"></span>
+                        </span>
+                        <span class="etfswui-text-small text-green-700 dark:text-green-300 font-semibold">Active</span>
+                    </span>
                 </div>
-                <div class="etfswui-card-content space-y-10">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div class="space-y-4">
-                            <div>
-                                <div class="etfswui-text font-semibold mb-1">Instance ID</div>
-                                <input type="text" class="etfswui-form-input w-full max-w-xs" value="{{ instance.id }}" readonly onclick="this.select()" aria-label="Instance ID" />
-                            </div>
-                        </div>
-                        <div class="space-y-4">
-                            <div>
-                                <div class="etfswui-text font-semibold mb-1">Display Number</div>
-                                <input type="text" class="etfswui-form-input w-full max-w-xs" value="{{ instance.displayNumber }}" readonly onclick="this.select()" aria-label="Display Number" />
-                            </div>
-                        </div>
-                        <div class="space-y-4">
+                <div class="etfswui-card-content bg-neutral-50 dark:bg-neutral-900">
+                    <div class="flex flex-col md:flex-row md:gap-8 gap-4">
+                        <div class="flex-1 space-y-4">
                             <div>
                                 <div class="etfswui-text font-semibold mb-1">Password</div>
                                 <input type="text" class="etfswui-form-input w-full max-w-xs" value="{{ instance.password }}" readonly onclick="this.select()" aria-label="Password" />
                             </div>
-                        </div>
-                        <div class="space-y-4">
                             <div>
-                                <div class="etfswui-text font-semibold mb-1">Proxy Port</div>
-                                <input type="text" class="etfswui-form-input w-full max-w-xs" value="{{ instance.mcpProxyPort }}" readonly onclick="this.select()" aria-label="Proxy Port" />
+                                <div class="etfswui-text font-semibold mb-1">MCP URLs</div>
+                                <input type="text" class="etfswui-form-input w-full max-w-xl mb-2" value="http://127.0.0.1:{{ instance.mcpProxyPort }}/sse" readonly onclick="this.select()" aria-label="MCP SSE URL" id="mcp-url-sse-field" />
+                                <input type="text" class="etfswui-form-input w-full max-w-xl" value="http://127.0.0.1:{{ instance.mcpProxyPort }}/mcp" readonly onclick="this.select()" aria-label="MCP URL" id="mcp-url-mcp-field" />
                             </div>
-                        </div>
-                        <div class="space-y-4">
                             <div>
-                                <div class="etfswui-text font-semibold mb-1">VNC Port</div>
-                                <input type="text" class="etfswui-form-input w-full max-w-xs" value="{{ instance.vncPort }}" readonly onclick="this.select()" aria-label="VNC Port" />
-                            </div>
-                        </div>
-                        <div class="space-y-4">
-                            <div>
-                                <div class="etfswui-text font-semibold mb-1">WebSocket Port</div>
-                                <input type="text" class="etfswui-form-input w-full max-w-xs" value="{{ instance.websocketPort }}" readonly onclick="this.select()" aria-label="WebSocket Port" />
+                                <div class="etfswui-text font-semibold mb-1">VNC Address</div>
+                                <input type="text" class="etfswui-form-input w-full max-w-xl" value="127.0.0.1:{{ instance.vncPort }}" readonly onclick="this.select()" aria-label="VNC Address" id="vnc-address-field" />
                             </div>
                         </div>
                     </div>
+                    <div class="mt-4 text-right">
+                        <span class="etfswui-text-small text-dark-400">Instance ID: {{ instance.id }}</span>
+                    </div>
+                </div>
+            </div>
 
-                    <div class="etfswui-card bg-dark-50 dark:bg-dark-800/50 border border-dark-200 dark:border-dark-700 p-6 mt-8 text-left">
-                        <div class="etfswui-card-title">
-                            <span class="etfswui-card-title-text">Playwright MCP Endpoint</span>
-                        </div>
-                        <div class="etfswui-card-content space-y-4 bg-green-50 dark:bg-green-900/10">
-                            <div>
-                                <div class="etfswui-text-small mb-1">Endpoint URL:</div>
-                                <input type="text" class="etfswui-form-input w-full max-w-xl" value="http://127.0.0.1:{{ instance.mcpProxyPort }}" readonly onclick="this.select()" aria-label="SSE Endpoint" id="endpoint-url" />
-                            </div>
-                            <div>
-                                <div class="etfswui-text-small mb-1">cURL Example (SSE):</div>
-                                <pre class="etfswui-form-input bg-dark-100 dark:bg-dark-900 text-sm p-3 overflow-x-auto select-all">
+            {# 2. Playwright MCP Endpoint #}
+            <div class="etfswui-card mb-8 text-left">
+                <div class="etfswui-card-title">
+                    <span class="etfswui-card-title-text">Playwright MCP Endpoint</span>
+                </div>
+                <div class="etfswui-card-content bg-green-50 dark:bg-green-900/10 space-y-4">
+                    <div>
+                        <div class="etfswui-text-small mb-1">Endpoint URL (SSE):</div>
+                        <input type="text" class="etfswui-form-input w-full max-w-xl" value="http://127.0.0.1:{{ instance.mcpProxyPort }}/sse" readonly onclick="this.select()" aria-label="SSE Endpoint" id="endpoint-url" />
+                    </div>
+                    <div>
+                        <div class="etfswui-text-small mb-1">cURL Example (SSE):</div>
+                        <pre class="etfswui-form-input bg-dark-100 dark:bg-dark-900 text-sm p-3 overflow-x-auto select-all">
 <code id="curl-example">
 curl \
   -H "Authorization: Bearer {{ instance.password }}" \
   http://HOSTNAME:{{ instance.mcpProxyPort }}/sse</code></pre>
-                            </div>
-                            <div>
-                                <div class="etfswui-text-small mb-1">Cursor IDE .cursor/mcp.json Example:</div>
-                                <pre class="etfswui-form-input bg-dark-100 dark:bg-dark-900 text-sm p-3 overflow-x-auto select-all">
+                    </div>
+                    <div>
+                        <div class="etfswui-text-small mb-1">Cursor IDE .cursor/mcp.json Example (MCP):</div>
+                        <pre class="etfswui-form-input bg-dark-100 dark:bg-dark-900 text-sm p-3 overflow-x-auto select-all">
 <code id="cursor-example">{
   "mcpServers": {
     "playwright-remote": {
@@ -91,45 +83,82 @@ curl \
     }
   }
 }</code></pre>
-                            </div>
-                        </div>
                     </div>
+                </div>
+            </div>
 
-                    <div class="mt-8">
-                        <div class="etfswui-text font-semibold mb-1">VNC Web Client</div>
-                        <div class="etfswui-text mb-2">
-                            This allows you to access the Playwright MCP browser session via VNC. When prompted for a password, use:
-                        </div>
-                        <input type="text" class="etfswui-form-input w-full max-w-xs mb-4" value="{{ instance.password }}" readonly onclick="this.select()" aria-label="VNC Password" />
-                        <div class="flex gap-2 items-center">
-                            <a id="vnc-web-client-link"
-                               href="#"
-                               class="etfswui-link-as-button-secondary"
-                               target="_blank" rel="noopener noreferrer">
-                                Open VNC Web Client
-                            </a>
-                        </div>
-                        <script>
-                            (function() {
-                                const port = {{ instance.websocketPort|json_encode|raw }};
-                                const proxyPort = {{ instance.mcpProxyPort|json_encode|raw }};
-                                const password = {{ instance.password|json_encode|raw }};
-                                const hostname = window.location.hostname;
+            {# 3. VNC Web Client #}
+            <div class="etfswui-card mb-8 text-left">
+                <div class="etfswui-card-title">
+                    <span class="etfswui-card-title-text">VNC Web Client</span>
+                </div>
+                <div class="etfswui-card-content bg-neutral-50 dark:bg-neutral-900 space-y-4">
+                    <div class="etfswui-text mb-2">
+                        This allows you to access the Playwright MCP browser session via VNC. When prompted for a password, use:
+                    </div>
+                    <input type="text" class="etfswui-form-input w-full max-w-xs mb-4" value="{{ instance.password }}" readonly onclick="this.select()" aria-label="VNC Password" />
+                    <div class="flex gap-2 items-center">
+                        <a id="vnc-web-client-link"
+                           href="#"
+                           class="etfswui-link-as-button-secondary"
+                           target="_blank" rel="noopener noreferrer">
+                            Open VNC Web Client
+                        </a>
+                    </div>
+                </div>
+            </div>
 
-                                // Endpoint URL
-                                const endpointUrl = `http://${hostname}:${proxyPort}`;
-                                document.getElementById('endpoint-url').value = endpointUrl;
+            {# 4. Actions #}
+            <div class="etfswui-card mb-12 text-left">
+                <div class="etfswui-card-title">
+                    <span class="etfswui-card-title-text">Actions</span>
+                </div>
+                <div class="etfswui-card-content bg-neutral-50 dark:bg-neutral-900">
+                    <form method="post" action="{{ path('mcp_instances.presentation.stop') }}">
+                        <button type="submit" class="etfswui-button-danger">Stop & Remove Instance</button>
+                    </form>
+                </div>
+            </div>
 
-                                // VNC Web Client link
-                                const vncUrl = `http://${hostname}:${port}/vnc.html?host=${hostname}&port=${port}`;
-                                document.getElementById('vnc-web-client-link').setAttribute('href', vncUrl);
+            <script>
+                (function() {
+                    const proxyPort = {{ instance.mcpProxyPort|json_encode|raw }};
+                    const vncPort = {{ instance.vncPort|json_encode|raw }};
+                    const hostname = window.location.hostname;
 
-                                // cURL Example
-                                const curlExample = `curl \\\n  -H \"Authorization: Bearer ${password}\" \\\n  http://${hostname}:${proxyPort}/sse`;
-                                document.getElementById('curl-example').textContent = curlExample;
+                    // MCP URL fields
+                    const mcpUrlSseField = document.getElementById('mcp-url-sse-field');
+                    if (mcpUrlSseField) {
+                        mcpUrlSseField.value = `http://${hostname}:${proxyPort}/sse`;
+                    }
+                    const mcpUrlMcpField = document.getElementById('mcp-url-mcp-field');
+                    if (mcpUrlMcpField) {
+                        mcpUrlMcpField.value = `http://${hostname}:${proxyPort}/mcp`;
+                    }
+                    // VNC Address field
+                    const vncAddressField = document.getElementById('vnc-address-field');
+                    if (vncAddressField) {
+                        vncAddressField.value = `${hostname}:${vncPort}`;
+                    }
 
-                                // Cursor IDE Example
-                                const cursorExample = `{
+                    // Existing logic for endpoint, VNC web client, cURL, Cursor IDE
+                    const port = {{ instance.websocketPort|json_encode|raw }};
+                    const password = {{ instance.password|json_encode|raw }};
+
+                    // Endpoint URL
+                    const endpointUrl = `http://${hostname}:${proxyPort}/sse`;
+                    document.getElementById('endpoint-url').value = endpointUrl;
+
+                    // VNC Web Client link
+                    const vncUrl = `http://${hostname}:${port}/vnc.html?host=${hostname}&port=${port}`;
+                    document.getElementById('vnc-web-client-link').setAttribute('href', vncUrl);
+
+                    // cURL Example
+                    const curlExample = `curl \\\n  -H \"Authorization: Bearer ${password}\" \\\n  http://${hostname}:${proxyPort}/sse`;
+                    document.getElementById('curl-example').textContent = curlExample;
+
+                    // Cursor IDE Example
+                    const cursorExample = `{
   \"mcpServers\": {
     \"playwright-remote\": {
         \"url\": \"http://${hostname}:${proxyPort}/mcp\",
@@ -139,16 +168,9 @@ curl \
     }
   }
 }`;
-                                document.getElementById('cursor-example').textContent = cursorExample;
-                            })();
-                        </script>
-                    </div>
-
-                    <form method="post" action="{{ path('mcp_instances.presentation.stop') }}">
-                        <button type="submit" class="etfswui-button-danger">Stop & Remove Instance</button>
-                    </form>
-                </div>
-            </div>
+                    document.getElementById('cursor-example').textContent = cursorExample;
+                })();
+            </script>
         {% endif %}
     </div>
 {% endblock %}

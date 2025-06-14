@@ -15,4 +15,49 @@
             transform: rotate(360deg);
         }
     }
+
+    /* Zen-like slow green pulse for status indicator */
+    .etfswui-pulse-green {
+        position: relative;
+        width: 1.25rem;
+        height: 1.25rem;
+        display: inline-block;
+    }
+    .etfswui-pulse-green-dot {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 1.25rem;
+        height: 1.25rem;
+        border-radius: 9999px;
+        background-color: #22c55e; /* Tailwind green-500 */
+        z-index: 1;
+    }
+    .etfswui-pulse-green-ring {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 1.25rem;
+        height: 1.25rem;
+        border-radius: 9999px;
+        background-color: transparent;
+        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.5);
+        z-index: 0;
+        animation: etfswui-pulse-green-ring 6s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        pointer-events: none;
+    }
+    @keyframes etfswui-pulse-green-ring {
+        0% {
+            box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.5);
+            opacity: 1;
+        }
+        40% {
+            box-shadow: 0 0 0 1.5rem rgba(34, 197, 94, 0);
+            opacity: 0;
+        }
+        100% {
+            box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+            opacity: 0;
+        }
+    }
 }

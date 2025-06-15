@@ -71,7 +71,7 @@
     display: block;
     font-size: 1.15rem;
     font-weight: 700;
-    color: #171717; /* dark-900 */
+    @apply text-dark-900 dark:text-dark-100;
     letter-spacing: -0.01em;
 }
 .etfswui-brand-logo-sub {

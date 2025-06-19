@@ -21,8 +21,12 @@ class InstancesController extends AbstractController
     ) {
     }
 
-    #[Route('/account/mcp-instances', name: 'mcp_instances.presentation.dashboard', methods: ['GET'])]
-    public function dashboard(): Response
+    #[Route(
+        path   : '/account/mcp-instances',
+        name   : 'mcp_instances.presentation.dashboard',
+        methods: ['GET']
+    )]
+    public function dashboardAction(): Response
     {
         $user = $this->getUser();
         if (!$user) {
@@ -44,15 +48,21 @@ class InstancesController extends AbstractController
             }
         }
 
-        return $this->render('@mcp_instances.presentation/instances_dashboard.html.twig', [
-            'instance'             => $instance,
-            'instance_id_nohyphen' => $instanceId,
-            'process_status'       => $processStatus,
-        ]);
+        return $this->render(
+            '@mcp_instances.presentation/instances_dashboard.html.twig', [
+                'instance'             => $instance,
+                'instance_id_nohyphen' => $instanceId,
+                'process_status'       => $processStatus,
+            ]
+        );
     }
 
-    #[Route('/account/mcp-instances/create', name: 'mcp_instances.presentation.create', methods: ['POST'])]
-    public function create(): Response
+    #[Route(
+        path   : '/account/mcp-instances/create',
+        name   : 'mcp_instances.presentation.create',
+        methods: ['POST']
+    )]
+    public function createAction(): Response
     {
         $user = $this->getUser();
         if (!$user) {
@@ -65,8 +75,12 @@ class InstancesController extends AbstractController
         return $this->redirectToRoute('mcp_instances.presentation.dashboard');
     }
 
-    #[Route('/account/mcp-instances/stop', name: 'mcp_instances.presentation.stop', methods: ['POST'])]
-    public function stop(): Response
+    #[Route(
+        path   : '/account/mcp-instances/stop',
+        name   : 'mcp_instances.presentation.stop',
+        methods: ['POST']
+    )]
+    public function stopAction(): Response
     {
         $user = $this->getUser();
         if (!$user) {
@@ -79,15 +93,19 @@ class InstancesController extends AbstractController
         return $this->redirectToRoute('mcp_instances.presentation.dashboard');
     }
 
-    #[Route('/account/mcp-instances/restart-processes', name: 'mcp_instances.presentation.restart_processes', methods: ['POST'])]
-    public function restartProcesses(Request $request): Response
+    #[Route(
+        path   : '/account/mcp-instances/restart-processes',
+        name   : 'mcp_instances.presentation.restart_processes',
+        methods: ['POST']
+    )]
+    public function restartProcessesAction(Request $request): Response
     {
         $user = $this->getUser();
         if (!$user) {
             throw $this->createAccessDeniedException();
         }
 
-        $instanceId = (string) $request->request->get('instanceId');
+        $instanceId = (string)$request->request->get('instanceId');
         if (!$instanceId) {
             $this->addFlash('error', 'Instance ID is required.');
 

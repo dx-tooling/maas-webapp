@@ -1,11 +1,11 @@
-# Setupbook
+# Dev Setupbook
 
 How do I get a development environment for this application up and running?
 
 
 ## On macOS
 
-- Ensure that `php --version` resolves to PHP 8.2.x
+- Ensure that `php --version` resolves to PHP 8.4.x
 - Clone this repository
 - cd into the cloned repo root folder
 - Run `composer install`

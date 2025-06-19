@@ -23,4 +23,26 @@ interface OsProcessManagementFacadeInterface
         int $vncPort,
         int $websocketPort
     ): void;
+
+    public function restartVirtualFramebuffer(int $displayNumber): bool;
+
+    public function restartPlaywrightMcp(int $port): bool;
+
+    public function restartVncServer(int $port): bool;
+
+    public function restartVncWebsocket(int $httpPort): bool;
+
+    public function restartAllProcessesForInstance(string $instanceId): bool;
+
+    /**
+     * Get all running processes.
+     *
+     * @return array{
+     *   virtualFramebuffers: array<array{proc: array<string, mixed>, instanceId: string|null}>,
+     *   playwrightMcps: array<array{proc: array<string, mixed>, instanceId: string|null}>,
+     *   vncServers: array<array{proc: array<string, mixed>, instanceId: string|null}>,
+     *   vncWebsockets: array<array{proc: array<string, mixed>, instanceId: string|null}>
+     * }
+     */
+    public function getAllProcesses(): array;
 }

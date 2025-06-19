@@ -12,6 +12,51 @@
             color: #dc2626;
             font-weight: bold;
         }
+        .etfswui-button-xs {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            line-height: 1rem;
+        }
+        .etfswui-button-icon {
+            padding: 0.375rem;
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            min-width: 2rem;
+            height: 2rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 0.25rem;
+            flex-wrap: wrap;
+        }
+        .tooltip {
+            position: relative;
+        }
+        .tooltip .tooltip-text {
+            visibility: hidden;
+            width: auto;
+            background-color: #374151;
+            color: #fff;
+            text-align: center;
+            border-radius: 0.25rem;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            white-space: nowrap;
+        }
+        .tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
     </style>
 {% endblock %}
 
@@ -22,6 +67,14 @@
         <div class="etfswui-alert etfswui-alert-success mb-6">
             <div class="etfswui-alert-body">
                 <p class="etfswui-alert-success-text">{{ message }}</p>
+            </div>
+        </div>
+    {% endfor %}
+
+    {% for message in app.flashes('error') %}
+        <div class="etfswui-alert etfswui-alert-error mb-6">
+            <div class="etfswui-alert-body">
+                <p class="etfswui-alert-error-text">{{ message }}</p>
             </div>
         </div>
     {% endfor %}
@@ -74,13 +127,30 @@
                         </td>
                         <td class="etfswui-table-cell">{{ instance.password }}</td>
                         <td class="etfswui-table-cell">
-                            <form method="post" action="{{ path('os_process_management.presentation.stop_instance') }}" style="display:inline">
-                                <input type="hidden" name="displayNumber" value="{{ instance.displayNumber }}">
-                                <input type="hidden" name="mcpPort" value="{{ instance.mcpPort }}">
-                                <input type="hidden" name="vncPort" value="{{ instance.vncPort }}">
-                                <input type="hidden" name="websocketPort" value="{{ instance.websocketPort }}">
-                                <button type="submit" class="etfswui-button-danger etfswui-button-xs">Stop</button>
-                            </form>
+                            <div class="action-buttons">
+                                <form method="post" action="{{ path('os_process_management.presentation.restart_instance') }}" style="display:inline">
+                                    <input type="hidden" name="instanceId" value="{{ instance.id }}">
+                                    <button type="submit" class="etfswui-button-secondary etfswui-button-icon tooltip" title="Restart all processes for this instance">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                        </svg>
+                                        <span class="tooltip-text">Restart All</span>
+                                    </button>
+                                </form>
+                                <form method="post" action="{{ path('os_process_management.presentation.stop_instance') }}" style="display:inline">
+                                    <input type="hidden" name="displayNumber" value="{{ instance.displayNumber }}">
+                                    <input type="hidden" name="mcpPort" value="{{ instance.mcpPort }}">
+                                    <input type="hidden" name="vncPort" value="{{ instance.vncPort }}">
+                                    <input type="hidden" name="websocketPort" value="{{ instance.websocketPort }}">
+                                    <button type="submit" class="etfswui-button-danger etfswui-button-icon tooltip" title="Stop all processes for this instance">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
+                                        </svg>
+                                        <span class="tooltip-text">Stop All</span>
+                                    </button>
+                                </form>
+                            </div>
                         </td>
                     </tr>
                 {% else %}
@@ -158,12 +228,29 @@
                     {% for row in virtualFramebuffers %}
                         <tr class="etfswui-content-table-row" id="xvfb-{{ row.proc.displayNumber }}">
                             <td class="etfswui-table-cell">
-                                <form method="post" action="{{ path('os_process_management.presentation.stop_process') }}" style="display:inline">
-                                    <input type="hidden" name="pid" value="{{ row.proc.pid }}">
-                                    <input type="hidden" name="type" value="xvfb">
-                                    <input type="hidden" name="displayNumber" value="{{ row.proc.displayNumber }}">
-                                    <button type="submit" class="etfswui-button-danger etfswui-button-xs">Stop</button>
-                                </form>
+                                <div class="action-buttons">
+                                    <form method="post" action="{{ path('os_process_management.presentation.restart_process') }}" style="display:inline">
+                                        <input type="hidden" name="type" value="xvfb">
+                                        <input type="hidden" name="displayNumber" value="{{ row.proc.displayNumber }}">
+                                        <button type="submit" class="etfswui-button-secondary etfswui-button-icon tooltip" title="Restart this virtual framebuffer">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                            </svg>
+                                            <span class="tooltip-text">Restart</span>
+                                        </button>
+                                    </form>
+                                    <form method="post" action="{{ path('os_process_management.presentation.stop_process') }}" style="display:inline">
+                                        <input type="hidden" name="pid" value="{{ row.proc.pid }}">
+                                        <input type="hidden" name="type" value="xvfb">
+                                        <input type="hidden" name="displayNumber" value="{{ row.proc.displayNumber }}">
+                                        <button type="submit" class="etfswui-button-danger etfswui-button-icon tooltip" title="Stop this virtual framebuffer">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                            <span class="tooltip-text">Stop</span>
+                                        </button>
+                                    </form>
+                                </div>
                             </td>
                             <td class="etfswui-table-cell">{% if row.instanceId %}<a href="{{ path('os_process_management.presentation.dashboard', {'instance': row.instanceId}) }}" class="etfswui-link">{{ row.instanceId }}</a>{% endif %}</td>
                             <td class="etfswui-table-cell">{{ row.proc.pid }}</td>
@@ -173,7 +260,7 @@
                             <td class="etfswui-table-cell">{{ row.proc.commandLine }}</td>
                         </tr>
                     {% else %}
-                        <tr><td class="etfswui-table-cell" colspan="6">No running Xvfb processes.</td></tr>
+                        <tr><td class="etfswui-table-cell" colspan="7">No running Xvfb processes.</td></tr>
                     {% endfor %}
                     </tbody>
                 </table>
@@ -201,12 +288,29 @@
                     {% for row in playwrightMcps %}
                         <tr class="etfswui-content-table-row" id="mcp-{{ row.proc.mcpPort }}">
                             <td class="etfswui-table-cell">
-                                <form method="post" action="{{ path('os_process_management.presentation.stop_process') }}" style="display:inline">
-                                    <input type="hidden" name="pid" value="{{ row.proc.pid }}">
-                                    <input type="hidden" name="type" value="mcp">
-                                    <input type="hidden" name="mcpPort" value="{{ row.proc.mcpPort }}">
-                                    <button type="submit" class="etfswui-button-danger etfswui-button-xs">Stop</button>
-                                </form>
+                                <div class="action-buttons">
+                                    <form method="post" action="{{ path('os_process_management.presentation.restart_process') }}" style="display:inline">
+                                        <input type="hidden" name="type" value="mcp">
+                                        <input type="hidden" name="mcpPort" value="{{ row.proc.mcpPort }}">
+                                        <button type="submit" class="etfswui-button-secondary etfswui-button-icon tooltip" title="Restart this Playwright MCP process">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                            </svg>
+                                            <span class="tooltip-text">Restart</span>
+                                        </button>
+                                    </form>
+                                    <form method="post" action="{{ path('os_process_management.presentation.stop_process') }}" style="display:inline">
+                                        <input type="hidden" name="pid" value="{{ row.proc.pid }}">
+                                        <input type="hidden" name="type" value="mcp">
+                                        <input type="hidden" name="mcpPort" value="{{ row.proc.mcpPort }}">
+                                        <button type="submit" class="etfswui-button-danger etfswui-button-icon tooltip" title="Stop this Playwright MCP process">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                            <span class="tooltip-text">Stop</span>
+                                        </button>
+                                    </form>
+                                </div>
                             </td>
                             <td class="etfswui-table-cell">{% if row.instanceId %}<a href="{{ path('os_process_management.presentation.dashboard', {'instance': row.instanceId}) }}" class="etfswui-link">{{ row.instanceId }}</a>{% endif %}</td>
                             <td class="etfswui-table-cell">{{ row.proc.pid }}</td>
@@ -216,7 +320,7 @@
                             <td class="etfswui-table-cell">{{ row.proc.commandLine }}</td>
                         </tr>
                     {% else %}
-                        <tr><td class="etfswui-table-cell" colspan="6">No running Playwright MCP processes.</td></tr>
+                        <tr><td class="etfswui-table-cell" colspan="7">No running Playwright MCP processes.</td></tr>
                     {% endfor %}
                     </tbody>
                 </table>
@@ -245,13 +349,30 @@
                     {% for row in vncServers %}
                         <tr class="etfswui-content-table-row" id="vnc-{{ row.proc.port }}">
                             <td class="etfswui-table-cell">
-                                <form method="post" action="{{ path('os_process_management.presentation.stop_process') }}" style="display:inline">
-                                    <input type="hidden" name="pid" value="{{ row.proc.pid }}">
-                                    <input type="hidden" name="type" value="vnc">
-                                    <input type="hidden" name="vncPort" value="{{ row.proc.port }}">
-                                    <input type="hidden" name="displayNumber" value="{{ row.proc.displayNumber }}">
-                                    <button type="submit" class="etfswui-button-danger etfswui-button-xs">Stop</button>
-                                </form>
+                                <div class="action-buttons">
+                                    <form method="post" action="{{ path('os_process_management.presentation.restart_process') }}" style="display:inline">
+                                        <input type="hidden" name="type" value="vnc">
+                                        <input type="hidden" name="vncPort" value="{{ row.proc.port }}">
+                                        <button type="submit" class="etfswui-button-secondary etfswui-button-icon tooltip" title="Restart this VNC server">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                            </svg>
+                                            <span class="tooltip-text">Restart</span>
+                                        </button>
+                                    </form>
+                                    <form method="post" action="{{ path('os_process_management.presentation.stop_process') }}" style="display:inline">
+                                        <input type="hidden" name="pid" value="{{ row.proc.pid }}">
+                                        <input type="hidden" name="type" value="vnc">
+                                        <input type="hidden" name="vncPort" value="{{ row.proc.port }}">
+                                        <input type="hidden" name="displayNumber" value="{{ row.proc.displayNumber }}">
+                                        <button type="submit" class="etfswui-button-danger etfswui-button-icon tooltip" title="Stop this VNC server">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                            <span class="tooltip-text">Stop</span>
+                                        </button>
+                                    </form>
+                                </div>
                             </td>
                             <td class="etfswui-table-cell">{% if row.instanceId %}<a href="{{ path('os_process_management.presentation.dashboard', {'instance': row.instanceId}) }}" class="etfswui-link">{{ row.instanceId }}</a>{% endif %}</td>
                             <td class="etfswui-table-cell">{{ row.proc.pid }}</td>
@@ -262,7 +383,7 @@
                             <td class="etfswui-table-cell">{{ row.proc.commandLine }}</td>
                         </tr>
                     {% else %}
-                        <tr><td class="etfswui-table-cell" colspan="7">No running VNC servers.</td></tr>
+                        <tr><td class="etfswui-table-cell" colspan="8">No running VNC servers.</td></tr>
                     {% endfor %}
                     </tbody>
                 </table>
@@ -291,12 +412,29 @@
                     {% for row in vncWebsockets %}
                         <tr class="etfswui-content-table-row" id="ws-{{ row.proc.httpPort }}">
                             <td class="etfswui-table-cell">
-                                <form method="post" action="{{ path('os_process_management.presentation.stop_process') }}" style="display:inline">
-                                    <input type="hidden" name="pid" value="{{ row.proc.pid }}">
-                                    <input type="hidden" name="type" value="ws">
-                                    <input type="hidden" name="websocketPort" value="{{ row.proc.httpPort }}">
-                                    <button type="submit" class="etfswui-button-danger etfswui-button-xs">Stop</button>
-                                </form>
+                                <div class="action-buttons">
+                                    <form method="post" action="{{ path('os_process_management.presentation.restart_process') }}" style="display:inline">
+                                        <input type="hidden" name="type" value="ws">
+                                        <input type="hidden" name="websocketPort" value="{{ row.proc.httpPort }}">
+                                        <button type="submit" class="etfswui-button-secondary etfswui-button-icon tooltip" title="Restart this VNC websocket">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                            </svg>
+                                            <span class="tooltip-text">Restart</span>
+                                        </button>
+                                    </form>
+                                    <form method="post" action="{{ path('os_process_management.presentation.stop_process') }}" style="display:inline">
+                                        <input type="hidden" name="pid" value="{{ row.proc.pid }}">
+                                        <input type="hidden" name="type" value="ws">
+                                        <input type="hidden" name="websocketPort" value="{{ row.proc.httpPort }}">
+                                        <button type="submit" class="etfswui-button-danger etfswui-button-icon tooltip" title="Stop this VNC websocket">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                            <span class="tooltip-text">Stop</span>
+                                        </button>
+                                    </form>
+                                </div>
                             </td>
                             <td class="etfswui-table-cell">{% if row.instanceId %}<a href="{{ path('os_process_management.presentation.dashboard', {'instance': row.instanceId}) }}" class="etfswui-link">{{ row.instanceId }}</a>{% endif %}</td>
                             <td class="etfswui-table-cell">{{ row.proc.pid }}</td>
@@ -307,7 +445,7 @@
                             <td class="etfswui-table-cell">{{ row.proc.commandLine }}</td>
                         </tr>
                     {% else %}
-                        <tr><td class="etfswui-table-cell" colspan="7">No running VNC websocket processes.</td></tr>
+                        <tr><td class="etfswui-table-cell" colspan="8">No running VNC websocket processes.</td></tr>
                     {% endfor %}
                     </tbody>
                 </table>

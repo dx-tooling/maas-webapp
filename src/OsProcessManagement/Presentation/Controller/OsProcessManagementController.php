@@ -168,6 +168,26 @@ class OsProcessManagementController extends AbstractController
     }
 
     #[Route(
+        path   : '/admin/os-process-management/restart-instance',
+        name   : 'os_process_management.presentation.restart_instance',
+        methods: [Request::METHOD_POST]
+    )]
+    public function restartInstanceAction(Request $request): RedirectResponse
+    {
+        $instanceId = (string)$request->request->get('instanceId');
+
+        $success = $this->facade->restartAllProcessesForInstance($instanceId);
+
+        if ($success) {
+            $this->addFlash('success', 'Successfully restarted all processes for instance.');
+        } else {
+            $this->addFlash('error', 'Failed to restart some processes for instance.');
+        }
+
+        return $this->redirectToRoute('os_process_management.presentation.dashboard');
+    }
+
+    #[Route(
         path   : '/admin/os-process-management/stop-process',
         name   : 'os_process_management.presentation.stop_process',
         methods: [Request::METHOD_POST]
@@ -187,6 +207,37 @@ class OsProcessManagementController extends AbstractController
             $service->stopVncWebsocket((int)($extra['websocketPort'] ?? 0));
         }
         $this->addFlash('success', 'Stopped process.');
+
+        return $this->redirectToRoute('os_process_management.presentation.dashboard');
+    }
+
+    #[Route(
+        path   : '/admin/os-process-management/restart-process',
+        name   : 'os_process_management.presentation.restart_process',
+        methods: [Request::METHOD_POST]
+    )]
+    public function restartProcessAction(Request $request): RedirectResponse
+    {
+        $type    = (string)$request->request->get('type');
+        $extra   = $request->request->all();
+        $success = false;
+
+        // Restart the process by type
+        if ($type === 'xvfb') {
+            $success = $this->facade->restartVirtualFramebuffer((int)($extra['displayNumber'] ?? 0));
+        } elseif ($type === 'mcp') {
+            $success = $this->facade->restartPlaywrightMcp((int)($extra['mcpPort'] ?? 0));
+        } elseif ($type === 'vnc') {
+            $success = $this->facade->restartVncServer((int)($extra['vncPort'] ?? 0));
+        } elseif ($type === 'ws') {
+            $success = $this->facade->restartVncWebsocket((int)($extra['websocketPort'] ?? 0));
+        }
+
+        if ($success) {
+            $this->addFlash('success', 'Successfully restarted process.');
+        } else {
+            $this->addFlash('error', 'Failed to restart process.');
+        }
 
         return $this->redirectToRoute('os_process_management.presentation.dashboard');
     }

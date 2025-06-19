@@ -4,16 +4,20 @@ declare(strict_types=1);
 
 namespace App\OsProcessManagement\Domain\Service;
 
+use App\McpInstances\Domain\Entity\McpInstance;
 use App\OsProcessManagement\Domain\Dto\PlaywrightMcpProcessInfoDto;
 use App\OsProcessManagement\Domain\Dto\VirtualFramebufferProcessInfoDto;
 use App\OsProcessManagement\Domain\Dto\VncServerProcessInfoDto;
 use App\OsProcessManagement\Domain\Dto\VncWebsocketProcessInfoDto;
+use Doctrine\ORM\EntityManagerInterface;
+use Exception;
 use Psr\Log\LoggerInterface;
 
 readonly class OsProcessManagementDomainService
 {
     public function __construct(
-        private LoggerInterface $logger
+        private LoggerInterface        $logger,
+        private EntityManagerInterface $entityManager
     ) {
     }
 
@@ -50,6 +54,41 @@ readonly class OsProcessManagementDomainService
         return true;
     }
 
+    public function restartVirtualFramebuffer(
+        int $displayNumber
+    ): bool {
+        // Extract screen parameters from the running process
+        $cmd    = "ps aux | grep 'Xvfb :$displayNumber' | grep -v grep";
+        $output = shell_exec($cmd);
+
+        if (!$output) {
+            $this->logger->warning("[restartVirtualFramebuffer] No running Xvfb process found for display :$displayNumber");
+
+            return false;
+        }
+
+        // Parse the command line to extract screen parameters
+        if (preg_match('/Xvfb :(\d+) -screen 0 (\d+)x(\d+)x(\d+)/', $output, $matches)) {
+            $displayNumber = (int) $matches[1];
+            $screenWidth   = (int) $matches[2];
+            $screenHeight  = (int) $matches[3];
+            $colorDepth    = (int) $matches[4];
+
+            // Stop the process
+            $this->stopVirtualFramebuffer($displayNumber);
+
+            // Wait a moment for the process to fully stop
+            sleep(1);
+
+            // Start the process again with the same parameters
+            return $this->launchVirtualFramebuffer($displayNumber, $screenWidth, $screenHeight, $colorDepth);
+        }
+
+        $this->logger->error('[restartVirtualFramebuffer] Could not parse Xvfb command line parameters');
+
+        return false;
+    }
+
     public function launchPlaywrightMcp(
         int $port,
         int $displayNumber
@@ -84,6 +123,39 @@ readonly class OsProcessManagementDomainService
         }
 
         return true;
+    }
+
+    public function restartPlaywrightMcp(
+        int $port
+    ): bool {
+        // Extract display number from the running process
+        $cmd    = "ps aux | grep 'playwright/mcp@.*--port $port' | grep -v grep";
+        $output = shell_exec($cmd);
+
+        if (!$output) {
+            $this->logger->warning("[restartPlaywrightMcp] No running Playwright MCP process found for port $port");
+
+            return false;
+        }
+
+        // Parse the command line to extract display number
+        if (preg_match('/launch-playwright-mcp\.sh (\d+) (\d+)/', $output, $matches)) {
+            $displayNumber = (int) $matches[1];
+            $port          = (int) $matches[2];
+
+            // Stop the process
+            $this->stopPlaywrightMcp($port);
+
+            // Wait a moment for the process to fully stop
+            sleep(2);
+
+            // Start the process again with the same parameters
+            return $this->launchPlaywrightMcp($port, $displayNumber);
+        }
+
+        $this->logger->error('[restartPlaywrightMcp] Could not parse Playwright MCP command line parameters');
+
+        return false;
     }
 
     public function launchVncServer(
@@ -129,6 +201,47 @@ readonly class OsProcessManagementDomainService
         return true;
     }
 
+    public function restartVncServer(
+        int $port
+    ): bool {
+        // Extract display number from the running process
+        $cmd    = "ps aux | grep 'x11vnc.*-rfbport $port' | grep -v grep";
+        $output = shell_exec($cmd);
+
+        if (!$output) {
+            $this->logger->warning("[restartVncServer] No running VNC server process found for port $port");
+
+            return false;
+        }
+
+        // Parse the command line to extract display number
+        if (preg_match('/x11vnc -display :(\d+).* -rfbport (\d+)/', $output, $matches)) {
+            $displayNumber = (int) $matches[1];
+            $port          = (int) $matches[2];
+
+            // Get the VNC password from the MCP instance
+            $mcpInstance = $this->findMcpInstanceByVncPort($port);
+            if (!$mcpInstance) {
+                $this->logger->error("[restartVncServer] Could not find MCP instance for VNC port $port");
+
+                return false;
+            }
+
+            // Stop the process
+            $this->stopVncServer($port, $displayNumber);
+
+            // Wait a moment for the process to fully stop
+            sleep(1);
+
+            // Start the process again with the same parameters
+            return $this->launchVncServer($port, $displayNumber, $mcpInstance->getVncPassword());
+        }
+
+        $this->logger->error('[restartVncServer] Could not parse VNC server command line parameters');
+
+        return false;
+    }
+
     public function launchVncWebsocket(
         int $httpPort,
         int $vncPort
@@ -156,6 +269,106 @@ readonly class OsProcessManagementDomainService
         }
 
         return true;
+    }
+
+    public function restartVncWebsocket(
+        int $httpPort
+    ): bool {
+        // Extract VNC port from the running process
+        $cmd    = "ps aux | grep 'websockify.*$httpPort' | grep -v grep";
+        $output = shell_exec($cmd);
+
+        if (!$output) {
+            $this->logger->warning("[restartVncWebsocket] No running VNC websocket process found for HTTP port $httpPort");
+
+            return false;
+        }
+
+        // Parse the command line to extract VNC port
+        if (preg_match('/websockify [^ ]* (\d+) localhost:(\d+)/', $output, $matches)) {
+            $httpPort = (int) $matches[1];
+            $vncPort  = (int) $matches[2];
+
+            // Stop the process
+            $this->stopVncWebsocket($httpPort);
+
+            // Wait a moment for the process to fully stop
+            sleep(1);
+
+            // Start the process again with the same parameters
+            return $this->launchVncWebsocket($httpPort, $vncPort);
+        }
+
+        $this->logger->error('[restartVncWebsocket] Could not parse VNC websocket command line parameters');
+
+        return false;
+    }
+
+    /**
+     * Restart all processes for a specific MCP instance.
+     */
+    public function restartAllProcessesForInstance(McpInstance $mcpInstance): bool
+    {
+        $this->logger->info("[restartAllProcessesForInstance] Restarting all processes for instance {$mcpInstance->getId()}");
+
+        try {
+            // Stop all processes in reverse order
+            $this->stopVncWebsocket($mcpInstance->getWebsocketPort());
+            $this->stopVncServer($mcpInstance->getVncPort(), $mcpInstance->getDisplayNumber());
+            $this->stopPlaywrightMcp($mcpInstance->getMcpPort());
+            $this->stopVirtualFramebuffer($mcpInstance->getDisplayNumber());
+
+            // Wait for processes to fully stop
+            sleep(3);
+
+            // Start all processes in correct order
+            $virtualFramebufferSuccess = $this->launchVirtualFramebuffer(
+                $mcpInstance->getDisplayNumber(),
+                $mcpInstance->getScreenWidth(),
+                $mcpInstance->getScreenHeight(),
+                $mcpInstance->getColorDepth()
+            );
+
+            $playwrightMcpSuccess = $this->launchPlaywrightMcp(
+                $mcpInstance->getMcpPort(),
+                $mcpInstance->getDisplayNumber()
+            );
+
+            $vncServerSuccess = $this->launchVncServer(
+                $mcpInstance->getVncPort(),
+                $mcpInstance->getDisplayNumber(),
+                $mcpInstance->getVncPassword()
+            );
+
+            $vncWebsocketSuccess = $this->launchVncWebsocket(
+                $mcpInstance->getWebsocketPort(),
+                $mcpInstance->getVncPort()
+            );
+
+            $success = $virtualFramebufferSuccess && $playwrightMcpSuccess && $vncServerSuccess && $vncWebsocketSuccess;
+
+            if ($success) {
+                $this->logger->info("[restartAllProcessesForInstance] Successfully restarted all processes for instance {$mcpInstance->getId()}");
+            } else {
+                $this->logger->error("[restartAllProcessesForInstance] Failed to restart some processes for instance {$mcpInstance->getId()}");
+            }
+
+            return $success;
+        } catch (Exception $e) {
+            $this->logger->error('[restartAllProcessesForInstance] Exception while restarting processes: ' . $e->getMessage());
+
+            return false;
+        }
+    }
+
+    /**
+     * Find MCP instance by VNC port.
+     */
+    private function findMcpInstanceByVncPort(int $vncPort): ?McpInstance
+    {
+        $repo = $this->entityManager->getRepository(McpInstance::class);
+
+        return $repo->findOneBy(['vncPort' => $vncPort]);
     }
 
     /**

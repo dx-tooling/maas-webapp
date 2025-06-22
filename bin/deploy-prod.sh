@@ -15,9 +15,9 @@ rsync \
   --exclude public/generated-content/ \
   --delete \
   "$SCRIPT_FOLDER"/../../ \
-  www-data@54.193.105.168:/var/www/prod/
+  www-data@152.53.168.103:/var/www/prod/
 
-ssh www-data@54.193.105.168 -C ' \
+ssh www-data@152.53.168.103 -C ' \
 cd ~/prod/playwright-mcp-cloud-webapp; \
 /usr/bin/env php bin/console --env=prod cache:clear; \
 /usr/bin/env php bin/console --env=prod doctrine:database:create --if-not-exists --no-interaction; \

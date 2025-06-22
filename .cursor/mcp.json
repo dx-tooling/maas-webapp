@@ -1,9 +1,9 @@
 {
     "mcpServers": {
         "playwright-remote": {
-            "url": "http://playwright-mcp.develop-build-deploy.com:45365/mcp",
+            "url": "http://playwright-mcp.develop-build-deploy.com:25427/mcp",
             "headers": {
-                "Authorization": "Bearer ABcJjBkLI6IT0MQlLNE77clBhkojutt3"
+                "Authorization": "Bearer fXaSMxdB1YCO_Tm8zGTF4g--0Ul6f4Gm"
             }
         }
     }

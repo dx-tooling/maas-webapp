@@ -1,3 +1,1 @@
-# Playwright MCP Cloud
-
-## Webapp
+# MCP as a Service · Webapp

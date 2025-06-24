@@ -53,10 +53,6 @@ readonly class MainNavigationPresentationService extends AbstractMainNavigationS
         if (!$this->security->isGranted('ROLE_USER')) {
             $entries = [
                 $this->generateEntry(
-                    'Home',
-                    'website_content.presentation.homepage',
-                ),
-                $this->generateEntry(
                     'Sign In',
                     'account.presentation.sign_in',
                 ),
@@ -100,15 +96,6 @@ readonly class MainNavigationPresentationService extends AbstractMainNavigationS
     {
         $entries = [];
 
-        if (!$this->security->isGranted('ROLE_USER')) {
-            $entries = [
-                $this->generateEntry(
-                    'Learn more',
-                    'website_content.presentation.about',
-                )
-            ];
-        }
-
         if ($this->security->isGranted('ROLE_USER')) {
             $entries[] = $this->generateEntry(
                 'Your Account',
@@ -150,6 +137,6 @@ readonly class MainNavigationPresentationService extends AbstractMainNavigationS
 
     public function getBrandLogoHtml(): string
     {
-        return '<span class="etfswui-brand-logo"><span class="etfswui-brand-logo-main">Playwright MCP</span><span class="etfswui-brand-logo-sub">Cloud</span></span>';
+        return '<span class="etfswui-brand-logo"><span class="etfswui-brand-logo-main">MCP</span><span class="etfswui-brand-logo-sub">as a Service</span></span>';
     }
 }

@@ -2,7 +2,7 @@
 
 sleep 5
 
-cd /var/www/prod/playwright-mcp-cloud-webapp
+cd /var/www/prod/maas-webapp
 
 sudo -u www-data php bin/console --env=prod app:os-process-management:domain:generate-nginx-bearer-mappings /var/tmp/mcp-proxies.conf
 

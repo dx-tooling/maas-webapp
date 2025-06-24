@@ -46,6 +46,6 @@ readonly class NginxManagementDomainService
 
     public function reconfigureAndRestartNginx(): void
     {
-        exec('/var/www/prod/playwright-mcp-cloud-webapp/bin/generate-mcp-proxies-wrapper.sh');
+        exec('/var/www/prod/maas-webapp/bin/generate-mcp-proxies-wrapper.sh');
     }
 }

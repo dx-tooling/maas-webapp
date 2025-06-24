@@ -5,29 +5,24 @@ declare(strict_types=1);
 namespace App\WebsiteContent\Presentation\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
 class ContentController extends AbstractController
 {
     #[Route(
         path   : '/',
-        name   : 'website_content.presentation.homepage',
+        name   : 'website_content.presentation.root',
         methods: [Request::METHOD_GET]
     )]
-    public function homepageAction(): Response
+    public function rootAction(): RedirectResponse
     {
-        return $this->render('@website_content.presentation/homepage.html.twig');
-    }
+        $user = $this->getUser();
+        if (!$user) {
+            return $this->redirectToRoute('account.presentation.sign_in');
+        }
 
-    #[Route(
-        path   : '/about',
-        name   : 'website_content.presentation.about',
-        methods: [Request::METHOD_GET]
-    )]
-    public function aboutAction(): Response
-    {
-        return $this->render('@website_content.presentation/about.html.twig');
+        return $this->redirectToRoute('mcp_instances.presentation.dashboard');
     }
 }

@@ -35,8 +35,8 @@ apt install vim curl nginx certbot python3-certbot-nginx mariadb-server php8.4-c
 sudo certbot --nginx -d example.org
 
 service mariadb start
-mysql -uroot -e "CREATE DATABASE playwright_mcp_cloud_webapp_prod;"
-mysql -uroot -e "GRANT ALL PRIVILEGES ON playwright_mcp_cloud_webapp_prod.* TO 'prod'@'localhost' IDENTIFIED BY 'Jiouejrf3483HXxbzbrf23';"
+mysql -uroot -e "CREATE DATABASE maas_webapp_prod;"
+mysql -uroot -e "GRANT ALL PRIVILEGES ON maas_webapp_prod.* TO 'prod'@'localhost' IDENTIFIED BY 'Jiouejrf3483HXxbzbrf23';"
 
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
 export NVM_DIR="$HOME/.nvm"

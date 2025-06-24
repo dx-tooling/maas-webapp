@@ -1,1 +1,1 @@
-www-data ALL=(root) NOPASSWD: /var/www/prod/playwright-mcp-cloud-webapp/bin/generate-mcp-proxies.sh
+www-data ALL=(root) NOPASSWD: /var/www/prod/maas-webapp/bin/generate-mcp-proxies.sh

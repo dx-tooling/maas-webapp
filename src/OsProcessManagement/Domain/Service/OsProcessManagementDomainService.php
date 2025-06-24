@@ -93,7 +93,7 @@ readonly class OsProcessManagementDomainService
         int $port,
         int $displayNumber
     ): bool {
-        $cmdLine = "/usr/bin/env bash /var/www/prod/playwright-mcp-cloud-webapp/bin/launch-playwright-mcp.sh $displayNumber $port";
+        $cmdLine = "/usr/bin/env bash /var/www/prod/maas-webapp/bin/launch-playwright-mcp.sh $displayNumber $port";
         $this->logger->info("[launchPlaywrightMcp] Running command line: '$cmdLine'.");
         shell_exec($cmdLine);
 

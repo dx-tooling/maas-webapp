@@ -24,7 +24,7 @@ Store files `/etc/letsencrypt/live/mcp-as-a-service.com/fullchain.pem` and `/etc
     [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
     nvm install 22
     npx playwright install-deps
-    echo "www-data ALL=(root) NOPASSWD: /var/www/prod/playwright-mcp-cloud-webapp/bin/generate-mcp-proxies.sh" > /etc/sudoers.d/100-www-data-mcp-proxy-gen
+    echo "www-data ALL=(root) NOPASSWD: /var/www/prod/maas-webapp/bin/generate-mcp-proxies.sh" > /etc/sudoers.d/100-www-data-mcp-proxy-gen
     touch /etc/nginx/mcp-server-proxies.conf
     rm /etc/nginx/sites-enabled/default
 

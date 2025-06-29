@@ -9,12 +9,12 @@
         "ext-iconv": "*",
         "ext-mbstring": "*",
         "ext-mcrypt": "*",
-        "doctrine/dbal": "^3.9.4",
-        "doctrine/doctrine-bundle": "^2.14.0",
+        "doctrine/dbal": "^3.9.5",
+        "doctrine/doctrine-bundle": "^2.15.0",
         "doctrine/doctrine-migrations-bundle": "^3.4.2",
-        "doctrine/orm": "^3.3.3",
-        "enterprise-tooling-for-symfony/shared-bundle": "dev-main",
-        "enterprise-tooling-for-symfony/webui-bundle": "dev-main",
+        "doctrine/orm": "^3.4.3",
+        "dx-tooling/etfs-shared-bundle": "dev-main",
+        "dx-tooling/etfs-webui-bundle": "dev-main",
         "googleads/google-ads-php": "^25.0",
         "orhanerday/open-ai": "^5.3",
         "phpdocumentor/reflection-docblock": "^5.6.2",
@@ -43,12 +43,12 @@
         "symfony/runtime": "7.3.*",
         "symfony/security-bundle": "7.3.*",
         "symfony/serializer": "7.3.*",
-        "symfony/stimulus-bundle": "^2.26.1",
+        "symfony/stimulus-bundle": "^2.27.0",
         "symfony/string": "7.3.*",
         "symfony/translation": "7.3.*",
         "symfony/twig-bundle": "7.3.*",
         "symfony/uid": "7.3.*",
-        "symfony/ux-live-component": "^2.26.1",
+        "symfony/ux-live-component": "^2.27.0",
         "symfony/validator": "7.3.*",
         "symfony/web-link": "7.3.*",
         "symfony/yaml": "7.3.*",
@@ -114,7 +114,7 @@
     "require-dev": {
         "dbrekelmans/bdi": "^1.4",
         "deptrac/deptrac": "^3.0",
-        "ergebnis/phpstan-rules": "^2.10.4",
+        "ergebnis/phpstan-rules": "^2.10.5",
         "erickskrauch/php-cs-fixer-custom-fixers": "^1.3",
         "friendsofphp/php-cs-fixer": "^3.75.0",
         "phpstan/extension-installer": "^1.4.3",
@@ -134,20 +134,12 @@
     },
     "repositories": [
         {
-            "name": "enterprise-tooling-for-symfony/shared-bundle:path",
-            "type": "path",
-            "url": "../shared-bundle",
-            "options": {
-                "symlink": true
-            }
+            "type": "vcs",
+            "url": "https://github.com/dx-tooling/etfs-shared-bundle.git"
         },
         {
-            "name": "enterprise-tooling-for-symfony/webui-bundle:path",
-            "type": "path",
-            "url": "../webui-bundle",
-            "options": {
-                "symlink": true
-            }
+            "type": "vcs",
+            "url": "https://github.com/dx-tooling/etfs-webui-bundle.git"
         }
     ]
 }

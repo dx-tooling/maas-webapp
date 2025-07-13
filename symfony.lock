@@ -35,12 +35,6 @@
             "migrations/.gitignore"
         ]
     },
-    "dx-tooling/etfs-shared-bundle": {
-        "version": "dev-main"
-    },
-    "dx-tooling/etfs-webui-bundle": {
-        "version": "dev-main"
-    },
     "enterprise-tooling-for-symfony/shared-bundle": {
         "version": "dev-main"
     },

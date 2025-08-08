@@ -1,0 +1,94 @@
+# Symfony 7.3 Core Architecture & Coding Rules
+
+## General Principles
+- Write concise, technical code with accurate PHP examples.
+- Use object-oriented programming and SOLID principles.
+- Prefer iteration and modularization over duplication.
+- Use descriptive variable and method names, even if long.
+- Favor dependency injection and service containers.
+- Prefer TypeScript over JavaScript, and use TypeScript's type system extensively.
+
+## Feature/Layer Structure & Isolation (Hard Rule)
+- Every feature lives in its own top-level namespace under `App\FeatureName`.
+- Allowed layers (per feature):
+  - **Domain**: Pure business logic. May access DB (including raw SQL) for own tables. May reference own Infrastructure and TestHarness. No Presentation/Api references. No cross-feature dependencies (not even DB-level foreign keys).
+  - **Presentation**: UI (web pages, emails, etc.). Controllers, view models, templates. No business logic. May use own Facade, Domain, Infrastructure, or TestHarness. No direct access to other features.
+  - **Api**: Programmatic interfaces (REST, GraphQL, etc.). API controllers, serializers, DTOs. May use own Facade, Domain, Infrastructure, or TestHarness. No direct access to other features.
+  - **Infrastructure**: External APIs, filesystem, low-level services. May be referenced by any layer in the same feature. No direct access to other features.
+  - **TestHarness**: Test utilities, mocks, simulation tools for both automated testing and developer productivity (e.g., fake data generators). May be referenced by any layer in the same feature. Not for production use.
+- No cross-feature references except via Facade Interfaces. Every feature must provide a Facade Interface for this purpose.
+- No DB-level foreign keys between tables of different features.
+- Each feature must be testable in isolation, using interface-based mocks for dependencies on other features.
+- Layers within a feature are not required to go through their own Facade, but may do so if architecturally sensible.
+
+## Date and Time (Hard Rule)
+- **Never instantiate `DateTimeImmutable`, `DateTime`, or similar directly.**
+- **Always use the `DateAndTimeService` for all time-related operations.**
+- Applies to all layers. No exceptions. Violations break testability.
+- Example:
+  ```php
+  // ✅ Correct
+  $now = $this->dateAndTimeService->getDateTimeImmutable();
+
+  // ❌ Incorrect
+  $now = new \DateTimeImmutable();
+  $now = new \DateTime();
+  ```
+
+## Type System & DTOs (Hard Rule)
+- Use the PHP type system extensively. Avoid untyped or mixed values, parameters, return values, etc.
+- **No complex, multi-level associative arrays.**
+  - Arrays are only allowed as:
+    - Non-associative lists of values (e.g., `string[]`, `UserDto[]`), all values same type.
+    - Simple, one-dimensional key-value pairs, but only in very local contexts (e.g., passing between two methods in the same class, where a DTO would be overkill).
+  - **Associative arrays must never be used as pseudo-objects or data structures that cross class or feature boundaries.**
+  - All structured data passed between classes, layers, or features must use proper DTOs or value objects.
+- Example:
+  ```php
+  // ✅ Correct: List of DTOs
+  /** @var UserDto[] $users */
+  $users = [$user1, $user2];
+
+  // ✅ Correct: Simple local key-value array
+  $options = ['foo' => 'bar', 'baz' => 'qux'];
+
+  // ❌ Incorrect: Multi-level associative array as a pseudo-object
+  $data = [
+      'user' => [
+          'name' => 'Alice',
+          'address' => [
+              'city' => 'Berlin'
+          ]
+      ]
+  ]; // Use DTOs instead!
+  ```
+
+## PHP/Symfony Best Practices
+- Use PHP 8.4 features and strict typing: `declare(strict_types=1);`
+- Use PHP Attributes for entities, not Annotations.
+- Never use named arguments when calling functions/methods.
+- Use Symfony’s built-in features and helpers when possible.
+- Implement proper error handling and logging (Symfony’s features, custom exceptions, try-catch for expected exceptions).
+- Use Symfony’s validation for forms/requests.
+- Use Symfony’s event/subscriber system for decoupling where sensible.
+- Use Composer for dependency management.
+- Always consider strings as multibyte UTF-8, use `mb_` functions as needed.
+
+## Doctrine/Database
+- Never write or modify Doctrine migrations yourself—only create correct entity classes (using PHP Attributes). Ask the developer to have them created and applied when needed.
+- Prefer raw SQL for complex queries, but never hardcode table names (use `$this->entityManager->getClassMetadata(SomeEntity::class)->getTableName()`).
+- For simple cases, use Doctrine EntityManager methods (`find()`, `findOneBy()`, etc.).
+- If EM-managed entities are available, prefer using them over raw SQL for simple cases.
+
+## Code Quality Enforcement (Hard Rule)
+- All code must pass PHPStan at the highest level (level 9), as configured in [`phpstan.dist.neon`](mdc:phpstan.dist.neon).
+- All code must pass all configured quality tools (PHP CS Fixer, ESLint, Prettier, etc.).
+- **No commits or merges to `main` are allowed if there are any open issues reported by these tools.**
+
+---
+
+For any questions or clarifications, see the referenced config files or ask the project maintainer.
+description:
+globs:
+alwaysApply: true
+---

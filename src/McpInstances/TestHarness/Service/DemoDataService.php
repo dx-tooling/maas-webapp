@@ -12,9 +12,45 @@ readonly class DemoDataService
     public function getFakeMcpInstanceInfoDtos(): array
     {
         return [
-            new McpInstanceInfoDto('instance1', 101, 11111, 9101, 22222, 33333, 'password_for_instance1'),
-            new McpInstanceInfoDto('instance2', 102, 11112, 9102, 22223, 33334, 'foobar'),
-            new McpInstanceInfoDto('instance3', 103, 11113, 9103, 22224, 33335, 'password_for_instance3'),
+            new McpInstanceInfoDto(
+                'instance1',
+                'inst-1-slug',
+                'mcp-inst-1',
+                'running',
+                1280,
+                720,
+                24,
+                'password_for_instance1',
+                'bearer_token_instance1',
+                'inst-1-slug.mcp.example.com',
+                'inst-1-slug.vnc.example.com'
+            ),
+            new McpInstanceInfoDto(
+                'instance2',
+                'inst-2-slug',
+                'mcp-inst-2',
+                'running',
+                1920,
+                1080,
+                24,
+                'foobar',
+                'bearer_token_instance2',
+                'inst-2-slug.mcp.example.com',
+                'inst-2-slug.vnc.example.com'
+            ),
+            new McpInstanceInfoDto(
+                'instance3',
+                'inst-3-slug',
+                'mcp-inst-3',
+                'stopped',
+                1280,
+                720,
+                24,
+                'password_for_instance3',
+                'bearer_token_instance3',
+                'inst-3-slug.mcp.example.com',
+                'inst-3-slug.vnc.example.com'
+            ),
         ];
     }
 }

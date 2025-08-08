@@ -1,5 +1,7 @@
 ## Functionality Book
 
+> **⚠️ OUTDATED**: This document describes the legacy OS process-based architecture. The application has been migrated to a Docker-based architecture as described in `docs/change-requests/docker-based-rewrite.md`. This document needs to be updated to reflect the new Docker + Traefik architecture.
+
 This document describes how the Playwright MCP instance management works in this application: lifecycle, processes, HTTP proxying, security, and the Symfony implementation.
 
 ### Scope

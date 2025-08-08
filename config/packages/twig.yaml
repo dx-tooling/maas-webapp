@@ -4,7 +4,6 @@ twig:
     paths:
         "src/Common/Presentation/Resources/templates": "common.presentation"
         "src/WebsiteContent/Presentation/Resources/templates": "website_content.presentation"
-        "src/OsProcessManagement/Presentation/Resources/templates": "os_process_management.presentation"
         "src/Account/Presentation/Resources/templates": "account.presentation"
         "src/McpInstances/Presentation/Resources/templates": "mcp_instances.presentation"
 

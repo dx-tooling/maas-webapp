@@ -1,4 +1,4 @@
-#  Archbook
+#  Architecture Book
 
 What are general tech stack, architecture, and code design choices for this application?
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\DockerManagement\Facade;
 
+use App\DockerManagement\Facade\Dto\ContainerStatusDto;
 use App\McpInstances\Domain\Entity\McpInstance;
 use App\McpInstances\Domain\Enum\ContainerState;
 
@@ -36,14 +37,6 @@ interface DockerManagementFacadeInterface
 
     /**
      * Get comprehensive status information for the container.
-     *
-     * @return array{
-     *   containerName: string|null,
-     *   state: string,
-     *   healthy: bool,
-     *   mcpEndpoint: string|null,
-     *   vncEndpoint: string|null
-     * }
      */
-    public function getContainerStatus(McpInstance $instance): array;
+    public function getContainerStatus(McpInstance $instance): ContainerStatusDto;
 }

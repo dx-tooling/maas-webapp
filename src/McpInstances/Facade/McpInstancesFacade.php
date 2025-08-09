@@ -98,7 +98,7 @@ readonly class McpInstancesFacade implements McpInstancesFacadeInterface
         $containerStatus = $this->dockerFacade->getContainerStatus($instance);
 
         // Map to legacy format for UI compatibility
-        $allRunning = $containerStatus['healthy'];
+        $allRunning = $containerStatus->healthy;
 
         return [
             'instanceId' => $instance->getId() ?? '',
@@ -109,7 +109,13 @@ readonly class McpInstancesFacade implements McpInstancesFacadeInterface
                 'websocket' => $allRunning ? ['status' => 'running'] : null,
             ],
             'allRunning'      => $allRunning,
-            'containerStatus' => $containerStatus
+            'containerStatus' => [
+                'containerName' => $containerStatus->containerName,
+                'state'         => $containerStatus->state,
+                'healthy'       => $containerStatus->healthy,
+                'mcpEndpoint'   => $containerStatus->mcpEndpoint,
+                'vncEndpoint'   => $containerStatus->vncEndpoint,
+            ]
         ];
     }
 

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\DockerManagement\Facade;
 
 use App\DockerManagement\Domain\Service\DockerDomainService;
+use App\DockerManagement\Facade\Dto\ContainerStatusDto;
 use App\McpInstances\Domain\Entity\McpInstance;
 use App\McpInstances\Domain\Enum\ContainerState;
 
@@ -57,17 +58,17 @@ readonly class DockerManagementFacade implements DockerManagementFacadeInterface
         return $this->dockerDomainService->isContainerHealthy($instance);
     }
 
-    public function getContainerStatus(McpInstance $instance): array
+    public function getContainerStatus(McpInstance $instance): ContainerStatusDto
     {
         $state   = $this->getContainerState($instance);
         $healthy = $state === ContainerState::RUNNING ? $this->isContainerHealthy($instance) : false;
 
-        return [
-            'containerName' => $instance->getContainerName(),
-            'state'         => $state->value,
-            'healthy'       => $healthy,
-            'mcpEndpoint'   => $instance->getMcpSubdomain() ? 'https://' . $instance->getMcpSubdomain() . '/mcp' : null,
-            'vncEndpoint'   => $instance->getVncSubdomain() ? 'https://' . $instance->getVncSubdomain() : null
-        ];
+        return new ContainerStatusDto(
+            $instance->getContainerName() ?? '',
+            $state->value,
+            $healthy,
+            $instance->getMcpSubdomain() ? 'https://' . $instance->getMcpSubdomain() . '/mcp' : null,
+            $instance->getVncSubdomain() ? 'https://' . $instance->getVncSubdomain() : null
+        );
     }
 }

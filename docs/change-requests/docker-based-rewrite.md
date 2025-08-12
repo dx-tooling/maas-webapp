@@ -60,15 +60,28 @@ This change request proposes replacing the current OS-process- and port-based or
 
 ## Networking and proxying (Traefik)
 
-- Run Traefik as a container on the same host as the webapp using Docker Compose.
+### Primary reverse proxy architecture
+- **Traefik replaces nginx as the primary HTTP entrypoint** on ports 80/443.
+- nginx is reconfigured to serve the native webapp on an internal port (e.g., 8080) and is no longer directly exposed to the internet.
+- Run Traefik as a container on the same host as the native webapp.
+- **Important**: The main Symfony webapp runs natively (nginx + PHP-FPM), NOT in a container. Only MCP instances run in containers.
+
+### DNS requirements
+- Existing DNS: `app.mcp-as-a-service.com` → static IPv4 (unchanged)
+- **New DNS**: `*.mcp-as-a-service.com` → same static IPv4 (wildcard record)
+
+### Traefik routing configuration
 - Configure Traefik Docker provider to watch labels and create routers/services/middlewares automatically.
-- Per-instance routing via labels set on the instance container:
+- **Main webapp routing**: Traefik routes `app.mcp-as-a-service.com` → native nginx on host port 8080
+- **Per-instance routing** via labels set on the instance container:
   - MCP router: Host rule `mcp-<instance>.mcp-as-a-service.com`; service targets container port 8080.
   - MCP auth: ForwardAuth middleware pointing to a Symfony endpoint that validates the `Authorization: Bearer` header against the instance secret; attach middleware to MCP router.
   - VNC router: Host rule `vnc-<instance>.mcp-as-a-service.com`; service targets container port 6080 (noVNC). The raw VNC 5900 remains internal.
-- TLS and certs:
-  - Use existing wildcard certificate process (out of scope).
-  - Certificate files are available on the filesystem of the Docker host system.
+
+### TLS and certificates
+- Use existing wildcard certificate process (out of scope).
+- Certificate files are available on the filesystem of the Docker host system.
+- Traefik handles TLS termination for all domains (`app.*` and `mcp-*/vnc-*` subdomains).
 
 ## Application changes (Symfony)
 
@@ -252,11 +265,66 @@ function mcpBearerCheckAction(Request $request): Response {
 
 This is a full-replace rewrite that ignores existing state. No migration of existing instances is required.
 
-1) Prepare Docker image and validate locally with one instance.
-2) Prepare Traefik configuration with Docker Compose.
-3) Add new DB fields (slug, containerName, bearer, subdomains).
-4) Implement new Docker-based facade replacing OS process management.
-5) Deploy and cut over completely; existing instances are not preserved.
+### Development phase (completed)
+1) ✅ Prepare Docker image and validate locally with one instance.
+2) ✅ Prepare Traefik configuration with Docker Compose.
+3) ✅ Add new DB fields (slug, containerName, bearer, subdomains).
+4) ✅ Implement new Docker-based facade replacing OS process management.
+5) ✅ Update UI to use subdomain-based URLs.
+
+### Development vs Production environments
+- **Development (docker-compose.yml)**: All components containerized for consistency and isolation
+  - Symfony webapp: Docker container
+  - Database: Docker Postgres container  
+  - Traefik: Docker container
+  - MCP instances: Docker containers
+- **Production**: Hybrid native + container approach for performance and existing infrastructure
+  - Symfony webapp: Native nginx + PHP-FPM installation
+  - Database: Native MariaDB (existing)
+  - Traefik: Docker container (reverse proxy only)
+  - MCP instances: Docker containers (managed by native webapp)
+
+### Production deployment tasks
+1) **DNS setup**: Add wildcard DNS record `*.mcp-as-a-service.com` → same static IPv4 as `app.mcp-as-a-service.com`
+2) **nginx reconfiguration**: 
+   - Move nginx from ports 80/443 to internal port 8080
+   - Remove SSL/TLS configuration from nginx (Traefik will handle TLS termination)
+   - Simplify nginx to basic HTTP application server
+3) **Traefik deployment**:
+   - Deploy Traefik container on ports 80/443
+   - Configure TLS certificates (existing wildcard cert process)
+   - Add webapp routing: `app.mcp-as-a-service.com` → nginx:8080
+4) **Application deployment**: Deploy updated Symfony application with Docker management
+5) **Verification**: Test main webapp access and create/test one MCP instance
+
+## Production infrastructure setup
+
+### Network topology
+```
+Internet (80/443) → Traefik Container → {
+  app.mcp-as-a-service.com → nginx:8080 (native Symfony webapp on host)
+  mcp-{slug}.mcp-as-a-service.com → mcp-instance-container:8080
+  vnc-{slug}.mcp-as-a-service.com → mcp-instance-container:6080
+}
+```
+
+### Production component architecture
+- **Host system (Ubuntu)**: Native nginx + PHP-FPM + Symfony webapp, native MariaDB, Docker daemon
+- **Traefik container**: Reverse proxy handling all HTTP traffic (ports 80/443)
+- **MCP instance containers**: Individual isolated browser environments (Docker managed by native webapp)
+
+### Required production changes
+1. **DNS**: Add `*.mcp-as-a-service.com` CNAME or A record → same IP as `app.mcp-as-a-service.com`
+2. **nginx**: Reconfigure native nginx to listen on internal port 8080 instead of 80/443
+3. **TLS**: Traefik takes over SSL/TLS termination using existing wildcard certificate
+4. **Database**: Update Symfony config to use native MariaDB instead of Docker Postgres
+5. **Docker network**: Create shared Docker network for Traefik and MCP containers: `docker network create mcp_instances`
+6. **Permissions**: Ensure native webapp (www-data user) has Docker daemon access: `usermod -aG docker www-data`
+7. **Traefik host access**: Configure Traefik container to access host nginx on port 8080 (use `host.docker.internal` or `--network host`)
+
+### Deployment strategy
+- **Zero-downtime**: Not required for this project (pre-production)
+- **Rollback**: Keep existing nginx config as backup; can revert by stopping Traefik and reverting nginx to ports 80/443
 
 ## Operational considerations
 

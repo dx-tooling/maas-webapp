@@ -206,7 +206,7 @@ readonly class DockerDomainService
         $cmd .= " --name {$containerName}";
         $cmd .= ' --memory=1g';
         $cmd .= ' --restart=always';
-        $cmd .= ' --network=traefik-network';
+        $cmd .= ' --network=mcp_instances';
 
         foreach ($envVars as $env) {
             $cmd .= " -e \"{$env}\"";

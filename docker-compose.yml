@@ -14,7 +14,13 @@ services:
             - postgres
         networks:
             - app-network
-            - traefik-network
+            - mcp_instances
+        labels:
+            - "traefik.enable=true"
+            - "traefik.http.routers.webapp.rule=Host(`app.localhost`)"
+            - "traefik.http.routers.webapp.service=webapp"
+            - "traefik.http.services.webapp.loadbalancer.server.port=80"
+            - "traefik.http.routers.webapp.entrypoints=web"
 
     # Database
     postgres:
@@ -35,7 +41,7 @@ services:
             - "--api.insecure=true"
             - "--providers.docker=true"
             - "--providers.docker.exposedbydefault=false"
-            - "--providers.docker.network=traefik-network"
+            - "--providers.docker.network=mcp_instances"
             - "--entrypoints.web.address=:80"
             - "--entrypoints.websecure.address=:443"
             - "--certificatesresolvers.letsencrypt.acme.tlschallenge=true"
@@ -51,7 +57,7 @@ services:
             - /var/run/docker.sock:/var/run/docker.sock:ro
             - traefik_certs:/letsencrypt
         networks:
-            - traefik-network
+            - mcp_instances
         labels:
             - "traefik.enable=true"
             - "traefik.http.routers.traefik.rule=Host(`traefik.localhost`)"
@@ -68,7 +74,7 @@ services:
             - COLOR_DEPTH=24
             - VNC_PASSWORD=example123password
         networks:
-            - traefik-network
+            - mcp_instances
         labels:
             - "traefik.enable=true"
             # MCP endpoint
@@ -85,7 +91,7 @@ services:
 networks:
     app-network:
         driver: bridge
-    traefik-network:
+    mcp_instances:
         driver: bridge
 
 volumes:

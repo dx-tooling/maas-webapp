@@ -15,6 +15,40 @@ This change request proposes replacing the current OS-process- and port-based or
 
 - Switching away from nginx for the main webapp. Traefik will be introduced for MCP/VNC instance routing alongside the existing nginx for the webapp.
 
+### Implementation progress tracker
+
+- Last updated: 2025-08-13
+
+#### Completed
+- [x] Docker image for MCP instance with Xvfb, Playwright MCP, x11vnc, noVNC; supervisor-managed; environment-controlled
+- [x] Local Traefik setup in docker-compose with example instance and routing on `*.localhost`
+- [x] Traefik labels generation in app for per-instance MCP/VNC + ForwardAuth attachment
+- [x] Entity/model updates: `McpInstance` fields (`instanceSlug`, `containerName`, `mcpBearer`, `mcpSubdomain`, `vncSubdomain`, `containerState`)
+- [x] Docker lifecycle services: create/start/stop/restart/remove, plus endpoint-based health checks
+- [x] ForwardAuth endpoint (`/auth/mcp-bearer-check`) with 5‑minute token cache and logging
+- [x] UI updates: subdomain-based URLs, process/health display on instance dashboard
+- [x] Database migrations for new fields
+
+#### In progress / Next
+- [ ] Replace `shell_exec` and fragile exit-code handling with Symfony Process for Docker commands
+- [ ] Ownership linkage: ensure `accountCoreId` uses Account UUID (not email); fix lookups and DTO usage accordingly
+- [ ] Align template/DTO property names (e.g., use `vncPassword` instead of `password` in templates)
+- [ ] Container health: consider adding a noVNC healthcheck or document reliance on application-level checks
+- [ ] CLI commands: add create/stop/restart/recreate wrappers mapped to Docker lifecycle
+- [ ] Admin UX: list containers with status/uptime, and per-container actions
+- [ ] Production Traefik deployment on 80/443, route `app.*` → nginx:8080, attach ForwardAuth, use wildcard TLS
+- [ ] nginx reconfiguration on prod host to listen on 8080 and drop TLS (Traefik terminates)
+- [ ] DNS: add wildcard `*.mcp-as-a-service.com` pointing to the main IP
+- [ ] Docker network `mcp_instances` on prod; grant `www-data` Docker daemon access
+- [ ] Tests: ForwardAuth functional test; domain/facade lifecycle tests; UI smoke test for dashboard
+- [ ] Rate-limit failed ForwardAuth attempts; add minimal metrics/logging
+- [ ] Documentation: update prodsetupbook/runbook and troubleshooting sections
+
+#### Nice-to-have (later)
+- [ ] Show resource usage (docker stats) on admin dashboard
+- [ ] Attach security headers middleware chains to Traefik routers
+- [ ] Basic observability/alerts for unhealthy containers
+
 ## Architecture overview
 
 - One Docker container per user instance encapsulating:

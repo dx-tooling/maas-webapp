@@ -1,11 +1,13 @@
 # MCP Instance Container
 # Contains: Xvfb, Playwright MCP, x11vnc, websockify/noVNC
-FROM node:18-bullseye
+FROM node:22-bookworm
 
 # Install system dependencies
+# We do not really use tigervnc-standalone-server itself, but it contains vncpasswd
 RUN apt-get update && apt-get install -y \
     xvfb \
     x11vnc \
+    tigervnc-standalone-server \
     websockify \
     supervisor \
     curl \
@@ -22,12 +24,15 @@ RUN useradd -m -s /bin/bash mcp \
     && mkdir -p /home/mcp/logs
 
 # Install Playwright and dependencies
+USER root
+RUN npm install -g @playwright/mcp@latest
+RUN npx playwright install-deps
+
 USER mcp
 WORKDIR /home/mcp
 RUN npm init -y \
     && npm install @playwright/mcp@latest \
-    && npx playwright install chromium \
-    && npx playwright install-deps chromium
+    && npx playwright install chromium
 
 # Copy supervisor configuration
 USER root

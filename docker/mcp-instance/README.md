@@ -87,3 +87,12 @@ The container uses supervisord to manage all processes:
 Recommended resource limits:
 - Memory: 1GB
 - CPU: No specific limit needed
+
+## Manually starting the services/applications
+
+    docker run --rm -ti -p 8080:8080 -p 6080:6080 -p 5900:5900 maas-mcp-instance:latest bash
+    su - mcp
+    /usr/bin/Xvfb :99 -screen 0 1280x720x24 &
+    /usr/local/bin/node /home/mcp/node_modules/.bin/mcp-server-playwright --port 8080 --no-sandbox --isolated --browser chromium --host 0.0.0.0 &
+    /bin/bash -c 'echo "secret" | vncpasswd -f > /home/mcp/vnc/passwd && x11vnc -display :99 -forever -shared -rfbport 5900 -rfbauth /home/mcp/vnc/passwd' &
+    /usr/bin/websockify --web=/usr/share/novnc/ 6080 localhost:5900 &

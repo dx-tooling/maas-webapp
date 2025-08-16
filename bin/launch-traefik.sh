@@ -230,6 +230,8 @@ generate_config() {
 api:
   dashboard: true
   insecure: ${DASHBOARD_INSECURE}
+  # In production mode, API is accessible via the traefik entrypoint
+  # In development mode, API is insecure and accessible directly
 
 # Global options
 global:
@@ -242,6 +244,8 @@ entryPoints:
     address: ":${TRAEFIK_HTTP_PORT}"
   websecure:
     address: ":${TRAEFIK_HTTPS_PORT}"
+  traefik:
+    address: ":${TRAEFIK_DASHBOARD_PORT}"
 
 # Providers
 providers:
@@ -296,6 +300,15 @@ http:
         stsIncludeSubdomains: true
         stsPreload: true
         stsSeconds: 31536000
+
+  # API and Dashboard routing (required when insecure: false)
+  routers:
+    api:
+      rule: "Host(\`localhost\`) || Host(\`127.0.0.1\`)"
+      service: api@internal
+      entryPoints:
+        - traefik
+      tls: false
 
 # TLS configuration with existing certificates
 # This configuration tells Traefik to use the existing wildcard certificates
@@ -460,10 +473,10 @@ show_status() {
         echo "  echo | openssl s_client -servername ${APP_SUBDOMAIN}.${DOMAIN_NAME} -connect ${APP_SUBDOMAIN}.${DOMAIN_NAME}:443 -verify_return_error"
         echo "  # Check container health:"
         echo "  docker inspect ${TRAEFIK_CONTAINER_NAME} | grep -A 10 Health"
-        echo "  # Check Traefik API for TLS info:"
-        echo "  curl -s http://localhost:${TRAEFIK_DASHBOARD_PORT}/api/http/tls/certificates | jq"
-        echo "  # Check Traefik API for stores info:"
-        echo "  curl -s http://localhost:${TRAEFIK_DASHBOARD_PORT}/api/http/tls/stores | jq"
+        echo "  # Check Traefik API for configuration info:"
+        echo "  curl -s http://localhost:${TRAEFIK_DASHBOARD_PORT}/api/overview | jq"
+        echo "  # Check raw configuration data:"
+        echo "  curl -s http://localhost:${TRAEFIK_DASHBOARD_PORT}/api/rawdata | jq"
         echo "  # Verify certificate files in container:"
         echo "  docker exec ${TRAEFIK_CONTAINER_NAME} ls -la /etc/traefik/letsencrypt/live/${DOMAIN_NAME}/"
         echo "  # Check certificate validity inside container:"
@@ -474,6 +487,16 @@ show_status() {
         echo "  docker exec ${TRAEFIK_CONTAINER_NAME} cat /etc/traefik/dynamic.yml"
         echo "  # Test certificate loading in Traefik dynamic config:"
         echo "  docker exec ${TRAEFIK_CONTAINER_NAME} cat /etc/traefik/dynamic.yml | grep -A 10 certificates"
+        echo "  # Check Traefik configuration overview:"
+        echo "  curl -s http://localhost:${TRAEFIK_DASHBOARD_PORT}/api/overview | jq"
+        echo "  # Check all HTTP routers:"
+        echo "  curl -s http://localhost:${TRAEFIK_DASHBOARD_PORT}/api/http/routers | jq"
+        echo "  # Check all HTTP services:"
+        echo "  curl -s http://localhost:${TRAEFIK_DASHBOARD_PORT}/api/http/services | jq"
+        echo "  # Check raw configuration data:"
+        echo "  curl -s http://localhost:${TRAEFIK_DASHBOARD_PORT}/api/rawdata | jq"
+        echo "  # Check if specific endpoints exist:"
+        echo "  curl -s http://localhost:${TRAEFIK_DASHBOARD_PORT}/api/version"
     fi
 }
 

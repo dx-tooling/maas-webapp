@@ -32,7 +32,8 @@ USER mcp
 WORKDIR /home/mcp
 RUN npm init -y \
     && npm install @playwright/mcp@latest \
-    && npx playwright install chromium
+    && npx playwright install chromium \
+    && npx playwright install firefox
 
 # Copy supervisor configuration
 USER root
@@ -59,7 +60,7 @@ EXPOSE 8080 5900 6080
 
 # Health checks
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:6080/mcp || exit 1
+    CMD curl -f http://localhost:6080/vnc.html || exit 1
 
 # Start supervisor
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]

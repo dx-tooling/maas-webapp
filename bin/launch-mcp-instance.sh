@@ -19,8 +19,8 @@ TRAEFIK_ENTRYPOINT="${TRAEFIK_ENTRYPOINT:-websecure}"
 
 # MCP Instance Configuration
 INSTANCE_ID="${INSTANCE_ID:-test}"
-SCREEN_WIDTH="${SCREEN_WIDTH:-1920}"
-SCREEN_HEIGHT="${SCREEN_HEIGHT:-1080}"
+SCREEN_WIDTH="${SCREEN_WIDTH:-1280}"
+SCREEN_HEIGHT="${SCREEN_HEIGHT:-720}"
 COLOR_DEPTH="${COLOR_DEPTH:-24}"
 VNC_PASSWORD="${VNC_PASSWORD:-testpass123}"
 
@@ -100,7 +100,7 @@ cleanup_existing() {
 # Launch MCP instance container
 launch_mcp_instance() {
     log_info "Launching MCP instance container: ${CONTAINER_NAME}"
-    
+
     local docker_args=(
         --name "${CONTAINER_NAME}"
         --network "${MCP_NETWORK}"
@@ -113,7 +113,7 @@ launch_mcp_instance() {
         -e "VNC_PASSWORD=${VNC_PASSWORD}"
         --label "traefik.enable=true"
     )
-    
+
     # MCP routing labels
     docker_args+=(
         --label "traefik.http.routers.${MCP_ROUTER_NAME}.rule=Host(\`${MCP_SUBDOMAIN}\`)"
@@ -122,7 +122,7 @@ launch_mcp_instance() {
         --label "traefik.http.routers.${MCP_ROUTER_NAME}.service=${MCP_ROUTER_NAME}"
         --label "traefik.http.services.${MCP_ROUTER_NAME}.loadbalancer.server.port=${MCP_PORT}"
     )
-    
+
     # VNC routing labels
     docker_args+=(
         --label "traefik.http.routers.${VNC_ROUTER_NAME}.rule=Host(\`${VNC_SUBDOMAIN}\`)"
@@ -131,7 +131,7 @@ launch_mcp_instance() {
         --label "traefik.http.routers.${VNC_ROUTER_NAME}.service=${VNC_ROUTER_NAME}"
         --label "traefik.http.services.${VNC_ROUTER_NAME}.loadbalancer.server.port=${NOVNC_PORT}"
     )
-    
+
     # Add ForwardAuth middleware if enabled
     if [[ "${ENABLE_FORWARDAUTH}" == "true" ]]; then
         docker_args+=(
@@ -142,7 +142,7 @@ launch_mcp_instance() {
     else
         log_warning "ForwardAuth middleware disabled - MCP endpoint will be publicly accessible"
     fi
-    
+
     # Print the full docker command for debugging
     log_info "Executing docker command:"
     echo "  docker run -d \\"
@@ -151,9 +151,9 @@ launch_mcp_instance() {
     done
     echo "    '${MCP_IMAGE_NAME}'"
     echo
-    
+
     docker run -d "${docker_args[@]}" "${MCP_IMAGE_NAME}"
-    
+
     log_success "Container launched successfully"
 }
 
@@ -161,25 +161,25 @@ launch_mcp_instance() {
 show_status() {
     log_info "Container status:"
     docker ps --filter "name=${CONTAINER_NAME}" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
-    
+
     echo
     log_info "Network information:"
     docker network inspect "${MCP_NETWORK}" --format "{{.Name}}: {{.IPAM.Config}}"
-    
+
     echo
     log_info "Access endpoints:"
     echo "  - MCP: https://${MCP_SUBDOMAIN}/"
     echo "  - VNC (noVNC): https://${VNC_SUBDOMAIN}/"
     echo "  - Health check: https://${MCP_SUBDOMAIN}/health"
-    
+
     echo
     log_info "Container logs:"
     echo "  docker logs -f ${CONTAINER_NAME}"
-    
+
     echo
     log_info "Stop container:"
     echo "  docker stop ${CONTAINER_NAME}"
-    
+
     echo
     log_info "Debug commands:"
     echo "  # Check container status:"
@@ -201,13 +201,13 @@ show_status() {
 main() {
     echo "🚀 Launching MCP Instance Container"
     echo "====================================="
-    
+
     # Check prerequisites
     check_docker
-    
+
     # Generate names based on configuration
     generate_names
-    
+
     log_info "Configuration:"
     echo "  - Instance ID: ${INSTANCE_ID}"
     echo "  - Container Name: ${CONTAINER_NAME}"
@@ -216,15 +216,15 @@ main() {
     echo "  - MCP Subdomain: ${MCP_SUBDOMAIN}"
     echo "  - VNC Subdomain: ${VNC_SUBDOMAIN}"
     echo "  - ForwardAuth: ${ENABLE_FORWARDAUTH}"
-    
+
     # Setup and launch
     create_network
     cleanup_existing
     launch_mcp_instance
-    
+
     # Give container a moment to start
     sleep 3
-    
+
     show_status
     log_success "MCP instance deployment completed successfully!"
 }

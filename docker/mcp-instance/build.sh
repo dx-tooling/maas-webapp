@@ -19,7 +19,7 @@ docker run --rm -d \
 
 # Wait for services to start
 echo "Waiting for services to start..."
-sleep 30
+sleep 6
 
 # Check health
 if docker exec mcp-test curl -f http://localhost:8080/mcp; then

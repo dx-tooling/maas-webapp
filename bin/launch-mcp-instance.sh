@@ -119,6 +119,7 @@ launch_mcp_instance() {
         --label "traefik.http.routers.${MCP_ROUTER_NAME}.rule=Host(\`${MCP_SUBDOMAIN}\`)"
         --label "traefik.http.routers.${MCP_ROUTER_NAME}.entrypoints=${TRAEFIK_ENTRYPOINT}"
         --label "traefik.http.routers.${MCP_ROUTER_NAME}.tls=true"
+        --label "traefik.http.routers.${MCP_ROUTER_NAME}.service=${MCP_ROUTER_NAME}"
         --label "traefik.http.services.${MCP_ROUTER_NAME}.loadbalancer.server.port=${MCP_PORT}"
     )
     
@@ -127,6 +128,7 @@ launch_mcp_instance() {
         --label "traefik.http.routers.${VNC_ROUTER_NAME}.rule=Host(\`${VNC_SUBDOMAIN}\`)"
         --label "traefik.http.routers.${VNC_ROUTER_NAME}.entrypoints=${TRAEFIK_ENTRYPOINT}"
         --label "traefik.http.routers.${VNC_ROUTER_NAME}.tls=true"
+        --label "traefik.http.routers.${VNC_ROUTER_NAME}.service=${VNC_ROUTER_NAME}"
         --label "traefik.http.services.${VNC_ROUTER_NAME}.loadbalancer.server.port=${NOVNC_PORT}"
     )
     

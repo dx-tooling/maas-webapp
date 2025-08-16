@@ -12,6 +12,19 @@ TRAEFIK_DASHBOARD_PORT="${TRAEFIK_DASHBOARD_PORT:-8080}"
 TRAEFIK_HTTP_PORT="${TRAEFIK_HTTP_PORT:-80}"
 TRAEFIK_HTTPS_PORT="${TRAEFIK_HTTPS_PORT:-443}"
 
+# Domain and Certificate Configuration
+DOMAIN_NAME="${DOMAIN_NAME:-mcp-as-a-service.com}"
+APP_SUBDOMAIN="${APP_SUBDOMAIN:-app}"
+MCP_SUBDOMAIN_PATTERN="${MCP_SUBDOMAIN_PATTERN:-mcp-*}"
+VNC_SUBDOMAIN_PATTERN="${VNC_SUBDOMAIN_PATTERN:-vnc-*}"
+LETSENCRYPT_PATH="${LETSENCRYPT_PATH:-/etc/letsencrypt}"
+TRAEFIK_LOG_PATH="${TRAEFIK_LOG_PATH:-/var/log/traefik}"
+TRAEFIK_USER_ID="${TRAEFIK_USER_ID:-1000}"
+TRAEFIK_GROUP_ID="${TRAEFIK_GROUP_ID:-1000}"
+
+# Docker Configuration
+DOCKER_HOST_ALIAS="${DOCKER_HOST_ALIAS:-host.docker.internal}"
+
 # Environment detection (will be set by argument parsing)
 ENVIRONMENT="production"
 DASHBOARD_INSECURE="false"
@@ -65,10 +78,10 @@ create_network() {
 # Create log directory if it doesn't exist
 create_log_directory() {
     if [[ "${ENVIRONMENT}" == "production" ]]; then
-        if [[ ! -d "/var/log/traefik" ]]; then
-            log_info "Creating log directory: /var/log/traefik"
-            sudo mkdir -p /var/log/traefik
-            sudo chown 1000:1000 /var/log/traefik  # Traefik runs as user 1000
+        if [[ ! -d "${TRAEFIK_LOG_PATH}" ]]; then
+            log_info "Creating log directory: ${TRAEFIK_LOG_PATH}"
+            sudo mkdir -p "${TRAEFIK_LOG_PATH}"
+            sudo chown "${TRAEFIK_USER_ID}:${TRAEFIK_GROUP_ID}" "${TRAEFIK_LOG_PATH}"
             log_success "Log directory created"
         else
             log_info "Log directory already exists"
@@ -79,8 +92,8 @@ create_log_directory() {
 # Verify certificate files exist (production only)
 verify_certificates() {
     if [[ "${ENVIRONMENT}" == "production" ]]; then
-        local cert_file="/etc/letsencrypt/live/mcp-as-a-service.com/fullchain.pem"
-        local key_file="/etc/letsencrypt/live/mcp-as-a-service.com/privkey.pem"
+        local cert_file="${LETSENCRYPT_PATH}/live/${DOMAIN_NAME}/fullchain.pem"
+        local key_file="${LETSENCRYPT_PATH}/live/${DOMAIN_NAME}/privkey.pem"
         
         if [[ ! -f "${cert_file}" ]]; then
             log_error "Certificate file not found: ${cert_file}"
@@ -121,10 +134,10 @@ verify_certificates() {
             echo "  - SANs: ${cert_sans}"
             
             # Verify it covers our domains
-            if openssl x509 -in "${cert_file}" -text -noout 2>/dev/null | grep -q "*.mcp-as-a-service.com\|app.mcp-as-a-service.com"; then
+            if openssl x509 -in "${cert_file}" -text -noout 2>/dev/null | grep -q "*.${DOMAIN_NAME}\|${APP_SUBDOMAIN}.${DOMAIN_NAME}"; then
                 log_success "Certificate covers required domains"
             else
-                log_warning "Certificate may not cover app.mcp-as-a-service.com - check Subject Alternative Names"
+                log_warning "Certificate may not cover ${APP_SUBDOMAIN}.${DOMAIN_NAME} - check Subject Alternative Names"
             fi
         else
             log_warning "Certificate file may not be valid PEM format"
@@ -246,12 +259,12 @@ providers:
 # Logging
 log:
   level: INFO
-  filePath: "/var/log/traefik/traefik.log"
+  filePath: "${TRAEFIK_LOG_PATH}/traefik.log"
   format: json
 
 # Access logs
 accessLog: 
-  filePath: "/var/log/traefik/access.log"
+  filePath: "${TRAEFIK_LOG_PATH}/access.log"
   format: json
 
 # Metrics (optional, for monitoring)
@@ -293,13 +306,13 @@ tls:
       minVersion: VersionTLS12
       sniStrict: false
   certificates:
-    - certFile: /etc/traefik/letsencrypt/live/mcp-as-a-service.com/fullchain.pem
-      keyFile: /etc/traefik/letsencrypt/live/mcp-as-a-service.com/privkey.pem
+    - certFile: /etc/traefik/letsencrypt/live/${DOMAIN_NAME}/fullchain.pem
+      keyFile: /etc/traefik/letsencrypt/live/${DOMAIN_NAME}/privkey.pem
   stores:
     default:
       defaultCertificate:
-        certFile: /etc/traefik/letsencrypt/live/mcp-as-a-service.com/fullchain.pem
-        keyFile: /etc/traefik/letsencrypt/live/mcp-as-a-service.com/privkey.pem
+        certFile: /etc/traefik/letsencrypt/live/${DOMAIN_NAME}/fullchain.pem
+        keyFile: /etc/traefik/letsencrypt/live/${DOMAIN_NAME}/privkey.pem
 EOF
     else
         cat > "${dynamic_config_file}" << EOF
@@ -348,14 +361,14 @@ launch_traefik() {
         # Production: mount existing wildcard certificates
         # Mount the parent directory to access both the live and archive directories
         docker_args+=(
-            -v /etc/letsencrypt:/etc/traefik/letsencrypt:ro
-            -v /var/log/traefik:/var/log/traefik
+            -v "${LETSENCRYPT_PATH}:/etc/traefik/letsencrypt:ro"
+            -v "${TRAEFIK_LOG_PATH}:/var/log/traefik"
         )
     fi
     
     # Add host access for production (to reach native nginx on port 8080)
     if [[ "${ENVIRONMENT}" == "production" ]]; then
-        docker_args+=(--add-host=host.docker.internal:host-gateway)
+        docker_args+=(--add-host="${DOCKER_HOST_ALIAS}:host-gateway")
     fi
     
     docker run -d "${docker_args[@]}" \
@@ -410,14 +423,14 @@ show_status() {
         echo "  - Dashboard: https://localhost:${TRAEFIK_DASHBOARD_PORT}/dashboard/"
         echo "  - HTTP: http://localhost:${TRAEFIK_HTTP_PORT}"
         echo "  - HTTPS: https://localhost:${TRAEFIK_HTTPS_PORT}"
-        echo "  - Main app: https://app.mcp-as-a-service.com"
-        echo "  - MCP instances: https://mcp-*.mcp-as-a-service.com"
-        echo "  - VNC instances: https://vnc-*.mcp-as-a-service.com"
-        echo "  - Using existing wildcard certificates from /etc/letsencrypt/live/mcp-as-a-service.com/"
+        echo "  - Main app: https://${APP_SUBDOMAIN}.${DOMAIN_NAME}"
+        echo "  - MCP instances: https://${MCP_SUBDOMAIN_PATTERN}.${DOMAIN_NAME}"
+        echo "  - VNC instances: https://${VNC_SUBDOMAIN_PATTERN}.${DOMAIN_NAME}"
+        echo "  - Using existing wildcard certificates from ${LETSENCRYPT_PATH}/live/${DOMAIN_NAME}/"
         echo "  - Certificate files:"
-        echo "    - Cert: /etc/traefik/letsencrypt/live/mcp-as-a-service.com/fullchain.pem"
-        echo "    - Key: /etc/traefik/letsencrypt/live/mcp-as-a-service.com/privkey.pem"
-        echo "  - Log files: /var/log/traefik/"
+        echo "    - Cert: /etc/traefik/letsencrypt/live/${DOMAIN_NAME}/fullchain.pem"
+        echo "    - Key: /etc/traefik/letsencrypt/live/${DOMAIN_NAME}/privkey.pem"
+        echo "  - Log files: ${TRAEFIK_LOG_PATH}/"
     fi
     
     echo
@@ -432,19 +445,19 @@ show_status() {
         echo
         log_info "Debug commands:"
         echo "  # Check certificate files:"
-        echo "  ls -la /etc/letsencrypt/live/mcp-as-a-service.com/"
+        echo "  ls -la ${LETSENCRYPT_PATH}/live/${DOMAIN_NAME}/"
         echo "  # Check certificate content:"
-        echo "  openssl x509 -in /etc/letsencrypt/live/mcp-as-a-service.com/fullchain.pem -text -noout | grep -A 5 'Subject:'"
+        echo "  openssl x509 -in ${LETSENCRYPT_PATH}/live/${DOMAIN_NAME}/fullchain.pem -text -noout | grep -A 5 'Subject:'"
         echo "  # Check Traefik logs:"
-        echo "  tail -f /var/log/traefik/traefik.log"
+        echo "  tail -f ${TRAEFIK_LOG_PATH}/traefik.log"
         echo "  # Test HTTPS endpoint:"
-        echo "  curl -v https://app.mcp-as-a-service.com/"
+        echo "  curl -v https://${APP_SUBDOMAIN}.${DOMAIN_NAME}/"
         echo "  # Test HTTPS endpoint ignoring certificate verification (to check if cert is served):"
-        echo "  curl -k -v https://app.mcp-as-a-service.com/"
+        echo "  curl -k -v https://${APP_SUBDOMAIN}.${DOMAIN_NAME}/"
         echo "  # Check certificate chain with openssl:"
-        echo "  echo | openssl s_client -servername app.mcp-as-a-service.com -connect app.mcp-as-a-service.com:443 2>/dev/null | openssl x509 -noout -issuer -subject"
+        echo "  echo | openssl s_client -servername ${APP_SUBDOMAIN}.${DOMAIN_NAME} -connect ${APP_SUBDOMAIN}.${DOMAIN_NAME}:443 2>/dev/null | openssl x509 -noout -issuer -subject"
         echo "  # Verify certificate chain:"
-        echo "  echo | openssl s_client -servername app.mcp-as-a-service.com -connect app.mcp-as-a-service.com:443 -verify_return_error"
+        echo "  echo | openssl s_client -servername ${APP_SUBDOMAIN}.${DOMAIN_NAME} -connect ${APP_SUBDOMAIN}.${DOMAIN_NAME}:443 -verify_return_error"
         echo "  # Check container health:"
         echo "  docker inspect ${TRAEFIK_CONTAINER_NAME} | grep -A 10 Health"
         echo "  # Check Traefik API for TLS info:"
@@ -452,9 +465,9 @@ show_status() {
         echo "  # Check Traefik API for stores info:"
         echo "  curl -s http://localhost:${TRAEFIK_DASHBOARD_PORT}/api/http/tls/stores | jq"
         echo "  # Verify certificate files in container:"
-        echo "  docker exec ${TRAEFIK_CONTAINER_NAME} ls -la /etc/traefik/letsencrypt/live/mcp-as-a-service.com/"
+        echo "  docker exec ${TRAEFIK_CONTAINER_NAME} ls -la /etc/traefik/letsencrypt/live/${DOMAIN_NAME}/"
         echo "  # Check certificate validity inside container:"
-        echo "  docker exec ${TRAEFIK_CONTAINER_NAME} openssl x509 -in /etc/traefik/letsencrypt/live/mcp-as-a-service.com/fullchain.pem -noout -subject -issuer -dates"
+        echo "  docker exec ${TRAEFIK_CONTAINER_NAME} openssl x509 -in /etc/traefik/letsencrypt/live/${DOMAIN_NAME}/fullchain.pem -noout -subject -issuer -dates"
         echo "  # Check static configuration in container:"
         echo "  docker exec ${TRAEFIK_CONTAINER_NAME} cat /etc/traefik/traefik.yml"
         echo "  # Check dynamic configuration in container:"
@@ -540,6 +553,7 @@ case "${1:-}" in
         echo "  --prod        Launch in production mode (secure dashboard, TLS enabled)"
         echo ""
         echo "Environment variables:"
+        echo "  # Docker & Traefik Configuration"
         echo "  TRAEFIK_VERSION         Traefik version (default: v3.5)"
         echo "  TRAEFIK_CONTAINER_NAME  Container name (default: traefik-mcp)"
         echo "  TRAEFIK_NETWORK         Docker network (default: mcp_instances)"
@@ -547,10 +561,32 @@ case "${1:-}" in
         echo "  TRAEFIK_HTTP_PORT       HTTP port (default: 80)"
         echo "  TRAEFIK_HTTPS_PORT      HTTPS port (default: 443)"
         echo ""
+        echo "  # Domain & Certificate Configuration"
+        echo "  DOMAIN_NAME             Main domain (default: mcp-as-a-service.com)"
+        echo "  APP_SUBDOMAIN           App subdomain (default: app)"
+        echo "  MCP_SUBDOMAIN_PATTERN   MCP subdomain pattern (default: mcp-*)"
+        echo "  VNC_SUBDOMAIN_PATTERN   VNC subdomain pattern (default: vnc-*)"
+        echo "  LETSENCRYPT_PATH        Let's Encrypt path (default: /etc/letsencrypt)"
+        echo "  TRAEFIK_LOG_PATH        Log directory (default: /var/log/traefik)"
+        echo "  TRAEFIK_USER_ID         Traefik user ID (default: 1000)"
+        echo "  TRAEFIK_GROUP_ID        Traefik group ID (default: 1000)"
+        echo ""
+        echo "  # Docker Configuration"
+        echo "  DOCKER_HOST_ALIAS       Docker host alias (default: host.docker.internal)"
+        echo ""
         echo "Examples:"
         echo "  $0 --dev                 # Development mode"
         echo "  $0 --prod                # Production mode"
         echo "  ENVIRONMENT=development $0  # Via environment variable"
+        echo ""
+        echo "  # Custom domain configuration"
+        echo "  DOMAIN_NAME=example.com APP_SUBDOMAIN=web $0 --prod"
+        echo ""
+        echo "  # Custom certificate path"
+        echo "  LETSENCRYPT_PATH=/custom/certs DOMAIN_NAME=example.com $0 --prod"
+        echo ""
+        echo "  # Custom logging path"
+        echo "  TRAEFIK_LOG_PATH=/custom/logs $0 --prod"
         exit 0
         ;;
     --dev)

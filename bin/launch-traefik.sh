@@ -94,45 +94,45 @@ verify_certificates() {
     if [[ "${ENVIRONMENT}" == "production" ]]; then
         local cert_file="${LETSENCRYPT_PATH}/live/${DOMAIN_NAME}/fullchain.pem"
         local key_file="${LETSENCRYPT_PATH}/live/${DOMAIN_NAME}/privkey.pem"
-        
+
         if [[ ! -f "${cert_file}" ]]; then
             log_error "Certificate file not found: ${cert_file}"
             log_error "Expected fullchain.pem (certificate + intermediate chain)"
             exit 1
         fi
-        
+
         if [[ ! -f "${key_file}" ]]; then
             log_error "Private key file not found: ${key_file}"
             exit 1
         fi
-        
+
         if [[ ! -r "${cert_file}" ]]; then
             log_error "Certificate file not readable: ${cert_file}"
             exit 1
         fi
-        
+
         if [[ ! -r "${key_file}" ]]; then
             log_error "Private key file not readable: ${key_file}"
             exit 1
         fi
-        
+
         # Additional verification: check certificate content
         log_info "Certificate file details:"
         echo "  - Certificate: $(ls -la "${cert_file}")"
         echo "  - Private key: $(ls -la "${key_file}")"
-        
+
         # Check if certificate is valid and contains full chain
         if openssl x509 -in "${cert_file}" -text -noout >/dev/null 2>&1; then
             log_success "Certificate file is valid PEM format"
-            
+
             # Check if it's a wildcard certificate and verify domain coverage
             local cert_subject=$(openssl x509 -in "${cert_file}" -subject -noout 2>/dev/null || echo "")
             local cert_sans=$(openssl x509 -in "${cert_file}" -text -noout 2>/dev/null | grep -A 1 "Subject Alternative Name:" || echo "")
-            
+
             log_info "Certificate details:"
             echo "  - Subject: ${cert_subject}"
             echo "  - SANs: ${cert_sans}"
-            
+
             # Verify it covers our domains
             if openssl x509 -in "${cert_file}" -text -noout 2>/dev/null | grep -q "*.${DOMAIN_NAME}\|${APP_SUBDOMAIN}.${DOMAIN_NAME}"; then
                 log_success "Certificate covers required domains"
@@ -142,7 +142,7 @@ verify_certificates() {
         else
             log_warning "Certificate file may not be valid PEM format"
         fi
-        
+
         log_success "Certificate files verified and readable"
     fi
 }
@@ -152,17 +152,17 @@ verify_config() {
     local config_files="$1"
     local static_config_file=$(echo "${config_files}" | cut -d' ' -f1)
     local dynamic_config_file=$(echo "${config_files}" | cut -d' ' -f2)
-    
+
     if [[ "${ENVIRONMENT}" == "production" ]]; then
         log_info "Verifying generated configuration..."
-        
+
         # Check static configuration
         log_info "Checking static configuration: ${static_config_file}"
         if [[ ! -f "${static_config_file}" ]]; then
             log_error "Static configuration file not found: ${static_config_file}"
             return 1
         fi
-        
+
         # Check if file provider exists in static config
         if grep -q "file:" "${static_config_file}"; then
             log_success "File provider found in static configuration"
@@ -170,14 +170,14 @@ verify_config() {
             log_error "File provider missing from static configuration"
             return 1
         fi
-        
+
         # Check dynamic configuration
         log_info "Checking dynamic configuration: ${dynamic_config_file}"
         if [[ ! -f "${dynamic_config_file}" ]]; then
             log_error "Dynamic configuration file not found: ${dynamic_config_file}"
             return 1
         fi
-        
+
         # Check if TLS section exists in dynamic config
         if grep -q "tls:" "${dynamic_config_file}"; then
             log_success "TLS section found in dynamic configuration"
@@ -185,7 +185,7 @@ verify_config() {
             log_error "TLS section missing from dynamic configuration"
             return 1
         fi
-        
+
         # Check if certificates section exists in dynamic config
         if grep -q "certificates:" "${dynamic_config_file}"; then
             log_success "Certificates section found in dynamic configuration"
@@ -193,7 +193,7 @@ verify_config() {
             log_error "Certificates section missing from dynamic configuration"
             return 1
         fi
-        
+
         # Check if stores section exists in dynamic config
         if grep -q "stores:" "${dynamic_config_file}"; then
             log_success "Stores section found in dynamic configuration"
@@ -201,7 +201,7 @@ verify_config() {
             log_error "Stores section missing from dynamic configuration"
             return 1
         fi
-              
+
         log_info "Configuration verification completed successfully"
     fi
 }
@@ -220,7 +220,7 @@ cleanup_existing() {
 generate_config() {
     local static_config_file="/tmp/traefik-${TRAEFIK_CONTAINER_NAME}.yml"
     local dynamic_config_file="/tmp/traefik-${TRAEFIK_CONTAINER_NAME}-dynamic.yml"
-    
+
     # Generate static configuration (traefik.yml)
     cat > "${static_config_file}" << EOF
 # Traefik configuration for MCP-as-a-Service
@@ -267,7 +267,7 @@ log:
   format: json
 
 # Access logs
-accessLog: 
+accessLog:
   filePath: "${TRAEFIK_LOG_PATH}/access.log"
   format: json
 
@@ -349,11 +349,11 @@ launch_traefik() {
     local config_files="$1"
     local static_config_file=$(echo "${config_files}" | cut -d' ' -f1)
     local dynamic_config_file=$(echo "${config_files}" | cut -d' ' -f2)
-    
+
     log_info "Launching Traefik container: ${TRAEFIK_CONTAINER_NAME}"
     log_info "Static config: ${static_config_file}"
     log_info "Dynamic config: ${dynamic_config_file}"
-    
+
     local docker_args=(
         --name "${TRAEFIK_CONTAINER_NAME}"
         --network "${TRAEFIK_NETWORK}"
@@ -364,12 +364,12 @@ launch_traefik() {
         --health-retries=3
         -p "${TRAEFIK_HTTP_PORT}:${TRAEFIK_HTTP_PORT}"
         -p "${TRAEFIK_HTTPS_PORT}:${TRAEFIK_HTTPS_PORT}"
-        -p "${TRAEFIK_DASHBOARD_PORT}:${TRAEFIK_DASHBOARD_PORT}"
+        -p "127.0.0.1:${TRAEFIK_DASHBOARD_PORT}:${TRAEFIK_DASHBOARD_PORT}"
         -v /var/run/docker.sock:/var/run/docker.sock:ro
         -v "${static_config_file}:/etc/traefik/traefik.yml:ro"
         -v "${dynamic_config_file}:/etc/traefik/dynamic.yml:ro"
     )
-    
+
     if [[ "${ENVIRONMENT}" == "production" ]]; then
         # Production: mount existing wildcard certificates
         # Mount the parent directory to access both the live and archive directories
@@ -378,40 +378,40 @@ launch_traefik() {
             -v "${TRAEFIK_LOG_PATH}:/var/log/traefik"
         )
     fi
-    
+
     # Add host access for production (to reach native nginx on port 8080)
     if [[ "${ENVIRONMENT}" == "production" ]]; then
         docker_args+=(--add-host="${DOCKER_HOST_ALIAS}:host-gateway")
     fi
-    
+
     docker run -d "${docker_args[@]}" \
         -e "TRAEFIK_LOG_LEVEL=DEBUG" \
         -e "TRAEFIK_ACCESSLOG=true" \
         -e "TRAEFIK_METRICS_PROMETHEUS=true" \
         -e "TRAEFIK_TLS_OPTIONS_DEFAULT_MINVERSION=VersionTLS12" \
         "traefik:${TRAEFIK_VERSION}"
-    
+
     log_success "Traefik container launched successfully"
 }
 
 # Wait for Traefik to be ready
 wait_for_traefik() {
     log_info "Waiting for Traefik to be ready..."
-    
+
     local max_attempts=30
     local attempt=1
-    
+
     while [[ ${attempt} -le ${max_attempts} ]]; do
         if curl -s "http://localhost:${TRAEFIK_DASHBOARD_PORT}/api/http/routers" >/dev/null 2>&1; then
             log_success "Traefik is ready and responding"
             return 0
         fi
-        
+
         echo -n "."
         sleep 2
         ((attempt++))
     done
-    
+
     log_error "Traefik failed to become ready within ${max_attempts} attempts"
     return 1
 }
@@ -420,11 +420,11 @@ wait_for_traefik() {
 show_status() {
     log_info "Traefik container status:"
     docker ps --filter "name=${TRAEFIK_CONTAINER_NAME}" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
-    
+
     echo
     log_info "Network information:"
     docker network inspect "${TRAEFIK_NETWORK}" --format "{{.Name}}: {{.IPAM.Config}}"
-    
+
     echo
     if [[ "${ENVIRONMENT}" == "development" ]]; then
         log_info "Development mode:"
@@ -445,15 +445,15 @@ show_status() {
         echo "    - Key: /etc/traefik/letsencrypt/live/${DOMAIN_NAME}/privkey.pem"
         echo "  - Log files: ${TRAEFIK_LOG_PATH}/"
     fi
-    
+
     echo
     log_info "Container logs:"
     echo "  docker logs -f ${TRAEFIK_CONTAINER_NAME}"
-    
+
     echo
     log_info "Stop Traefik:"
     echo "  docker stop ${TRAEFIK_CONTAINER_NAME}"
-    
+
     if [[ "${ENVIRONMENT}" == "production" ]]; then
         echo
         log_info "Debug commands:"
@@ -517,36 +517,36 @@ main() {
                 ;;
         esac
     fi
-    
+
     # Display environment mode
     if [[ "${ENVIRONMENT}" == "development" ]]; then
         echo "🚀 Launching Traefik in DEVELOPMENT mode"
     else
         echo "🚀 Launching Traefik in PRODUCTION mode"
     fi
-    
+
     echo "🔧 Traefik Launcher for MCP-as-a-Service"
     echo "=========================================="
-    
+
     # Check prerequisites
     check_docker
-    
+
     # Setup
     create_network
     cleanup_existing
     create_log_directory # Call the new function here
     verify_certificates # Call the new function here
-    
+
     # Generate and use configuration
     local config_files
     config_files=$(generate_config)
-    
+
     # Verify configuration
     verify_config "${config_files}"
-    
+
     # Launch container
     launch_traefik "${config_files}"
-    
+
     # Wait for readiness
     if wait_for_traefik; then
         show_status
@@ -555,7 +555,7 @@ main() {
         log_error "Traefik deployment failed"
         exit 1
     fi
-    
+
     # Cleanup temporary config files
     if [[ -n "${config_files:-}" ]]; then
         local static_config_file=$(echo "${config_files}" | cut -d' ' -f1)

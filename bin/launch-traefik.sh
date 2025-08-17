@@ -290,6 +290,10 @@ serversTransport:
 # Security headers middleware
 http:
   middlewares:
+    redirect-to-https:
+      redirectScheme:
+        scheme: https
+        permanent: true
     security-headers:
       headers:
         frameDeny: true
@@ -309,6 +313,51 @@ http:
       entryPoints:
         - traefik
       tls: false
+
+    # Route apex domain HTTP to HTTPS
+    root-http:
+      rule: "Host(\`${DOMAIN_NAME}\`)"
+      entryPoints:
+        - web
+      middlewares:
+        - redirect-to-https
+      service: noop@internal
+
+    # Route apex domain HTTPS to host nginx on the Linux host
+    root-https:
+      rule: "Host(\`${DOMAIN_NAME}\`)"
+      entryPoints:
+        - websecure
+      middlewares:
+        - security-headers
+      service: host-nginx
+      tls: {}
+
+    # Route app subdomain HTTP to HTTPS
+    app-http:
+      rule: "Host(\`${APP_SUBDOMAIN}.${DOMAIN_NAME}\`)"
+      entryPoints:
+        - web
+      middlewares:
+        - redirect-to-https
+      service: noop@internal
+
+    # Route app subdomain HTTPS to host nginx on the Linux host
+    app-https:
+      rule: "Host(\`${APP_SUBDOMAIN}.${DOMAIN_NAME}\`)"
+      entryPoints:
+        - websecure
+      middlewares:
+        - security-headers
+      service: host-nginx
+      tls: {}
+
+  services:
+    host-nginx:
+      loadBalancer:
+        passHostHeader: true
+        servers:
+          - url: "http://${DOCKER_HOST_ALIAS}:8090"
 
 # TLS configuration with existing certificates
 # This configuration tells Traefik to use the existing wildcard certificates

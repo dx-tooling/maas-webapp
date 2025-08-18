@@ -124,6 +124,4 @@ final class ContainerManagementServiceTest extends TestCase
         putenv('MAAS_WRAPPER_VALIDATE_ONLY');
         putenv('DOCKER_BIN');
     }
-
-    // Exec path is covered by shell wrapper tests; PHP test focuses on run/start/stop/restart/rm/inspect
 }

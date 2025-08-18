@@ -19,7 +19,7 @@ final class McpInstancesDomainServiceTest extends TestCase
     /** @var EntityManagerInterface&MockObject */
     private EntityManagerInterface $em;
 
-    /** @var EntityRepository&MockObject */
+    /** @var EntityRepository<McpInstance>&MockObject */
     private EntityRepository $repo;
 
     /** @var DockerManagementFacadeInterface&MockObject */

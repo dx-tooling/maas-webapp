@@ -5,6 +5,22 @@ set -euo pipefail
 ALLOWED_CMDS=("start" "stop" "restart" "rm" "inspect" "ps" "run" "exec")
 CONTAINER_RE='^mcp-instance-[a-zA-Z0-9]+$'
 
+# Docker binary (overridable for validation output)
+DOCKER_BIN="${DOCKER_BIN:-/usr/bin/docker}"
+
+# Exec helper: in validation mode, print and exit 0; otherwise exec docker
+do_exec() {
+  if [[ "${MAAS_WRAPPER_VALIDATE_ONLY:-}" == "1" ]]; then
+    printf '%s' "${DOCKER_BIN}"
+    for arg in "$@"; do
+      printf ' %q' "${arg}"
+    done
+    echo
+    exit 0
+  fi
+  exec "${DOCKER_BIN}" "$@"
+}
+
 cmd="${1:-}"; shift || true
 case " ${ALLOWED_CMDS[*]} " in
   *" ${cmd} "*) ;;
@@ -12,20 +28,33 @@ case " ${ALLOWED_CMDS[*]} " in
 esac
 
 # Commands that require a container name (handled generically), excluding
-# subcommands with special argument parsing (run, exec)
-if [[ "${cmd}" != "ps" ]] && [[ "${cmd}" != "run" ]] && [[ "${cmd}" != "exec" ]]; then
+# subcommands with special argument parsing (run, exec, inspect)
+if [[ "${cmd}" != "ps" ]] && [[ "${cmd}" != "run" ]] && [[ "${cmd}" != "exec" ]] && [[ "${cmd}" != "inspect" ]]; then
   name="${1:-}"; shift || true
   [[ -n "${name:-}" && "${name}" =~ ${CONTAINER_RE} ]] || { echo "Denied: invalid container name"; exit 1; }
 fi
 
 # Execute restricted docker commands
 case "${cmd}" in
-  ps)        exec /usr/bin/docker ps --filter "name=^/mcp-instance-" --format '{{.Names}} {{.Status}}' ;;
-  inspect)   exec /usr/bin/docker inspect --format='{{.State.Status}}' "${name}" ;;
-  start)     exec /usr/bin/docker start "${name}" ;;
-  stop)      exec /usr/bin/docker stop "${name}" ;;
-  restart)   exec /usr/bin/docker restart "${name}" ;;
-  rm)        exec /usr/bin/docker rm "${name}" ;;
+  ps)        do_exec ps --filter "name=^/mcp-instance-" --format '{{.Names}} {{.Status}}' ;;
+  inspect)   {
+    # Determine container name as the last non-flag argument
+    args=("$@")
+    container_name=""
+    for (( i=${#args[@]}-1; i>=0; i-- )); do
+      arg="${args[$i]}"
+      if [[ ! "${arg}" =~ ^- ]] && [[ -n "${arg}" ]]; then
+        container_name="${arg}"
+        break
+      fi
+    done
+    [[ -n "${container_name}" && "${container_name}" =~ ${CONTAINER_RE} ]] || { echo "Denied: invalid or missing container name for inspect"; exit 1; }
+    do_exec inspect "$@"
+  } ;;
+  start)     do_exec start "${name}" ;;
+  stop)      do_exec stop "${name}" ;;
+  restart)   do_exec restart "${name}" ;;
+  rm)        do_exec rm "${name}" ;;
   exec)      {
     # docker exec [OPTIONS] CONTAINER COMMAND [ARG...]
     # Find the first non-flag argument as the container name
@@ -38,7 +67,7 @@ case "${cmd}" in
       fi
     done
     [[ -n "${container_name}" && "${container_name}" =~ ${CONTAINER_RE} ]] || { echo "Denied: invalid or missing container name for exec"; exit 1; }
-    exec /usr/bin/docker exec "$@"
+    do_exec exec "$@"
   } ;;
   run)       {
     # For run command, validate that the image is maas-mcp-instance
@@ -61,26 +90,21 @@ case "${cmd}" in
       exit 1
     fi
     
-    # Find the image name in the arguments (it's typically the first non-flag argument)
-    # Skip --name parameter and its value
-    for i in "${!args[@]}"; do
+    # Determine image name as the last non-flag argument
+    for (( i=${#args[@]}-1; i>=0; i-- )); do
       arg="${args[$i]}"
       if [[ ! "$arg" =~ ^- ]] && [[ -n "$arg" ]]; then
-        # Check if this argument is not the value of a --name parameter
-        if [[ $i -gt 0 ]] && [[ "${args[$((i-1))]}" == "--name" ]]; then
-          continue  # Skip this argument as it's the container name
-        fi
         image_name="$arg"
         break
       fi
     done
     
     # Validate image name
-    if [[ "$image_name" != "maas-mcp-instance" ]]; then
+    if [[ -z "$image_name" ]] || [[ "$image_name" == -* ]] || [[ "$image_name" != "maas-mcp-instance" ]]; then
       echo "Denied: only maas-mcp-instance image is allowed"
       exit 1
     fi
     
-    exec /usr/bin/docker run "$@"
+    do_exec run "$@"
   } ;;
 esac

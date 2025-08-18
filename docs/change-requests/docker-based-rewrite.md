@@ -28,18 +28,19 @@ This change request proposes replacing the current OS-process- and port-based or
 - [x] ForwardAuth endpoint (`/auth/mcp-bearer-check`) with 5‑minute token cache and logging
 - [x] UI updates: subdomain-based URLs, process/health display on instance dashboard
 - [x] Database migrations for new fields
+- [x] CLI commands: add Docker CLI wrapper for the Symfony app, with sudo-based privilege management (see bin/docker-cli-wrapper.sh and docs/infrastructure/etc/sudoers.d/101-www-data-docker-cli-wrapper)
+- [x] DNS: add wildcard `*.mcp-as-a-service.com` pointing to the main IP
+- [x] Production Traefik deployment on 80/443, route `app.*` → nginx:8090, use wildcard TLS
+- [x] Docker network `mcp_instances` on prod
+- [x] nginx reconfiguration on prod host to listen on 8090 and drop TLS (Traefik terminates)
 
 #### In progress / Next
 - [ ] Replace `shell_exec` and fragile exit-code handling with Symfony Process for Docker commands
 - [ ] Ownership linkage: ensure `accountCoreId` uses Account UUID (not email); fix lookups and DTO usage accordingly
 - [ ] Align template/DTO property names (e.g., use `vncPassword` instead of `password` in templates)
 - [ ] Container health: consider adding a noVNC healthcheck or document reliance on application-level checks
-- [ ] CLI commands: add create/stop/restart/recreate wrappers mapped to Docker lifecycle
 - [ ] Admin UX: list containers with status/uptime, and per-container actions
-- [ ] Production Traefik deployment on 80/443, route `app.*` → nginx:8080, attach ForwardAuth, use wildcard TLS
-- [ ] nginx reconfiguration on prod host to listen on 8080 and drop TLS (Traefik terminates)
-- [ ] DNS: add wildcard `*.mcp-as-a-service.com` pointing to the main IP
-- [ ] Docker network `mcp_instances` on prod; grant `www-data` Docker daemon access
+- [ ] Verify traefik<->webapp ForwardAuth integration
 - [ ] Tests: ForwardAuth functional test; domain/facade lifecycle tests; UI smoke test for dashboard
 - [ ] Rate-limit failed ForwardAuth attempts; add minimal metrics/logging
 - [ ] Documentation: update prodsetupbook/runbook and troubleshooting sections

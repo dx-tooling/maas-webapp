@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace App\DockerManagement\Domain\Service;
+namespace App\DockerManagement\Infrastructure\Service;
 
 use App\McpInstances\Domain\Entity\McpInstance;
 use App\McpInstances\Domain\Enum\ContainerState;
 use Psr\Log\LoggerInterface;
 
-readonly class DockerDomainService
+readonly class ContainerManagementService
 {
     public function __construct(
         private LoggerInterface $logger
@@ -21,23 +21,23 @@ readonly class DockerDomainService
         $instanceSlug  = $instance->getInstanceSlug();
 
         if (!$containerName || !$instanceSlug) {
-            $this->logger->error('[DockerDomainService] Container name or instance slug not set');
+            $this->logger->error('[ContainerManagementService] Container name or instance slug not set');
 
             return false;
         }
 
         $cmd = $this->buildDockerRunCommand($instance);
-        $this->logger->info("[DockerDomainService] Creating container: {$containerName}");
+        $this->logger->info("[ContainerManagementService] Creating container: {$containerName}");
 
         $result   = shell_exec($cmd . ' 2>&1');
         $exitCode = $this->getLastExitCode();
 
         if ($exitCode === 0) {
-            $this->logger->info("[DockerDomainService] Container {$containerName} created successfully");
+            $this->logger->info("[ContainerManagementService] Container {$containerName} created successfully");
 
             return true;
         } else {
-            $this->logger->error("[DockerDomainService] Failed to create container {$containerName}: {$result}");
+            $this->logger->error("[ContainerManagementService] Failed to create container {$containerName}: {$result}");
 
             return false;
         }
@@ -51,17 +51,17 @@ readonly class DockerDomainService
         }
 
         $cmd = "docker start {$containerName}";
-        $this->logger->info("[DockerDomainService] Starting container: {$containerName}");
+        $this->logger->info("[ContainerManagementService] Starting container: {$containerName}");
 
         $result   = shell_exec($cmd . ' 2>&1');
         $exitCode = $this->getLastExitCode();
 
         if ($exitCode === 0) {
-            $this->logger->info("[DockerDomainService] Container {$containerName} started successfully");
+            $this->logger->info("[ContainerManagementService] Container {$containerName} started successfully");
 
             return true;
         } else {
-            $this->logger->error("[DockerDomainService] Failed to start container {$containerName}: {$result}");
+            $this->logger->error("[ContainerManagementService] Failed to start container {$containerName}: {$result}");
 
             return false;
         }
@@ -75,17 +75,17 @@ readonly class DockerDomainService
         }
 
         $cmd = "docker stop {$containerName}";
-        $this->logger->info("[DockerDomainService] Stopping container: {$containerName}");
+        $this->logger->info("[ContainerManagementService] Stopping container: {$containerName}");
 
         $result   = shell_exec($cmd . ' 2>&1');
         $exitCode = $this->getLastExitCode();
 
         if ($exitCode === 0) {
-            $this->logger->info("[DockerDomainService] Container {$containerName} stopped successfully");
+            $this->logger->info("[ContainerManagementService] Container {$containerName} stopped successfully");
 
             return true;
         } else {
-            $this->logger->error("[DockerDomainService] Failed to stop container {$containerName}: {$result}");
+            $this->logger->error("[ContainerManagementService] Failed to stop container {$containerName}: {$result}");
 
             return false;
         }
@@ -99,17 +99,17 @@ readonly class DockerDomainService
         }
 
         $cmd = "docker rm {$containerName}";
-        $this->logger->info("[DockerDomainService] Removing container: {$containerName}");
+        $this->logger->info("[ContainerManagementService] Removing container: {$containerName}");
 
         $result   = shell_exec($cmd . ' 2>&1');
         $exitCode = $this->getLastExitCode();
 
         if ($exitCode === 0) {
-            $this->logger->info("[DockerDomainService] Container {$containerName} removed successfully");
+            $this->logger->info("[ContainerManagementService] Container {$containerName} removed successfully");
 
             return true;
         } else {
-            $this->logger->error("[DockerDomainService] Failed to remove container {$containerName}: {$result}");
+            $this->logger->error("[ContainerManagementService] Failed to remove container {$containerName}: {$result}");
 
             return false;
         }
@@ -123,17 +123,17 @@ readonly class DockerDomainService
         }
 
         $cmd = "docker restart {$containerName}";
-        $this->logger->info("[DockerDomainService] Restarting container: {$containerName}");
+        $this->logger->info("[ContainerManagementService] Restarting container: {$containerName}");
 
         $result   = shell_exec($cmd . ' 2>&1');
         $exitCode = $this->getLastExitCode();
 
         if ($exitCode === 0) {
-            $this->logger->info("[DockerDomainService] Container {$containerName} restarted successfully");
+            $this->logger->info("[ContainerManagementService] Container {$containerName} restarted successfully");
 
             return true;
         } else {
-            $this->logger->error("[DockerDomainService] Failed to restart container {$containerName}: {$result}");
+            $this->logger->error("[ContainerManagementService] Failed to restart container {$containerName}: {$result}");
 
             return false;
         }

@@ -34,7 +34,7 @@ Internet (80/443) → Traefik (container) → {
 
 - Traefik and all MCP instance containers join the same Docker network: `mcp_instances`.
 - Traefik reaches instance containers by their Docker DNS name on internal ports (no host port publishing).
-- Traefik must reach host nginx on port 8080. Options:
+- Traefik must reach host nginx on port 8090. Options:
   - Use `host.docker.internal` as the service URL (if supported)
   - Or run Traefik with host networking (not required, but possible)
 

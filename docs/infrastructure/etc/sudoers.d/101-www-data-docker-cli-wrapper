@@ -1,3 +1,1 @@
-# Ensure a safe PATH for this command
-Defaults! /usr/local/sbin/maas-docker-wrapper.sh secure_path=/usr/sbin:/usr/bin:/sbin:/bin
-www-data ALL=(root) NOPASSWD: /usr/local/sbin/maas-docker-wrapper.sh *
+www-data ALL=(root) NOPASSWD: /var/www/prod/maas-webapp/bin/docker-cli-wrapper.sh *

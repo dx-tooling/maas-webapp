@@ -46,7 +46,7 @@ netstat -tlnp | grep :443
 From the native Symfony application, test container creation using the domain service (which will call the wrapper under the hood if configured to use `sudo`):
 ```php
 // Via Symfony console or test script
-$dockerService = $container->get(DockerDomainService::class);
+$dockerService = $container->get(ContainerManagementService::class);
 $instance = // ... create test McpInstance
 $success = $dockerService->createContainer($instance);
 ```
@@ -118,7 +118,7 @@ docker network inspect mcp_instances
 - [ ] Docker wrapper installed at `/usr/local/sbin/maas-docker-wrapper.sh`
 - [ ] Sudoers entry installed for wrapper (no password, restricted command)
 - [ ] Docker network `mcp_instances` created
-- [ ] Native nginx configured on port 8080
+- [ ] Native nginx configured on port 8090
 - [ ] Traefik container deployed with host access
 - [ ] DNS wildcard record configured
 - [ ] Test MCP instance creation via Symfony

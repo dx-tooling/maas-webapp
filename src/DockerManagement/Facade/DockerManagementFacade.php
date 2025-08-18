@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace App\DockerManagement\Facade;
 
-use App\DockerManagement\Domain\Service\DockerDomainService;
 use App\DockerManagement\Facade\Dto\ContainerStatusDto;
+use App\DockerManagement\Infrastructure\Service\ContainerManagementService;
 use App\McpInstances\Domain\Entity\McpInstance;
 use App\McpInstances\Domain\Enum\ContainerState;
 
 readonly class DockerManagementFacade implements DockerManagementFacadeInterface
 {
     public function __construct(
-        private DockerDomainService $dockerDomainService
+        private ContainerManagementService $dockerDomainService
     ) {
     }
 
@@ -61,7 +61,7 @@ readonly class DockerManagementFacade implements DockerManagementFacadeInterface
     public function getContainerStatus(McpInstance $instance): ContainerStatusDto
     {
         $state   = $this->getContainerState($instance);
-        $healthy = $state === ContainerState::RUNNING ? $this->isContainerHealthy($instance) : false;
+        $healthy = $state === ContainerState::RUNNING && $this->isContainerHealthy($instance);
 
         return new ContainerStatusDto(
             $instance->getContainerName() ?? '',

@@ -66,9 +66,9 @@ readonly class ContainerManagementService
         $this->logger->info('[ContainerManagementService] Docker invocation: ' . implode(' ', array_map(static fn (string $p): string => escapeshellarg($p), $cmd)));
 
         // Propagate validation/testing env flags if present
-        $va = getenv('MAAS_WRAPPER_VALIDATE_ONLY');
-        $ns = getenv('MAAS_WRAPPER_NO_SUDO');
-        $db = getenv('DOCKER_BIN');
+        $va  = getenv('MAAS_WRAPPER_VALIDATE_ONLY');
+        $ns  = getenv('MAAS_WRAPPER_NO_SUDO');
+        $db  = getenv('DOCKER_BIN');
         $env = null;
         if ($va !== false || $ns !== false || $db !== false) {
             $env = [];

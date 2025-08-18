@@ -4,17 +4,16 @@ declare(strict_types=1);
 
 namespace App\McpInstances\Presentation\Controller;
 
-use App\Account\Facade\Dto\AccountCoreInfoDto;
+use App\Common\Presentation\Controller\AbstractAccountAwareController;
 use App\McpInstances\Facade\McpInstancesFacadeInterface;
 use Exception;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[IsGranted('ROLE_USER')]
-class InstancesController extends AbstractController
+class InstancesController extends AbstractAccountAwareController
 {
     public function __construct(
         private McpInstancesFacadeInterface $facade
@@ -28,11 +27,7 @@ class InstancesController extends AbstractController
     )]
     public function dashboardAction(): Response
     {
-        $user = $this->getUser();
-        if (!$user) {
-            throw $this->createAccessDeniedException();
-        }
-        $accountCoreInfoDto = new AccountCoreInfoDto($user->getUserIdentifier());
+        $accountCoreInfoDto = $this->getAuthenticatedAccountCoreInfo();
         $instances          = $this->facade->getMcpInstanceInfosForAccount($accountCoreInfoDto);
         $instance           = $instances[0] ?? null;
         $instanceId         = str_replace('-', '', $instance->id ?? '');
@@ -64,11 +59,7 @@ class InstancesController extends AbstractController
     )]
     public function createAction(): Response
     {
-        $user = $this->getUser();
-        if (!$user) {
-            throw $this->createAccessDeniedException();
-        }
-        $accountCoreInfoDto = new AccountCoreInfoDto($user->getUserIdentifier());
+        $accountCoreInfoDto = $this->getAuthenticatedAccountCoreInfo();
         $this->facade->createMcpInstance($accountCoreInfoDto);
         $this->addFlash('success', 'MCP Instance created.');
 
@@ -82,11 +73,7 @@ class InstancesController extends AbstractController
     )]
     public function stopAction(): Response
     {
-        $user = $this->getUser();
-        if (!$user) {
-            throw $this->createAccessDeniedException();
-        }
-        $accountCoreInfoDto = new AccountCoreInfoDto($user->getUserIdentifier());
+        $accountCoreInfoDto = $this->getAuthenticatedAccountCoreInfo();
         $this->facade->stopAndRemoveMcpInstance($accountCoreInfoDto);
         $this->addFlash('success', 'MCP Instance stopped and removed.');
 
@@ -100,11 +87,6 @@ class InstancesController extends AbstractController
     )]
     public function restartProcessesAction(Request $request): Response
     {
-        $user = $this->getUser();
-        if (!$user) {
-            throw $this->createAccessDeniedException();
-        }
-
         $instanceId = (string)$request->request->get('instanceId');
         if (!$instanceId) {
             $this->addFlash('error', 'Instance ID is required.');
@@ -113,7 +95,7 @@ class InstancesController extends AbstractController
         }
 
         // Verify the user owns this instance
-        $accountCoreInfoDto = new AccountCoreInfoDto($user->getUserIdentifier());
+        $accountCoreInfoDto = $this->getAuthenticatedAccountCoreInfo();
         $userInstances      = $this->facade->getMcpInstanceInfosForAccount($accountCoreInfoDto);
 
         $userOwnsInstance = false;

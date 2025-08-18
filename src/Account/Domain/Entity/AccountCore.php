@@ -58,7 +58,8 @@ class AccountCore implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(
         type  : Types::STRING,
-        length: 1024
+        length: 1024,
+        unique: true
     )]
     private readonly string $email;
 

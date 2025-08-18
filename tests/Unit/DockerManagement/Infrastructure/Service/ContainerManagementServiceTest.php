@@ -9,6 +9,7 @@ use App\McpInstances\Domain\Entity\McpInstance;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
+use ReflectionClass;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
 final class ContainerManagementServiceTest extends TestCase
@@ -33,5 +34,35 @@ final class ContainerManagementServiceTest extends TestCase
 
         // Intentionally do not set derived fields; createContainer should log and return false
         $this->assertFalse($service->createContainer($instance));
+    }
+
+    public function testDockerRunInvocationUsesWrapperInValidateOnlyMode(): void
+    {
+        $service  = new ContainerManagementService($this->logger, $this->params);
+        $instance = new McpInstance('acc', 1280, 720, 24, 'vncpass', 'bearer');
+
+        // Prepare derived fields so that createContainer proceeds
+        // We simulate what generateDerivedFields() does
+        $r      = new ReflectionClass($instance);
+        $idProp = $r->getProperty('id');
+        $idProp->setAccessible(true);
+        $idProp->setValue($instance, '00000000-0000-0000-0000-000000000abc');
+        $instance->generateDerivedFields();
+
+        // Logger may be called multiple times; no strict parameter expectations here
+        $this->logger->expects($this->any())->method('info');
+
+        // Force wrapper path usage without sudo and enable validation-only mode so process exits quickly with 0
+        putenv('MAAS_WRAPPER_NO_SUDO=1');
+        putenv('MAAS_WRAPPER_VALIDATE_ONLY=1');
+        putenv('DOCKER_BIN=/bin/docker');
+
+        // Execute; since wrapper runs in validation mode, createContainer should return true (docker run exits 0)
+        $this->assertTrue($service->createContainer($instance));
+
+        // Cleanup env changes for isolation
+        putenv('MAAS_WRAPPER_NO_SUDO');
+        putenv('MAAS_WRAPPER_VALIDATE_ONLY');
+        putenv('DOCKER_BIN');
     }
 }

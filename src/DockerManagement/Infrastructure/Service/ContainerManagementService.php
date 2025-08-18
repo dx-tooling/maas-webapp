@@ -40,6 +40,11 @@ readonly class ContainerManagementService
         $wrapperPath = $this->getProjectDir() . '/bin/docker-cli-wrapper.sh';
 
         if (is_file($wrapperPath) && is_readable($wrapperPath)) {
+            // Allow tests to bypass sudo and call wrapper directly
+            if ((string) getenv('MAAS_WRAPPER_NO_SUDO') === '1') {
+                return [$wrapperPath];
+            }
+
             return ['sudo', '-n', $wrapperPath];
         }
 
@@ -57,7 +62,28 @@ readonly class ContainerManagementService
     {
         $cmd = array_merge($this->getDockerInvoker(), $args);
 
-        $process = new Process($cmd, null, null, null, 60);
+        // Log the invocation for observability and unit testing assertions
+        $this->logger->info('[ContainerManagementService] Docker invocation: ' . implode(' ', array_map(static fn (string $p): string => escapeshellarg($p), $cmd)));
+
+        // Propagate validation/testing env flags if present
+        $va = getenv('MAAS_WRAPPER_VALIDATE_ONLY');
+        $ns = getenv('MAAS_WRAPPER_NO_SUDO');
+        $db = getenv('DOCKER_BIN');
+        $env = null;
+        if ($va !== false || $ns !== false || $db !== false) {
+            $env = [];
+            if ($va !== false) {
+                $env['MAAS_WRAPPER_VALIDATE_ONLY'] = (string) $va;
+            }
+            if ($ns !== false) {
+                $env['MAAS_WRAPPER_NO_SUDO'] = (string) $ns;
+            }
+            if ($db !== false) {
+                $env['DOCKER_BIN'] = (string) $db;
+            }
+        }
+
+        $process = new Process($cmd, null, $env, null, 60);
         $process->run();
 
         return [

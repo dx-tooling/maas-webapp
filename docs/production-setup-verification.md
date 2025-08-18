@@ -8,15 +8,12 @@ This document outlines how to verify that the Docker management works correctly 
 Install and verify the sudo-based Docker wrapper approach:
 
 ```bash
-# Install wrapper (as root)
-install -o root -g root -m 0755 /var/www/prod/maas-webapp/bin/docker-cli-wrapper.sh /usr/local/sbin/maas-docker-wrapper.sh
-
 # Install sudoers entry (as root)
 install -o root -g root -m 0440 /var/www/prod/maas-webapp/docs/infrastructure/etc/sudoers.d/101-www-data-docker-cli-wrapper /etc/sudoers.d/101-www-data-docker-cli-wrapper
 visudo -c
 
 # Verify www-data can run controlled Docker commands via the wrapper (no password)
-sudo -u www-data sudo -n /usr/local/sbin/maas-docker-wrapper.sh ps
+sudo -u www-data sudo -n /var/www/prod/maas-webapp/bin/docker-cli-wrapper.sh ps
 ```
 
 ### 2. Docker Network Setup
@@ -55,13 +52,13 @@ $success = $dockerService->createContainer($instance);
 Test the equivalent actions via the sudo wrapper (replace the container name as appropriate):
 ```bash
 # List managed containers
-sudo -u www-data sudo -n /usr/local/sbin/maas-docker-wrapper.sh ps
+sudo -u www-data sudo -n /var/www/prod/maas-webapp/bin/docker-cli-wrapper.sh ps
 
 # Inspect container state
-sudo -u www-data sudo -n /usr/local/sbin/maas-docker-wrapper.sh inspect mcp-instance-<slug>
+sudo -u www-data sudo -n /var/www/prod/maas-webapp/bin/docker-cli-wrapper.sh inspect mcp-instance-<slug>
 
 # Restart container
-sudo -u www-data sudo -n /usr/local/sbin/maas-docker-wrapper.sh restart mcp-instance-<slug>
+sudo -u www-data sudo -n /var/www/prod/maas-webapp/bin/docker-cli-wrapper.sh restart mcp-instance-<slug>
 
 # For deeper troubleshooting as root (optional)
 docker exec mcp-instance-<slug> curl -f http://localhost:8080/mcp
@@ -83,14 +80,14 @@ curl -H "Host: mcp-test123.mcp-as-a-service.com" http://localhost/mcp
 ### 1. Permission Denied on Docker Socket (wrapper not escalating)
 ```bash
 # Ensure you invoke via sudo from the www-data context
-sudo -u www-data sudo -n /usr/local/sbin/maas-docker-wrapper.sh ps
+sudo -u www-data sudo -n /var/www/prod/maas-webapp/bin/docker-cli-wrapper.sh ps
 
 # Validate sudoers entry is in place and correct
 sudo visudo -c
 sudo -l -U www-data | grep maas-docker-wrapper.sh
 
 # Confirm wrapper path matches sudoers
-ls -l /usr/local/sbin/maas-docker-wrapper.sh
+ls -l /var/www/prod/maas-webapp/bin/docker-cli-wrapper.sh
 cat /etc/sudoers.d/101-www-data-docker-cli-wrapper
 
 # Optional fallback (less restrictive): add www-data to docker group
@@ -115,7 +112,7 @@ docker network inspect mcp_instances
 ## Production Deployment Checklist
 
 - [ ] Docker daemon installed and running
-- [ ] Docker wrapper installed at `/usr/local/sbin/maas-docker-wrapper.sh`
+- [ ] Docker wrapper path: `/var/www/prod/maas-webapp/bin/docker-cli-wrapper.sh`
 - [ ] Sudoers entry installed for wrapper (no password, restricted command)
 - [ ] Docker network `mcp_instances` created
 - [ ] Native nginx configured on port 8090

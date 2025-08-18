@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Allowed subcommands and container name format
-ALLOWED_CMDS=("start" "stop" "restart" "rm" "inspect" "ps" "run")
+ALLOWED_CMDS=("start" "stop" "restart" "rm" "inspect" "ps" "run" "exec")
 CONTAINER_RE='^mcp-instance-[a-zA-Z0-9]+$'
 
 cmd="${1:-}"; shift || true
@@ -11,8 +11,9 @@ case " ${ALLOWED_CMDS[*]} " in
   *) echo "Denied: cmd not allowed"; exit 1 ;;
 esac
 
-# Commands that require a container name
-if [[ "${cmd}" != "ps" ]] && [[ "${cmd}" != "run" ]]; then
+# Commands that require a container name (handled generically), excluding
+# subcommands with special argument parsing (run, exec)
+if [[ "${cmd}" != "ps" ]] && [[ "${cmd}" != "run" ]] && [[ "${cmd}" != "exec" ]]; then
   name="${1:-}"; shift || true
   [[ -n "${name:-}" && "${name}" =~ ${CONTAINER_RE} ]] || { echo "Denied: invalid container name"; exit 1; }
 fi
@@ -25,6 +26,20 @@ case "${cmd}" in
   stop)      exec /usr/bin/docker stop "${name}" ;;
   restart)   exec /usr/bin/docker restart "${name}" ;;
   rm)        exec /usr/bin/docker rm "${name}" ;;
+  exec)      {
+    # docker exec [OPTIONS] CONTAINER COMMAND [ARG...]
+    # Find the first non-flag argument as the container name
+    args=("$@")
+    container_name=""
+    for arg in "${args[@]}"; do
+      if [[ ! "${arg}" =~ ^- ]]; then
+        container_name="${arg}"
+        break
+      fi
+    done
+    [[ -n "${container_name}" && "${container_name}" =~ ${CONTAINER_RE} ]] || { echo "Denied: invalid or missing container name for exec"; exit 1; }
+    exec /usr/bin/docker exec "$@"
+  } ;;
   run)       {
     # For run command, validate that the image is maas-mcp-instance
     # Extract container name from --name parameter and image name from arguments

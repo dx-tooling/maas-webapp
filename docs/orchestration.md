@@ -113,7 +113,7 @@ Health checks:
 Prerequisites:
 - DNS: `app.mcp-as-a-service.com` and wildcard `*.mcp-as-a-service.com` → host IP
 - Docker network: `docker network create mcp_instances`
-- Permissions: User `www-data` does not need to be added to the system's `docker` group - instead, a sudoers entry exists (see docs/infrastructure/etc/sudoers.d/101-www-data-docker-cli-wrapper) which enables User www-data to run script bin/docker-cli-wrapper with superuser privileges
+- Permissions: User `www-data` does not need to be added to the system's `docker` group - instead, a sudoers entry exists (see docs/infrastructure/etc/sudoers.d/101-www-data-docker-cli-wrapper) which enables user `www-data` to run `/var/www/prod/maas-webapp/bin/docker-cli-wrapper.sh` with superuser privileges
 - nginx: listen on localhost port 8080 only (no TLS, Traefik terminates)
 - Traefik: container exposing 80/443; configured Docker provider; uses wildcard TLS
 

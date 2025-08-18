@@ -8,7 +8,7 @@ This document explains how the MCP/VNC orchestration works once the Docker-based
   - `app.mcp-as-a-service.com` → public IP of the production host
   - `*.mcp-as-a-service.com` (wildcard) → same public IP
 - Reverse proxy (Traefik)
-  - Runs as a single Docker container on the host
+  - Runs as a single Docker container (Traefik v3.5) on the host
   - Listens on host ports 80/443
   - Terminates TLS for all domains/subdomains
   - Routes traffic to either the native webapp on the host or to per-instance containers
@@ -54,7 +54,6 @@ traefik.enable=true
 # MCP router and service
 traefik.http.routers.mcp-abcd1234.rule=Host(`mcp-abcd1234.mcp-as-a-service.com`)
 traefik.http.routers.mcp-abcd1234.entrypoints=websecure
-traefik.http.routers.mcp-abcd1234.tls.certresolver=letsencrypt
 traefik.http.services.mcp-abcd1234.loadbalancer.server.port=8080
 
 # MCP ForwardAuth middleware
@@ -64,7 +63,6 @@ traefik.http.routers.mcp-abcd1234.middlewares=mcp-abcd1234-auth
 # VNC (noVNC) router and service
 traefik.http.routers.vnc-abcd1234.rule=Host(`vnc-abcd1234.mcp-as-a-service.com`)
 traefik.http.routers.vnc-abcd1234.entrypoints=websecure
-traefik.http.routers.vnc-abcd1234.tls.certresolver=letsencrypt
 traefik.http.services.vnc-abcd1234.loadbalancer.server.port=6080
 ```
 
@@ -72,6 +70,7 @@ Notes:
 
 - Only noVNC (6080) is proxied; raw VNC (5900) remains internal.
 - `websecure` entrypoint is HTTPS. TLS termination and certs are handled by Traefik.
+- In production, TLS is provided by host-mounted wildcard certificates in Traefik (no ACME cert resolver on routers).
 
 ### ForwardAuth for MCP
 

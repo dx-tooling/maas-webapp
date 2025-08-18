@@ -177,7 +177,7 @@
                         <div class="flex-1 space-y-4">
                             <div>
                                 <div class="etfswui-text font-semibold mb-1">VNC Password</div>
-                                <input type="text" class="etfswui-form-input w-full max-w-xs" value="{{ instance.password }}" readonly onclick="this.select()" aria-label="VNC Password" />
+                                <input type="text" class="etfswui-form-input w-full max-w-xs" value="{{ instance.vncPassword }}" readonly onclick="this.select()" aria-label="VNC Password" />
                             </div>
                             <div>
                                 <div class="etfswui-text font-semibold mb-1">MCP Bearer Token</div>
@@ -244,7 +244,7 @@ curl \
                     <div class="etfswui-text mb-2">
                         This allows you to access the Playwright MCP browser session via VNC. When prompted for a password, use:
                     </div>
-                    <input type="text" class="etfswui-form-input w-full max-w-xs mb-4" value="{{ instance.password }}" readonly onclick="this.select()" aria-label="VNC Password" />
+                    <input type="text" class="etfswui-form-input w-full max-w-xs mb-4" value="{{ instance.vncPassword }}" readonly onclick="this.select()" aria-label="VNC Password" />
                     <div class="flex gap-2 items-center">
                         <a href="https://{{ instance.vncSubdomain }}"
                            class="etfswui-link-as-button-secondary"

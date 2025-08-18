@@ -22,8 +22,8 @@ readonly class DemoDataService
                 24,
                 'password_for_instance1',
                 'bearer_token_instance1',
-                'inst-1-slug.mcp.example.com',
-                'inst-1-slug.vnc.example.com'
+                'mcp-inst-1.mcp-as-a-service.com',
+                'vnc-inst-1.mcp-as-a-service.com'
             ),
             new McpInstanceInfoDto(
                 'instance2',
@@ -35,8 +35,8 @@ readonly class DemoDataService
                 24,
                 'foobar',
                 'bearer_token_instance2',
-                'inst-2-slug.mcp.example.com',
-                'inst-2-slug.vnc.example.com'
+                'mcp-inst-2.mcp-as-a-service.com',
+                'vnc-inst-2.mcp-as-a-service.com'
             ),
             new McpInstanceInfoDto(
                 'instance3',
@@ -48,8 +48,8 @@ readonly class DemoDataService
                 24,
                 'password_for_instance3',
                 'bearer_token_instance3',
-                'inst-3-slug.mcp.example.com',
-                'inst-3-slug.vnc.example.com'
+                'mcp-inst-3.mcp-as-a-service.com',
+                'vnc-inst-3.mcp-as-a-service.com'
             ),
         ];
     }

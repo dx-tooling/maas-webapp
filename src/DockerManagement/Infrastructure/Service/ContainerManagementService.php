@@ -7,12 +7,64 @@ namespace App\DockerManagement\Infrastructure\Service;
 use App\McpInstances\Domain\Entity\McpInstance;
 use App\McpInstances\Domain\Enum\ContainerState;
 use Psr\Log\LoggerInterface;
+use RuntimeException;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
+use Symfony\Component\Process\Process;
 
 readonly class ContainerManagementService
 {
     public function __construct(
-        private LoggerInterface $logger
+        private LoggerInterface       $logger,
+        private ParameterBagInterface $params
     ) {
+    }
+
+    private function getProjectDir(): string
+    {
+        $dir = $this->params->get('kernel.project_dir');
+        if (!is_string($dir) || $dir === '') {
+            throw new RuntimeException('Invalid kernel.project_dir parameter');
+        }
+
+        return $dir;
+    }
+
+    /**
+     * Return the command prefix to invoke Docker.
+     * If the wrapper exists in the project, prefer it via sudo -n; otherwise call docker directly.
+     *
+     * @return string[]
+     */
+    private function getDockerInvoker(): array
+    {
+        $wrapperPath = $this->getProjectDir() . '/bin/docker-cli-wrapper.sh';
+
+        if (is_file($wrapperPath) && is_readable($wrapperPath)) {
+            return ['sudo', '-n', $wrapperPath];
+        }
+
+        return ['/usr/bin/docker'];
+    }
+
+    /**
+     * Run a docker command using either the wrapper or docker binary.
+     *
+     * @param string[] $args
+     *
+     * @return array{exitCode:int, stdout:string, stderr:string}
+     */
+    private function runDocker(array $args): array
+    {
+        $cmd = array_merge($this->getDockerInvoker(), $args);
+
+        $process = new Process($cmd, null, null, null, 60);
+        $process->run();
+
+        return [
+            'exitCode' => $process->getExitCode() ?? 1,
+            'stdout'   => $process->getOutput(),
+            'stderr'   => $process->getErrorOutput(),
+        ];
     }
 
     public function createContainer(McpInstance $instance): bool
@@ -26,18 +78,16 @@ readonly class ContainerManagementService
             return false;
         }
 
-        $cmd = $this->buildDockerRunCommand($instance);
         $this->logger->info("[ContainerManagementService] Creating container: {$containerName}");
 
-        $result   = shell_exec($cmd . ' 2>&1');
-        $exitCode = $this->getLastExitCode();
+        $result = $this->buildAndRunDockerRun($instance);
 
-        if ($exitCode === 0) {
+        if ($result['exitCode'] === 0) {
             $this->logger->info("[ContainerManagementService] Container {$containerName} created successfully");
 
             return true;
         } else {
-            $this->logger->error("[ContainerManagementService] Failed to create container {$containerName}: {$result}");
+            $this->logger->error("[ContainerManagementService] Failed to create container {$containerName}: " . ($result['stderr'] !== '' ? $result['stderr'] : $result['stdout']));
 
             return false;
         }
@@ -50,18 +100,16 @@ readonly class ContainerManagementService
             return false;
         }
 
-        $cmd = "docker start {$containerName}";
         $this->logger->info("[ContainerManagementService] Starting container: {$containerName}");
 
-        $result   = shell_exec($cmd . ' 2>&1');
-        $exitCode = $this->getLastExitCode();
+        $result = $this->runDocker(['start', $containerName]);
 
-        if ($exitCode === 0) {
+        if ($result['exitCode'] === 0) {
             $this->logger->info("[ContainerManagementService] Container {$containerName} started successfully");
 
             return true;
         } else {
-            $this->logger->error("[ContainerManagementService] Failed to start container {$containerName}: {$result}");
+            $this->logger->error("[ContainerManagementService] Failed to start container {$containerName}: " . ($result['stderr'] !== '' ? $result['stderr'] : $result['stdout']));
 
             return false;
         }
@@ -74,18 +122,16 @@ readonly class ContainerManagementService
             return false;
         }
 
-        $cmd = "docker stop {$containerName}";
         $this->logger->info("[ContainerManagementService] Stopping container: {$containerName}");
 
-        $result   = shell_exec($cmd . ' 2>&1');
-        $exitCode = $this->getLastExitCode();
+        $result = $this->runDocker(['stop', $containerName]);
 
-        if ($exitCode === 0) {
+        if ($result['exitCode'] === 0) {
             $this->logger->info("[ContainerManagementService] Container {$containerName} stopped successfully");
 
             return true;
         } else {
-            $this->logger->error("[ContainerManagementService] Failed to stop container {$containerName}: {$result}");
+            $this->logger->error("[ContainerManagementService] Failed to stop container {$containerName}: " . ($result['stderr'] !== '' ? $result['stderr'] : $result['stdout']));
 
             return false;
         }
@@ -98,18 +144,16 @@ readonly class ContainerManagementService
             return false;
         }
 
-        $cmd = "docker rm {$containerName}";
         $this->logger->info("[ContainerManagementService] Removing container: {$containerName}");
 
-        $result   = shell_exec($cmd . ' 2>&1');
-        $exitCode = $this->getLastExitCode();
+        $result = $this->runDocker(['rm', $containerName]);
 
-        if ($exitCode === 0) {
+        if ($result['exitCode'] === 0) {
             $this->logger->info("[ContainerManagementService] Container {$containerName} removed successfully");
 
             return true;
         } else {
-            $this->logger->error("[ContainerManagementService] Failed to remove container {$containerName}: {$result}");
+            $this->logger->error("[ContainerManagementService] Failed to remove container {$containerName}: " . ($result['stderr'] !== '' ? $result['stderr'] : $result['stdout']));
 
             return false;
         }
@@ -122,18 +166,16 @@ readonly class ContainerManagementService
             return false;
         }
 
-        $cmd = "docker restart {$containerName}";
         $this->logger->info("[ContainerManagementService] Restarting container: {$containerName}");
 
-        $result   = shell_exec($cmd . ' 2>&1');
-        $exitCode = $this->getLastExitCode();
+        $result = $this->runDocker(['restart', $containerName]);
 
-        if ($exitCode === 0) {
+        if ($result['exitCode'] === 0) {
             $this->logger->info("[ContainerManagementService] Container {$containerName} restarted successfully");
 
             return true;
         } else {
-            $this->logger->error("[ContainerManagementService] Failed to restart container {$containerName}: {$result}");
+            $this->logger->error("[ContainerManagementService] Failed to restart container {$containerName}: " . ($result['stderr'] !== '' ? $result['stderr'] : $result['stdout']));
 
             return false;
         }
@@ -146,15 +188,14 @@ readonly class ContainerManagementService
             return ContainerState::ERROR;
         }
 
-        $cmd      = "docker inspect --format='{{.State.Status}}' {$containerName}";
-        $result   = trim((string) shell_exec($cmd . ' 2>/dev/null'));
-        $exitCode = $this->getLastExitCode();
+        $result = $this->runDocker(['inspect', '--format', '{{.State.Status}}', $containerName]);
+        $status = trim($result['stdout']);
 
-        if ($exitCode !== 0) {
+        if ($result['exitCode'] !== 0) {
             return ContainerState::ERROR;
         }
 
-        return match ($result) {
+        return match ($status) {
             'running' => ContainerState::RUNNING,
             'exited', 'stopped' => ContainerState::STOPPED,
             'created' => ContainerState::CREATED,
@@ -175,19 +216,20 @@ readonly class ContainerManagementService
         }
 
         // Check MCP endpoint
-        $mcpCmd      = "docker exec {$containerName} curl -f http://localhost:8080/mcp";
-        $mcpResult   = shell_exec($mcpCmd . ' 2>/dev/null');
-        $mcpExitCode = $this->getLastExitCode();
+        $mcpResult = $this->runDocker(['exec', $containerName, 'curl', '-f', 'http://localhost:8080/mcp']);
 
         // Check noVNC endpoint
-        $vncCmd      = "docker exec {$containerName} curl -f http://localhost:6080";
-        $vncResult   = shell_exec($vncCmd . ' 2>/dev/null');
-        $vncExitCode = $this->getLastExitCode();
+        $vncResult = $this->runDocker(['exec', $containerName, 'curl', '-f', 'http://localhost:6080']);
 
-        return $mcpExitCode === 0 && $vncExitCode === 0;
+        return $mcpResult['exitCode'] === 0 && $vncResult['exitCode'] === 0;
     }
 
-    private function buildDockerRunCommand(McpInstance $instance): string
+    /**
+     * Build and execute `docker run` for the instance.
+     *
+     * @return array{exitCode:int, stdout:string, stderr:string}
+     */
+    private function buildAndRunDockerRun(McpInstance $instance): array
     {
         $containerName = $instance->getContainerName();
         $instanceSlug  = $instance->getInstanceSlug();
@@ -202,23 +244,22 @@ readonly class ContainerManagementService
 
         $labels = $this->buildTraefikLabels($instance);
 
-        $cmd = 'docker run -d';
-        $cmd .= " --name {$containerName}";
-        $cmd .= ' --memory=1g';
-        $cmd .= ' --restart=always';
-        $cmd .= ' --network=mcp_instances';
+        $args = ['run', '-d', '--name', (string) $containerName, '--memory=1g', '--restart=always', '--network=mcp_instances'];
 
         foreach ($envVars as $env) {
-            $cmd .= " -e \"{$env}\"";
+            $args[] = '-e';
+            $args[] = $env;
         }
 
         foreach ($labels as $label) {
-            $cmd .= " --label \"{$label}\"";
+            $args[] = '--label';
+            $args[] = $label;
         }
 
-        $cmd .= ' maas-mcp-instance:latest';
+        // Wrapper allows only the image name without a tag
+        $args[] = 'maas-mcp-instance';
 
-        return $cmd;
+        return $this->runDocker($args);
     }
 
     /**
@@ -235,7 +276,7 @@ readonly class ContainerManagementService
             // MCP router and service
             "traefik.http.routers.mcp-{$instanceSlug}.rule=Host(`mcp-{$instanceSlug}.mcp-as-a-service.com`)",
             "traefik.http.routers.mcp-{$instanceSlug}.entrypoints=websecure",
-            "traefik.http.routers.mcp-{$instanceSlug}.tls.certresolver=letsencrypt",
+            // TLS handled by Traefik dynamic configuration (no certresolver on routers)
             "traefik.http.services.mcp-{$instanceSlug}.loadbalancer.server.port=8080",
 
             // MCP ForwardAuth middleware
@@ -245,13 +286,8 @@ readonly class ContainerManagementService
             // VNC router and service
             "traefik.http.routers.vnc-{$instanceSlug}.rule=Host(`vnc-{$instanceSlug}.mcp-as-a-service.com`)",
             "traefik.http.routers.vnc-{$instanceSlug}.entrypoints=websecure",
-            "traefik.http.routers.vnc-{$instanceSlug}.tls.certresolver=letsencrypt",
+            // TLS handled by Traefik dynamic configuration (no certresolver on routers)
             "traefik.http.services.vnc-{$instanceSlug}.loadbalancer.server.port=6080"
         ];
-    }
-
-    private function getLastExitCode(): int
-    {
-        return (int) shell_exec('echo $?');
     }
 }

@@ -31,8 +31,24 @@ class ForwardAuthController extends AbstractController
     )]
     public function mcpBearerCheckAction(Request $request): Response
     {
-        $host       = $request->headers->get('host', '');
+        // Prefer original requested host provided by Traefik
+        $forwardedHostHeader = (string) ($request->headers->get('x-forwarded-host') ?? '');
+        if ($forwardedHostHeader !== '') {
+            // Traefik may send a comma-separated chain; take the first
+            $forwardedHostHeader = trim(explode(',', $forwardedHostHeader)[0]);
+            // Strip optional port from host
+            $forwardedHostHeader = preg_replace('/:\d+$/', '', $forwardedHostHeader) ?? $forwardedHostHeader;
+        }
+        $host       = $forwardedHostHeader !== '' ? $forwardedHostHeader : $request->headers->get('host', '');
         $authHeader = $request->headers->get('authorization', '');
+        $xfUri      = (string) ($request->headers->get('x-forwarded-uri') ?? '');
+        $xfMethod   = (string) ($request->headers->get('x-forwarded-method') ?? '');
+        $xfProto    = (string) ($request->headers->get('x-forwarded-proto') ?? '');
+
+        // Debug state
+        $presentedToken = null;
+        $instanceSlug   = null;
+        $cacheHit       = false;
 
         // Extract bearer token
         if (!preg_match('/^Bearer\s+(\S+)$/i', $authHeader, $matches)) {
@@ -41,28 +57,38 @@ class ForwardAuthController extends AbstractController
                 'ip'   => $request->getClientIp()
             ]);
 
-            return new Response('', 401, ['WWW-Authenticate' => 'Bearer realm="MCP"']);
+            return new Response('', 401, array_merge(
+                ['WWW-Authenticate' => 'Bearer realm="MCP"'],
+                $this->buildDebugHeaders($host, $forwardedHostHeader, $xfUri, $xfMethod, $xfProto, $authHeader, null, null, false, ['X-FA-Reason' => 'missing-or-invalid-bearer'])
+            ));
         }
 
         $presentedToken = $matches[1];
 
-        // Extract instance ID from host: mcp-<instance-id>.mcp-as-a-service.com
-        if (!preg_match('/^mcp-([^.]+)\./i', $host, $hostMatches)) {
-            $this->logger->warning('[ForwardAuth] Invalid host format', [
-                'host' => $host,
-                'ip'   => $request->getClientIp()
-            ]);
+        // Prefer explicit header from Traefik middleware; fall back to Host parsing
+        $explicitInstance = (string) ($request->headers->get('x-mcp-instance') ?? '');
+        if ($explicitInstance !== '') {
+            $instanceSlug = $explicitInstance;
+        } else {
+            // Extract instance ID from host: mcp-<instance-id>.mcp-as-a-service.com
+            if (!preg_match('/^mcp-([^.]+)\./i', $host, $hostMatches)) {
+                $this->logger->warning('[ForwardAuth] Invalid host format and no X-MCP-Instance header', [
+                    'host' => $host,
+                    'ip'   => $request->getClientIp()
+                ]);
 
-            return new Response('', 403);
+                return new Response('', 403, $this->buildDebugHeaders($host, $forwardedHostHeader, $xfUri, $xfMethod, $xfProto, $authHeader, $presentedToken, null, false, ['X-FA-Reason' => 'invalid-host-format']));
+            }
+
+            $instanceSlug = $hostMatches[1];
         }
-
-        $instanceSlug = $hostMatches[1];
 
         // Check cache first
         $cacheKey   = 'mcp_auth_' . md5($instanceSlug);
         $cachedItem = $this->cache->getItem($cacheKey);
 
         if ($cachedItem->isHit()) {
+            $cacheHit      = true;
             $cachedValue   = $cachedItem->get();
             $expectedToken = is_string($cachedValue) ? $cachedValue : null;
         } else {
@@ -77,7 +103,7 @@ class ForwardAuthController extends AbstractController
                     'ip'           => $request->getClientIp()
                 ]);
 
-                return new Response('', 403);
+                return new Response('', 403, $this->buildDebugHeaders($host, $forwardedHostHeader, $xfUri, $xfMethod, $xfProto, $authHeader, $presentedToken, $instanceSlug, $cacheHit, ['X-FA-Reason' => 'instance-not-found']));
             }
 
             $expectedToken = $instance->getMcpBearer();
@@ -89,7 +115,7 @@ class ForwardAuthController extends AbstractController
         }
 
         if ($expectedToken === null) {
-            return new Response('', 403);
+            return new Response('', 403, $this->buildDebugHeaders($host, $forwardedHostHeader, $xfUri, $xfMethod, $xfProto, $authHeader, $presentedToken, $instanceSlug, $cacheHit, ['X-FA-Reason' => 'no-expected-token']));
         }
 
         // Validate token
@@ -100,7 +126,10 @@ class ForwardAuthController extends AbstractController
                 'ip'           => $request->getClientIp()
             ]);
 
-            return new Response('', 401, ['WWW-Authenticate' => 'Bearer realm="MCP"']);
+            return new Response('', 401, array_merge(
+                ['WWW-Authenticate' => 'Bearer realm="MCP"'],
+                $this->buildDebugHeaders($host, $forwardedHostHeader, $xfUri, $xfMethod, $xfProto, $authHeader, $presentedToken, $instanceSlug, $cacheHit, ['X-FA-Reason' => 'token-mismatch'])
+            ));
         }
 
         // Success - optionally include instance ID in response headers
@@ -110,8 +139,42 @@ class ForwardAuthController extends AbstractController
             'ip'           => $request->getClientIp()
         ]);
 
-        return new Response('', 204, [
-            'X-MCP-Instance-Id' => $instanceSlug
-        ]);
+        return new Response('', 204, array_merge(
+            ['X-MCP-Instance-Id' => $instanceSlug],
+            $this->buildDebugHeaders($host, $forwardedHostHeader, $xfUri, $xfMethod, $xfProto, $authHeader, $presentedToken, $instanceSlug, $cacheHit, ['X-FA-Reason' => 'ok'])
+        ));
+    }
+
+    /**
+     * @param array<string,string> $extra
+     *
+     * @return array<string,string>
+     */
+    private function buildDebugHeaders(
+        string  $host,
+        string  $forwardedHostHeader,
+        string  $xfUri,
+        string  $xfMethod,
+        string  $xfProto,
+        string  $authHeader,
+        ?string $presentedToken,
+        ?string $instanceSlug,
+        bool    $cacheHit,
+        array   $extra = []
+    ): array {
+        $base = [
+            'X-FA-Debug'         => '1',
+            'X-FA-Host'          => $host,
+            'X-FA-XFH'           => $forwardedHostHeader,
+            'X-FA-URI'           => $xfUri,
+            'X-FA-Method'        => $xfMethod,
+            'X-FA-Proto'         => $xfProto,
+            'X-FA-Token-Present' => $authHeader !== '' ? 'true' : 'false',
+            'X-FA-Token-Len'     => (string) strlen((string) $presentedToken),
+            'X-FA-InstanceSlug'  => (string) ($instanceSlug ?? ''),
+            'X-FA-Cache-Hit'     => $cacheHit ? 'true' : 'false',
+        ];
+
+        return array_merge($base, $extra);
     }
 }

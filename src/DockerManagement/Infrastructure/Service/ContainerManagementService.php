@@ -308,7 +308,14 @@ readonly class ContainerManagementService
 
             // MCP ForwardAuth middleware
             "traefik.http.middlewares.mcp-{$instanceSlug}-auth.forwardauth.address=https://app.mcp-as-a-service.com/auth/mcp-bearer-check",
-            "traefik.http.routers.mcp-{$instanceSlug}.middlewares=mcp-{$instanceSlug}-auth",
+            // Ensure our custom header is forwarded to the auth service
+            "traefik.http.middlewares.mcp-{$instanceSlug}-auth.forwardauth.authRequestHeaders=Authorization,X-MCP-Instance",
+
+            // Context middleware: inject stable instance header for auth and backends
+            "traefik.http.middlewares.ctx-{$instanceSlug}.headers.customrequestheaders.X-MCP-Instance={$instanceSlug}",
+
+            // Apply both context and auth middlewares to the MCP router (order matters: context first)
+            "traefik.http.routers.mcp-{$instanceSlug}.middlewares=ctx-{$instanceSlug},mcp-{$instanceSlug}-auth",
 
             // VNC router and service
             "traefik.http.routers.vnc-{$instanceSlug}.rule=Host(`vnc-{$instanceSlug}.mcp-as-a-service.com`)",

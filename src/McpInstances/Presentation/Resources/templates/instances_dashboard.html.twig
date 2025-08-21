@@ -35,7 +35,7 @@
         {% else %}
             {# Process Status Monitoring #}
 
-            {{ component('InstanceHealth', { instanceId: instance.id }) }}
+            {{ component('mcp_instances|presentation|health_overview', { instanceId: instance.id }) }}
 
             {# 1. General Instance Data #}
             <div class="etfswui-card mb-8 text-left">

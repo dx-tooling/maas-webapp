@@ -2,15 +2,18 @@
 
 declare(strict_types=1);
 
-namespace App\Twig\Components;
+namespace App\McpInstances\Presentation\Components;
 
 use App\McpInstances\Facade\McpInstancesFacadeInterface;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
 use Symfony\UX\LiveComponent\Attribute\LiveProp;
 use Symfony\UX\LiveComponent\DefaultActionTrait;
 
-#[AsLiveComponent('InstanceHealth')]
-final class InstanceHealth
+#[AsLiveComponent(
+    name    : 'mcp_instances|presentation|health_overview',
+    template: '@mcp_instances.presentation/health_overview.component.html.twig'
+)]
+final class HealthOverviewComponent
 {
     use DefaultActionTrait;
 

@@ -241,13 +241,54 @@ readonly class ContainerManagementService
             return false;
         }
 
-        // Check MCP endpoint
-        $mcpResult = $this->runDocker(['exec', $containerName, 'curl', '-f', 'http://localhost:8080/mcp']);
+        return $this->isMcpEndpointUp($instance) && $this->isNoVncEndpointUp($instance);
+    }
 
-        // Check noVNC endpoint
-        $vncResult = $this->runDocker(['exec', $containerName, 'curl', '-f', 'http://localhost:6080']);
+    public function isContainerRunning(McpInstance $instance): bool
+    {
+        return $this->getContainerState($instance) === ContainerState::RUNNING;
+    }
 
-        return $mcpResult['exitCode'] === 0 && $vncResult['exitCode'] === 0;
+    public function isMcpEndpointUp(McpInstance $instance): bool
+    {
+        $containerName = $instance->getContainerName();
+        if (!$containerName) {
+            return false;
+        }
+
+        if ($this->getContainerState($instance) !== ContainerState::RUNNING) {
+            return false;
+        }
+
+        // Consider the endpoint up if HTTP status is < 500 (400 is acceptable for GET on /mcp)
+        $mcpResult = $this->runDocker(['exec', $containerName, 'sh', '-lc', 'curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/mcp']);
+        if ($mcpResult['exitCode'] !== 0) {
+            return false;
+        }
+        $code = (int) trim($mcpResult['stdout']);
+
+        return $code > 0 && $code < 500;
+    }
+
+    public function isNoVncEndpointUp(McpInstance $instance): bool
+    {
+        $containerName = $instance->getContainerName();
+        if (!$containerName) {
+            return false;
+        }
+
+        if ($this->getContainerState($instance) !== ContainerState::RUNNING) {
+            return false;
+        }
+
+        // noVNC should return 200 OK; treat any < 500 as up to be resilient to minor errors
+        $vncResult = $this->runDocker(['exec', $containerName, 'sh', '-lc', 'curl -s -o /dev/null -w "%{http_code}" http://localhost:6080']);
+        if ($vncResult['exitCode'] !== 0) {
+            return false;
+        }
+        $code = (int) trim($vncResult['stdout']);
+
+        return $code > 0 && $code < 500;
     }
 
     /**

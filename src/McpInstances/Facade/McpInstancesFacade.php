@@ -94,25 +94,32 @@ readonly class McpInstancesFacade implements McpInstancesFacadeInterface
             throw new LogicException('MCP instance not found.');
         }
 
-        // Get Docker container status
+        // Get Docker container status with partial endpoint checks
         $containerStatus = $this->dockerFacade->getContainerStatus($instance);
 
-        // Map to legacy format for UI compatibility
-        $allRunning = $containerStatus->healthy;
+        $running     = $containerStatus->state === 'running';
+        $xvfbUp      = $running; // container running implies Xvfb supervisor started
+        $mcpUp       = $containerStatus->mcpUp;
+        $noVncUp     = $containerStatus->noVncUp;
+        $websocketUp = $noVncUp; // web client served by noVNC/websockify
+
+        $allRunning = $xvfbUp && $mcpUp && $noVncUp && $websocketUp;
 
         return [
             'instanceId' => $instance->getId() ?? '',
             'processes'  => [
-                'xvfb'      => $allRunning ? ['status' => 'running'] : null,
-                'mcp'       => $allRunning ? ['status' => 'running'] : null,
-                'vnc'       => $allRunning ? ['status' => 'running'] : null,
-                'websocket' => $allRunning ? ['status' => 'running'] : null,
+                'xvfb'      => $xvfbUp ? ['status' => 'running'] : null,
+                'mcp'       => $mcpUp ? ['status' => 'running'] : null,
+                'vnc'       => $noVncUp ? ['status' => 'running'] : null,
+                'websocket' => $websocketUp ? ['status' => 'running'] : null,
             ],
             'allRunning'      => $allRunning,
             'containerStatus' => [
                 'containerName' => $containerStatus->containerName,
                 'state'         => $containerStatus->state,
                 'healthy'       => $containerStatus->healthy,
+                'mcpUp'         => $mcpUp,
+                'noVncUp'       => $noVncUp,
                 'mcpEndpoint'   => $containerStatus->mcpEndpoint,
                 'vncEndpoint'   => $containerStatus->vncEndpoint,
             ]

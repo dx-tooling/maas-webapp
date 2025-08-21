@@ -61,14 +61,19 @@ readonly class DockerManagementFacade implements DockerManagementFacadeInterface
     public function getContainerStatus(McpInstance $instance): ContainerStatusDto
     {
         $state   = $this->getContainerState($instance);
-        $healthy = $state === ContainerState::RUNNING && $this->isContainerHealthy($instance);
+        $running = $state === ContainerState::RUNNING;
+        $mcpUp   = $running && $this->dockerDomainService->isMcpEndpointUp($instance);
+        $noVncUp = $running && $this->dockerDomainService->isNoVncEndpointUp($instance);
+        $healthy = $running && $mcpUp && $noVncUp;
 
         return new ContainerStatusDto(
             $instance->getContainerName() ?? '',
             $state->value,
             $healthy,
             $instance->getMcpSubdomain() ? 'https://' . $instance->getMcpSubdomain() . '/mcp' : null,
-            $instance->getVncSubdomain() ? 'https://' . $instance->getVncSubdomain() : null
+            $instance->getVncSubdomain() ? 'https://' . $instance->getVncSubdomain() : null,
+            $mcpUp,
+            $noVncUp
         );
     }
 }

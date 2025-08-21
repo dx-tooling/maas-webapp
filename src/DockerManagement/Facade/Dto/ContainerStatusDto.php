@@ -12,6 +12,8 @@ readonly class ContainerStatusDto
         public bool    $healthy,
         public ?string $mcpEndpoint,
         public ?string $vncEndpoint,
+        public bool    $mcpUp = false,
+        public bool    $noVncUp = false,
     ) {
     }
 }

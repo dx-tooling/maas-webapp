@@ -97,9 +97,10 @@ readonly class ContainerManagementService
     {
         // In validation-only (or test harness) mode, skip executing docker and return success
         $validateOnly = (string) getenv('MAAS_WRAPPER_VALIDATE_ONLY') === '1';
-        $noSudoTest   = (string) getenv('MAAS_WRAPPER_NO_SUDO') === '1' && (string) getenv('DOCKER_BIN') !== '';
+        $noSudoTest   = (string) getenv('MAAS_WRAPPER_NO_SUDO')       === '1' && (string) getenv('DOCKER_BIN') !== '';
         if ($validateOnly || $noSudoTest) {
             $this->logger->info('[ContainerManagementService] Validation-only mode active; skipping docker run');
+
             return true;
         }
 

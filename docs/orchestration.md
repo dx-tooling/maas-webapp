@@ -13,7 +13,7 @@ This document explains how the MCP/VNC orchestration works once the Docker-based
   - Terminates TLS for all domains/subdomains
   - Routes traffic to either the native webapp on the host or to per-instance containers
 - Web application (native on host)
-  - nginx + PHP-FPM serving Symfony at `http://localhost:8080`
+  - nginx + PHP-FPM serving Symfony at `http://localhost:8090`
   - No direct exposure on 80/443 (Traefik fronts all HTTP/S traffic)
 - MCP/VNC instance containers (one per user instance)
   - No host ports published
@@ -24,7 +24,7 @@ Request flow (conceptually):
 
 ```
 Internet (80/443) → Traefik (container) → {
-  app.mcp-as-a-service.com  → host nginx:8080 (native Symfony app)
+  app.mcp-as-a-service.com  → host nginx:8090 (native Symfony app)
   mcp-<slug>.mcp-as-a-service.com → mcp-instance-<slug>:8080 (MCP)
   vnc-<slug>.mcp-as-a-service.com → mcp-instance-<slug>:6080 (noVNC)
 }
@@ -114,7 +114,7 @@ Prerequisites:
 - DNS: `app.mcp-as-a-service.com` and wildcard `*.mcp-as-a-service.com` → host IP
 - Docker network: `docker network create mcp_instances`
 - Permissions: User `www-data` does not need to be added to the system's `docker` group - instead, a sudoers entry exists (see docs/infrastructure/etc/sudoers.d/101-www-data-docker-cli-wrapper) which enables user `www-data` to run `/var/www/prod/maas-webapp/bin/docker-cli-wrapper.sh` with superuser privileges
-- nginx: listen on localhost port 8080 only (no TLS, Traefik terminates)
+- nginx: listen on localhost port 8090 only (no TLS, Traefik terminates)
 - Traefik: container exposing 80/443; configured Docker provider; uses wildcard TLS
 
 Resource limits:

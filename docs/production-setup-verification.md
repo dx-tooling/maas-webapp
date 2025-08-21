@@ -29,8 +29,8 @@ docker network ls | grep mcp_instances
 ### 3. Native Nginx Configuration
 Verify nginx is configured for internal access:
 ```bash
-# Test nginx is listening on port 8080
-curl -I http://localhost:8080
+# Test nginx is listening on port 8090
+curl -I http://localhost:8090
 
 # Verify nginx is NOT listening on 80/443
 netstat -tlnp | grep :80

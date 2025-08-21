@@ -180,10 +180,18 @@ class McpInstance
     public function generateDerivedFields(): void
     {
         if ($this->id !== null) {
-            $this->instanceSlug  = str_replace('-', '', $this->id);
-            $this->containerName = 'mcp-instance-' . $this->instanceSlug;
-            $this->mcpSubdomain  = 'mcp-' . $this->instanceSlug . '.mcp-as-a-service.com';
-            $this->vncSubdomain  = 'vnc-' . $this->instanceSlug . '.mcp-as-a-service.com';
+            // Derive a short, DNS-safe slug from the UUID using base36 (0-9a-z)
+            // 1) Strip hyphens, lowercase to get 32 hex chars (128 bits)
+            // 2) Take first 16 hex chars (64 bits), convert to base36 → ~13 chars max
+            // 3) Trim to 8 chars for compactness; uniqueness is still extremely high
+            $hex                 = strtolower(str_replace('-', '', $this->id));
+            $hex64               = substr($hex, 0, 16);
+            $base36              = strtolower(base_convert($hex64, 16, 36));
+            $shortSlug           = substr($base36, 0, 8);
+            $this->instanceSlug  = $shortSlug;
+            $this->containerName = 'mcp-instance-' . $shortSlug;
+            $this->mcpSubdomain  = 'mcp-' . $shortSlug . '.mcp-as-a-service.com';
+            $this->vncSubdomain  = 'vnc-' . $shortSlug . '.mcp-as-a-service.com';
         }
     }
 

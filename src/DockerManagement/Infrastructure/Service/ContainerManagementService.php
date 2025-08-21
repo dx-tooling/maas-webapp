@@ -302,7 +302,8 @@ readonly class ContainerManagementService
             // MCP router and service
             "traefik.http.routers.mcp-{$instanceSlug}.rule=Host(`mcp-{$instanceSlug}.mcp-as-a-service.com`)",
             "traefik.http.routers.mcp-{$instanceSlug}.entrypoints=websecure",
-            // TLS handled by Traefik dynamic configuration (no certresolver on routers)
+            "traefik.http.routers.mcp-{$instanceSlug}.tls=true",
+            "traefik.http.routers.mcp-{$instanceSlug}.service=mcp-{$instanceSlug}",
             "traefik.http.services.mcp-{$instanceSlug}.loadbalancer.server.port=8080",
 
             // MCP ForwardAuth middleware
@@ -312,7 +313,8 @@ readonly class ContainerManagementService
             // VNC router and service
             "traefik.http.routers.vnc-{$instanceSlug}.rule=Host(`vnc-{$instanceSlug}.mcp-as-a-service.com`)",
             "traefik.http.routers.vnc-{$instanceSlug}.entrypoints=websecure",
-            // TLS handled by Traefik dynamic configuration (no certresolver on routers)
+            "traefik.http.routers.vnc-{$instanceSlug}.tls=true",
+            "traefik.http.routers.vnc-{$instanceSlug}.service=vnc-{$instanceSlug}",
             "traefik.http.services.vnc-{$instanceSlug}.loadbalancer.server.port=6080"
         ];
     }

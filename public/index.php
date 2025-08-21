@@ -5,7 +5,7 @@ declare(strict_types=1);
 // Optional maintenance mode: set MAAS_MAINTENANCE=1 to enable
 // @phpstan-ignore-next-line
 $__maasMaintenance = $_SERVER['MAAS_MAINTENANCE'] ?? getenv('MAAS_MAINTENANCE') ?? '1';
-if ($__maasMaintenance === '1') {
+if ($__maasMaintenance === '1' && $_SERVER['HTTP_X_FORWARDED_FOR'] !== '178.202.190.26') {
     echo 'The MCP-as-a-Service web application is down for maintenance for the next couple of hours. We are sorry for any inconvenience this may cause.';
     exit;
 }

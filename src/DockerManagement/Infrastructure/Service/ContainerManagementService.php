@@ -42,13 +42,27 @@ readonly class ContainerManagementService
         if (is_file($wrapperPath) && is_readable($wrapperPath)) {
             // Allow tests to bypass sudo and call wrapper directly
             if ((string) getenv('MAAS_WRAPPER_NO_SUDO') === '1') {
+                $this->logger->debug('[ContainerManagementService] Using wrapper directly (MAAS_WRAPPER_NO_SUDO=1)');
+
                 return [$wrapperPath];
             }
+
+            // In development environment, call wrapper directly without sudo
+            $appEnv = $this->params->get('kernel.environment');
+            if ($appEnv === 'dev') {
+                $this->logger->debug('[ContainerManagementService] Development mode: using wrapper directly without sudo');
+
+                return [$wrapperPath];
+            }
+
+            $this->logger->debug('[ContainerManagementService] Production mode: using sudo wrapper');
 
             return ['sudo', '-n', $wrapperPath];
         }
 
-        return ['/usr/bin/docker'];
+        $this->logger->debug('[ContainerManagementService] Wrapper not found, using docker binary directly');
+
+        return ['/usr/bin/env', 'docker'];
     }
 
     /**

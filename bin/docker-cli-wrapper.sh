@@ -6,7 +6,7 @@ ALLOWED_CMDS=("start" "stop" "restart" "rm" "inspect" "ps" "run" "exec")
 CONTAINER_RE='^mcp-instance-[a-zA-Z0-9]+$'
 
 # Docker binary (overridable for validation output)
-DOCKER_BIN="${DOCKER_BIN:-/usr/bin/docker}"
+DOCKER_BIN="${DOCKER_BIN:-/usr/bin/env docker}"
 
 # Exec helper: in validation mode, print and exit 0; otherwise exec docker
 do_exec() {
@@ -18,7 +18,15 @@ do_exec() {
     echo
     exit 0
   fi
-  exec "${DOCKER_BIN}" "$@"
+  
+  # Handle DOCKER_BIN that might contain spaces (e.g., "/usr/bin/env docker")
+  if [[ "${DOCKER_BIN}" == *" "* ]]; then
+    # Split DOCKER_BIN into command and arguments
+    read -ra docker_cmd <<< "${DOCKER_BIN}"
+    exec "${docker_cmd[@]}" "$@"
+  else
+    exec "${DOCKER_BIN}" "$@"
+  fi
 }
 
 cmd="${1:-}"; shift || true

@@ -7,6 +7,16 @@ How do I solve recurring tasks and problems during development?
 
 - `bash bin/build-frontend.sh`
 
+## Local Traefik (optional)
+
+To simulate production routing locally:
+
+```
+bash bin/launch-traefik.sh --dev
+```
+
+This starts Traefik with an insecure dashboard on `http://localhost:8080` and without TLS.
+
 
 ## Updating all dependencies
 

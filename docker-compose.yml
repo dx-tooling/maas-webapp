@@ -1,0 +1,63 @@
+version: "3.8"
+
+services:
+    # Traefik for local development
+    traefik:
+        image: traefik:v3.5.0
+        command:
+            - "--api.insecure=true"
+            - "--providers.docker=true"
+            - "--providers.docker.exposedbydefault=false"
+            - "--providers.docker.network=mcp_instances"
+            - "--entrypoints.web.address=:80"
+            - "--entrypoints.websecure.address=:443"
+            - "--certificatesresolvers.letsencrypt.acme.tlschallenge=true"
+            - "--certificatesresolvers.letsencrypt.acme.email=dev@localhost"
+            - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+            # For local development, use self-signed certs
+            - "--serversTransport.insecureSkipVerify=true"
+        ports:
+            - "80:80"
+            - "443:443"
+            - "8080:8080" # Traefik dashboard
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock:ro
+            - traefik_certs:/letsencrypt
+        networks:
+            - mcp_instances
+        labels:
+            - "traefik.enable=true"
+            - "traefik.http.routers.traefik.rule=Host(`traefik.localhost`)"
+            - "traefik.http.routers.traefik.service=api@internal"
+
+    # Example MCP instance for testing
+    mcp-instance-example:
+        build:
+            context: ./docker/mcp-instance
+        environment:
+            - INSTANCE_ID=example123
+            - SCREEN_WIDTH=1280
+            - SCREEN_HEIGHT=720
+            - COLOR_DEPTH=24
+            - VNC_PASSWORD=example123password
+        networks:
+            - mcp_instances
+        labels:
+            - "traefik.enable=true"
+            # MCP endpoint
+            - "traefik.http.routers.mcp-example123.rule=Host(`mcp-example123.localhost`)"
+            - "traefik.http.routers.mcp-example123.service=mcp-example123"
+            - "traefik.http.services.mcp-example123.loadbalancer.server.port=8080"
+            - "traefik.http.routers.mcp-example123.entrypoints=web"
+            # VNC endpoint
+            - "traefik.http.routers.vnc-example123.rule=Host(`vnc-example123.localhost`)"
+            - "traefik.http.routers.vnc-example123.service=vnc-example123"
+            - "traefik.http.services.vnc-example123.loadbalancer.server.port=6080"
+            - "traefik.http.routers.vnc-example123.entrypoints=web"
+
+networks:
+    mcp_instances:
+        driver: bridge
+
+volumes:
+    traefik_certs:

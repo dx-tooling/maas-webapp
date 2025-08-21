@@ -5,19 +5,19 @@ declare(strict_types=1);
 namespace App\McpInstances\Facade;
 
 use App\Account\Facade\Dto\AccountCoreInfoDto;
+use App\DockerManagement\Facade\DockerManagementFacadeInterface;
 use App\McpInstances\Domain\Entity\McpInstance;
 use App\McpInstances\Domain\Service\McpInstancesDomainService;
 use App\McpInstances\Facade\Dto\McpInstanceInfoDto;
-use App\OsProcessManagement\Facade\OsProcessManagementFacadeInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use LogicException;
 
 readonly class McpInstancesFacade implements McpInstancesFacadeInterface
 {
     public function __construct(
-        private McpInstancesDomainService          $domainService,
-        private EntityManagerInterface             $entityManager,
-        private OsProcessManagementFacadeInterface $osProcessMgmtFacade
+        private McpInstancesDomainService       $domainService,
+        private EntityManagerInterface          $entityManager,
+        private DockerManagementFacadeInterface $dockerFacade
     ) {
     }
 
@@ -31,12 +31,16 @@ readonly class McpInstancesFacade implements McpInstancesFacadeInterface
         return array_map(
             fn (McpInstance $i) => new McpInstanceInfoDto(
                 $i->getId(),
-                $i->getDisplayNumber(),
-                $i->getMcpPort(),
-                $i->getMcpProxyPort(),
-                $i->getVncPort(),
-                $i->getWebsocketPort(),
-                $i->getVncPassword()
+                $i->getInstanceSlug(),
+                $i->getContainerName(),
+                $i->getContainerState()->value,
+                $i->getScreenWidth(),
+                $i->getScreenHeight(),
+                $i->getColorDepth(),
+                $i->getVncPassword(),
+                $i->getMcpBearer(),
+                $i->getMcpSubdomain(),
+                $i->getVncSubdomain()
             ),
             $mcpInstances
         );
@@ -54,18 +58,7 @@ readonly class McpInstancesFacade implements McpInstancesFacadeInterface
         $repo      = $this->entityManager->getRepository(McpInstance::class);
         $instances = $repo->findBy(['accountCoreId' => $accountCoreInfoDto->id]);
 
-        return array_map(
-            fn (McpInstance $i) => new McpInstanceInfoDto(
-                $i->getId(),
-                $i->getDisplayNumber(),
-                $i->getMcpPort(),
-                $i->getMcpProxyPort(),
-                $i->getVncPort(),
-                $i->getWebsocketPort(),
-                $i->getVncPassword()
-            ),
-            $instances
-        );
+        return self::mcpInstancesToMcpInstanceInfoDtos($instances);
     }
 
     public function createMcpInstance(AccountCoreInfoDto $accountCoreInfoDto): McpInstanceInfoDto
@@ -74,12 +67,16 @@ readonly class McpInstancesFacade implements McpInstancesFacadeInterface
 
         return new McpInstanceInfoDto(
             $instance->getId(),
-            $instance->getDisplayNumber(),
-            $instance->getMcpPort(),
-            $instance->getMcpProxyPort(),
-            $instance->getVncPort(),
-            $instance->getWebsocketPort(),
-            $instance->getVncPassword()
+            $instance->getInstanceSlug(),
+            $instance->getContainerName(),
+            $instance->getContainerState()->value,
+            $instance->getScreenWidth(),
+            $instance->getScreenHeight(),
+            $instance->getColorDepth(),
+            $instance->getVncPassword(),
+            $instance->getMcpBearer(),
+            $instance->getMcpSubdomain(),
+            $instance->getVncSubdomain()
         );
     }
 
@@ -97,65 +94,40 @@ readonly class McpInstancesFacade implements McpInstancesFacadeInterface
             throw new LogicException('MCP instance not found.');
         }
 
-        // Get all process statuses
-        $allProcesses = $this->osProcessMgmtFacade->getAllProcesses();
+        // Get Docker container status with partial endpoint checks
+        $containerStatus = $this->dockerFacade->getContainerStatus($instance);
 
-        // Filter processes for this specific instance
-        $instanceProcesses = [
-            'xvfb'      => null,
-            'mcp'       => null,
-            'vnc'       => null,
-            'websocket' => null
-        ];
+        $running     = $containerStatus->state === 'running';
+        $xvfbUp      = $running; // container running implies Xvfb supervisor started
+        $mcpUp       = $containerStatus->mcpUp;
+        $noVncUp     = $containerStatus->noVncUp;
+        $websocketUp = $noVncUp; // web client served by noVNC/websockify
 
-        // Find Xvfb process
-        foreach ($allProcesses['virtualFramebuffers'] as $xvfb) {
-            if ($xvfb['proc']['displayNumber'] === $instance->getDisplayNumber()) {
-                $instanceProcesses['xvfb'] = $xvfb;
-                break;
-            }
-        }
-
-        // Find MCP process
-        foreach ($allProcesses['playwrightMcps'] as $mcp) {
-            if ($mcp['proc']['mcpPort'] === $instance->getMcpPort()) {
-                $instanceProcesses['mcp'] = $mcp;
-                break;
-            }
-        }
-
-        // Find VNC server process
-        foreach ($allProcesses['vncServers'] as $vnc) {
-            if ($vnc['proc']['port'] === $instance->getVncPort()) {
-                $instanceProcesses['vnc'] = $vnc;
-                break;
-            }
-        }
-
-        // Find VNC websocket process
-        foreach ($allProcesses['vncWebsockets'] as $ws) {
-            if ($ws['proc']['httpPort'] === $instance->getWebsocketPort()) {
-                $instanceProcesses['websocket'] = $ws;
-                break;
-            }
-        }
+        $allRunning = $xvfbUp && $mcpUp && $noVncUp && $websocketUp;
 
         return [
             'instanceId' => $instance->getId() ?? '',
-            'processes'  => $instanceProcesses,
-            'allRunning' => !in_array(null, $instanceProcesses, true)
+            'processes'  => [
+                'xvfb'      => $xvfbUp ? ['status' => 'running'] : null,
+                'mcp'       => $mcpUp ? ['status' => 'running'] : null,
+                'vnc'       => $noVncUp ? ['status' => 'running'] : null,
+                'websocket' => $websocketUp ? ['status' => 'running'] : null,
+            ],
+            'allRunning'      => $allRunning,
+            'containerStatus' => [
+                'containerName' => $containerStatus->containerName,
+                'state'         => $containerStatus->state,
+                'healthy'       => $containerStatus->healthy,
+                'mcpUp'         => $mcpUp,
+                'noVncUp'       => $noVncUp,
+                'mcpEndpoint'   => $containerStatus->mcpEndpoint,
+                'vncEndpoint'   => $containerStatus->vncEndpoint,
+            ]
         ];
     }
 
     public function restartProcessesForInstance(string $instanceId): bool
     {
-        $repo     = $this->entityManager->getRepository(McpInstance::class);
-        $instance = $repo->find($instanceId);
-
-        if (!$instance) {
-            throw new LogicException('MCP instance not found.');
-        }
-
-        return $this->osProcessMgmtFacade->restartAllProcessesForInstance($instanceId);
+        return $this->domainService->restartMcpInstance($instanceId);
     }
 }

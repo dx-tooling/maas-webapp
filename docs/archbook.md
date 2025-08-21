@@ -19,3 +19,12 @@ Command Line Node.js dependencies are managed through NPM, and as always, are st
 
 ### AssetMapper
 Frontend-only JavaScript dependencies are managed through the Symfony AssetMapper system (via importmaps), and as always, are stored at assets/vendor/.
+
+## Runtime Architecture (High level)
+
+- Reverse proxy: Traefik container on ports 80/443 terminates TLS and routes:
+  - `app.mcp-as-a-service.com` → host nginx on port 8090 (Symfony app)
+  - `mcp-<slug>.mcp-as-a-service.com` → per-instance container port 8080
+  - `vnc-<slug>.mcp-as-a-service.com` → per-instance container port 6080
+- Host web server: nginx listens on 8090 without TLS
+- Instance lifecycle: One Docker container per instance, created/started by the Symfony app via a restricted Docker CLI wrapper

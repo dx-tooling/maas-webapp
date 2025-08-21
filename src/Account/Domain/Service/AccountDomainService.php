@@ -6,6 +6,7 @@ namespace App\Account\Domain\Service;
 
 use App\Account\Domain\Entity\AccountCore;
 use Doctrine\ORM\EntityManagerInterface;
+use LogicException;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 readonly class AccountDomainService
@@ -18,6 +19,12 @@ readonly class AccountDomainService
 
     public function register(string $email, string $plainPassword): AccountCore
     {
+        // Prevent duplicate accounts by email
+        $existing = $this->findByEmail($email);
+        if ($existing !== null) {
+            throw new LogicException('An account with this email already exists.');
+        }
+
         // Create a temporary AccountCore to satisfy the hasher's interface
         $tempAccount    = new AccountCore($email, '');
         $hashedPassword = $this->passwordHasher->hashPassword($tempAccount, $plainPassword);

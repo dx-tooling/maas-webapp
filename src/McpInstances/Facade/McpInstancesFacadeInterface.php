@@ -36,7 +36,16 @@ interface McpInstancesFacadeInterface
      *     vnc: array<string, mixed>|null,
      *     websocket: array<string, mixed>|null
      *   },
-     *   allRunning: bool
+     *   allRunning: bool,
+     *   containerStatus: array{
+     *     containerName: string,
+     *     state: string,
+     *     healthy: bool,
+     *     mcpUp: bool,
+     *     noVncUp: bool,
+     *     mcpEndpoint: string|null,
+     *     vncEndpoint: string|null
+     *   }
      * }
      */
     public function getProcessStatusForInstance(string $instanceId): array;

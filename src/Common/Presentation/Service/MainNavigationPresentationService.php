@@ -70,12 +70,13 @@ readonly class MainNavigationPresentationService extends AbstractMainNavigationS
             );
         }
 
-        if ($this->security->isGranted('ROLE_ADMIN')) {
-            $entries[] = $this->generateEntry(
-                'OS Process Management',
-                'os_process_management.presentation.dashboard',
-            );
-        }
+        // TODO: Add Docker Management dashboard for admins when ready
+        // if ($this->security->isGranted('ROLE_ADMIN')) {
+        //     $entries[] = $this->generateEntry(
+        //         'Docker Management',
+        //         'docker_management.presentation.dashboard',
+        //     );
+        // }
 
         return $entries;
     }

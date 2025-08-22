@@ -11,6 +11,8 @@ readonly class DemoDataService
     /** @return McpInstanceInfoDto[] */
     public function getFakeMcpInstanceInfoDtos(): array
     {
+        $rootDomain = getenv('APP_ROOT_DOMAIN') ?: 'mcp-as-a-service.com';
+
         return [
             new McpInstanceInfoDto(
                 'instance1',
@@ -22,8 +24,8 @@ readonly class DemoDataService
                 24,
                 'password_for_instance1',
                 'bearer_token_instance1',
-                'mcp-inst-1.mcp-as-a-service.com',
-                'vnc-inst-1.mcp-as-a-service.com'
+                'mcp-inst-1.' . $rootDomain,
+                'vnc-inst-1.' . $rootDomain
             ),
             new McpInstanceInfoDto(
                 'instance2',
@@ -35,8 +37,8 @@ readonly class DemoDataService
                 24,
                 'foobar',
                 'bearer_token_instance2',
-                'mcp-inst-2.mcp-as-a-service.com',
-                'vnc-inst-2.mcp-as-a-service.com'
+                'mcp-inst-2.' . $rootDomain,
+                'vnc-inst-2.' . $rootDomain
             ),
             new McpInstanceInfoDto(
                 'instance3',
@@ -48,8 +50,8 @@ readonly class DemoDataService
                 24,
                 'password_for_instance3',
                 'bearer_token_instance3',
-                'mcp-inst-3.mcp-as-a-service.com',
-                'vnc-inst-3.mcp-as-a-service.com'
+                'mcp-inst-3.' . $rootDomain,
+                'vnc-inst-3.' . $rootDomain
             ),
         ];
     }

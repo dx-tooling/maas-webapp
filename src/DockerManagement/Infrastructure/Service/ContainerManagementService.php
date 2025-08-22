@@ -10,12 +10,14 @@ use Psr\Log\LoggerInterface;
 use RuntimeException;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\Process\Process;
+use Symfony\Component\Routing\RouterInterface;
 
 readonly class ContainerManagementService
 {
     public function __construct(
         private LoggerInterface       $logger,
-        private ParameterBagInterface $params
+        private ParameterBagInterface $params,
+        private RouterInterface       $router
     ) {
     }
 
@@ -123,7 +125,8 @@ readonly class ContainerManagementService
 
         // Defensive: if derived fields are missing but ID exists (common in tests), generate them now
         if ((!$containerName || !$instanceSlug) && $instance->getId() !== null) {
-            $instance->generateDerivedFields();
+            $rootDomain = getenv('APP_ROOT_DOMAIN') ?: 'mcp-as-a-service.com';
+            $instance->generateDerivedFields($rootDomain);
             $containerName = $instance->getContainerName();
             $instanceSlug  = $instance->getInstanceSlug();
         }
@@ -369,18 +372,21 @@ readonly class ContainerManagementService
         $instanceSlug = $instance->getInstanceSlug();
         $mcpBearer    = $instance->getMcpBearer();
 
+        // Get domain configuration from environment
+        $rootDomain = getenv('APP_ROOT_DOMAIN') ?: 'mcp-as-a-service.com';
+
         return [
             'traefik.enable=true',
 
             // MCP router and service
-            "traefik.http.routers.mcp-{$instanceSlug}.rule=Host(`mcp-{$instanceSlug}.mcp-as-a-service.com`)",
+            "traefik.http.routers.mcp-{$instanceSlug}.rule=Host(`mcp-{$instanceSlug}.{$rootDomain}`)",
             "traefik.http.routers.mcp-{$instanceSlug}.entrypoints=websecure",
             "traefik.http.routers.mcp-{$instanceSlug}.tls=true",
             "traefik.http.routers.mcp-{$instanceSlug}.service=mcp-{$instanceSlug}",
             "traefik.http.services.mcp-{$instanceSlug}.loadbalancer.server.port=8080",
 
             // MCP ForwardAuth middleware
-            "traefik.http.middlewares.mcp-{$instanceSlug}-auth.forwardauth.address=https://app.mcp-as-a-service.com/auth/mcp-bearer-check",
+            "traefik.http.middlewares.mcp-{$instanceSlug}-auth.forwardauth.address=" . $this->router->generate('authentication.presentation.mcp_bearer_check', [], RouterInterface::ABSOLUTE_URL),
             // Ensure our custom header is forwarded to the auth service
             "traefik.http.middlewares.mcp-{$instanceSlug}-auth.forwardauth.authRequestHeaders=Authorization,X-MCP-Instance",
 
@@ -391,7 +397,7 @@ readonly class ContainerManagementService
             "traefik.http.routers.mcp-{$instanceSlug}.middlewares=ctx-{$instanceSlug},mcp-{$instanceSlug}-auth",
 
             // VNC router and service
-            "traefik.http.routers.vnc-{$instanceSlug}.rule=Host(`vnc-{$instanceSlug}.mcp-as-a-service.com`)",
+            "traefik.http.routers.vnc-{$instanceSlug}.rule=Host(`vnc-{$instanceSlug}.{$rootDomain}`)",
             "traefik.http.routers.vnc-{$instanceSlug}.entrypoints=websecure",
             "traefik.http.routers.vnc-{$instanceSlug}.tls=true",
             "traefik.http.routers.vnc-{$instanceSlug}.service=vnc-{$instanceSlug}",

@@ -57,7 +57,8 @@ readonly class McpInstancesDomainService
         $this->entityManager->flush();
 
         // Generate derived fields after ID is available
-        $instance->generateDerivedFields();
+        $rootDomain = getenv('APP_ROOT_DOMAIN') ?: 'mcp-as-a-service.com';
+        $instance->generateDerivedFields($rootDomain);
         $this->entityManager->flush();
 
         // Create and start Docker container

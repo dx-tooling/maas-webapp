@@ -12,6 +12,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use ReflectionClass;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
+use Symfony\Component\Routing\RouterInterface;
 
 final class ContainerManagementServiceTest extends TestCase
 {
@@ -21,16 +22,22 @@ final class ContainerManagementServiceTest extends TestCase
     /** @var ParameterBagInterface&MockObject */
     private ParameterBagInterface $params;
 
+    /** @var RouterInterface&MockObject */
+    private RouterInterface $router;
+
     protected function setUp(): void
     {
         $this->logger = $this->createMock(LoggerInterface::class);
         $this->params = $this->createMock(ParameterBagInterface::class);
         $this->params->method('get')->with('kernel.project_dir')->willReturn(__DIR__ . '/../../../../..');
+
+        $this->router = $this->createMock(RouterInterface::class);
+        $this->router->method('generate')->willReturn('https://app.example.com/auth/mcp-bearer-check');
     }
 
     public function testCreateContainerFailsWhenNamesMissing(): void
     {
-        $service  = new ContainerManagementService($this->logger, $this->params);
+        $service  = new ContainerManagementService($this->logger, $this->params, $this->router);
         $instance = new McpInstance('acc', 1280, 720, 24, 'vnc', 'bearer');
 
         // Intentionally do not set derived fields; createContainer should log and return false
@@ -39,7 +46,7 @@ final class ContainerManagementServiceTest extends TestCase
 
     public function testDockerRunInvocationUsesWrapperInValidateOnlyMode(): void
     {
-        $service  = new ContainerManagementService($this->logger, $this->params);
+        $service  = new ContainerManagementService($this->logger, $this->params, $this->router);
         $instance = new McpInstance('acc', 1280, 720, 24, 'vncpass', 'bearer');
 
         // Prepare derived fields so that createContainer proceeds
@@ -48,7 +55,7 @@ final class ContainerManagementServiceTest extends TestCase
         $idProp = $r->getProperty('id');
         $idProp->setAccessible(true);
         $idProp->setValue($instance, '00000000-0000-0000-0000-000000000abc');
-        $instance->generateDerivedFields();
+        $instance->generateDerivedFields('mcp-as-a-service.com');
 
         // Logger may be called multiple times; no strict parameter expectations here
         $this->logger->expects($this->any())->method('info');
@@ -73,14 +80,14 @@ final class ContainerManagementServiceTest extends TestCase
         $logger = $this->createMock(LoggerInterface::class);
         $logger->expects($this->any())->method('info');
 
-        $service  = new ContainerManagementService($logger, $this->params);
+        $service  = new ContainerManagementService($logger, $this->params, $this->router);
         $instance = new McpInstance('acc', 1280, 720, 24, 'vncpass', 'bearer');
 
         $r      = new ReflectionClass($instance);
         $idProp = $r->getProperty('id');
         $idProp->setAccessible(true);
         $idProp->setValue($instance, '00000000-0000-0000-0000-000000000def');
-        $instance->generateDerivedFields();
+        $instance->generateDerivedFields('mcp-as-a-service.com');
 
         // Env: use wrapper directly and validate-only
         putenv('MAAS_WRAPPER_NO_SUDO=1');
@@ -105,13 +112,13 @@ final class ContainerManagementServiceTest extends TestCase
             ->method('info')
             ->with($this->stringContains('inspect'));
 
-        $service  = new ContainerManagementService($logger, $this->params);
+        $service  = new ContainerManagementService($logger, $this->params, $this->router);
         $instance = new McpInstance('acc', 1280, 720, 24, 'vncpass', 'bearer');
         $r        = new ReflectionClass($instance);
         $idProp   = $r->getProperty('id');
         $idProp->setAccessible(true);
         $idProp->setValue($instance, '00000000-0000-0000-0000-000000000abc');
-        $instance->generateDerivedFields();
+        $instance->generateDerivedFields('mcp-as-a-service.com');
 
         putenv('MAAS_WRAPPER_NO_SUDO=1');
         putenv('MAAS_WRAPPER_VALIDATE_ONLY=1');

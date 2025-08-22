@@ -177,7 +177,7 @@ class McpInstance
         $this->vncSubdomain = $vncSubdomain;
     }
 
-    public function generateDerivedFields(): void
+    public function generateDerivedFields(string $rootDomain = 'mcp-as-a-service.com'): void
     {
         if ($this->id !== null) {
             // Derive a short, DNS-safe slug from the UUID using base36 (0-9a-z)
@@ -190,8 +190,8 @@ class McpInstance
             $shortSlug           = substr($base36, 0, 8);
             $this->instanceSlug  = $shortSlug;
             $this->containerName = 'mcp-instance-' . $shortSlug;
-            $this->mcpSubdomain  = 'mcp-' . $shortSlug . '.mcp-as-a-service.com';
-            $this->vncSubdomain  = 'vnc-' . $shortSlug . '.mcp-as-a-service.com';
+            $this->mcpSubdomain  = 'mcp-' . $shortSlug . '.' . $rootDomain;
+            $this->vncSubdomain  = 'vnc-' . $shortSlug . '.' . $rootDomain;
         }
     }
 

@@ -45,3 +45,5 @@ node_modules/
 ###> deptrac/deptrac ###
 .deptrac.cache
 ###< deptrac/deptrac ###
+
+.cursor/mcp.json

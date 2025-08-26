@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace App\McpInstances\Facade;
 
+use App\Account\Domain\Entity\AccountCore;
 use App\Account\Facade\Dto\AccountCoreInfoDto;
 use App\DockerManagement\Facade\DockerManagementFacadeInterface;
 use App\McpInstances\Domain\Entity\McpInstance;
 use App\McpInstances\Domain\Service\McpInstancesDomainService;
+use App\McpInstances\Facade\Dto\McpInstanceAdminOverviewDto;
 use App\McpInstances\Facade\Dto\McpInstanceInfoDto;
 use Doctrine\ORM\EntityManagerInterface;
+use Exception;
 use LogicException;
 
 readonly class McpInstancesFacade implements McpInstancesFacadeInterface
@@ -129,5 +132,75 @@ readonly class McpInstancesFacade implements McpInstancesFacadeInterface
     public function restartProcessesForInstance(string $instanceId): bool
     {
         return $this->domainService->restartMcpInstance($instanceId);
+    }
+
+    /**
+     * Get comprehensive admin overview of all MCP instances with account information.
+     * This method requires ROLE_ADMIN access.
+     *
+     * @return array<McpInstanceAdminOverviewDto>
+     */
+    public function getMcpInstanceAdminOverview(): array
+    {
+        // Get all MCP instances first
+        $instances = $this->domainService->getAllMcpInstances();
+
+        if (empty($instances)) {
+            return [];
+        }
+
+        $overviewDtos = [];
+        foreach ($instances as $instance) {
+            // Get the account for this instance
+            $accountRepo = $this->entityManager->getRepository(AccountCore::class);
+            $account     = $accountRepo->find($instance->getAccountCoreId());
+
+            if (!$account) {
+                continue; // Skip if account not found
+            }
+
+            // Get container status for health check
+            try {
+                $containerStatus = $this->dockerFacade->getContainerStatus($instance);
+                $isHealthy       = $containerStatus->healthy;
+                $mcpEndpoint     = $containerStatus->mcpEndpoint;
+                $vncEndpoint     = $containerStatus->vncEndpoint;
+            } catch (Exception $e) {
+                // If Docker facade fails, use default values
+                $isHealthy   = false;
+                $mcpEndpoint = null;
+                $vncEndpoint = null;
+            }
+
+            $overviewDtos[] = new McpInstanceAdminOverviewDto(
+                $instance->getId()            ?? '',
+                $instance->getInstanceSlug()  ?? '',
+                $instance->getContainerName() ?? '',
+                $instance->getContainerState()->value,
+                $instance->getCreatedAt(),
+                $account->getId() ?? '',
+                $account->getEmail(),
+                $account->getCreatedAt(),
+                $account->getRoles(),
+                $isHealthy,
+                $mcpEndpoint,
+                $vncEndpoint,
+                $instance->getScreenWidth(),
+                $instance->getScreenHeight(),
+                $instance->getColorDepth()
+            );
+        }
+
+        // Sort by account creation date (newest first), then instance creation date
+        usort($overviewDtos, function (McpInstanceAdminOverviewDto $a, McpInstanceAdminOverviewDto $b) {
+            $accountCompare = $b->accountCreatedAt <=> $a->accountCreatedAt;
+            if ($accountCompare !== 0) {
+                return $accountCompare;
+            }
+
+            return $b->instanceCreatedAt <=> $a->instanceCreatedAt;
+        });
+
+        return $overviewDtos;
     }
 }

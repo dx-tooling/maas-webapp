@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\McpInstances\Facade;
 
 use App\Account\Facade\Dto\AccountCoreInfoDto;
+use App\McpInstances\Facade\Dto\McpInstanceAdminOverviewDto;
 use App\McpInstances\Facade\Dto\McpInstanceInfoDto;
 
 interface McpInstancesFacadeInterface
@@ -54,4 +55,12 @@ interface McpInstancesFacadeInterface
      * Restart all processes for a specific MCP instance.
      */
     public function restartProcessesForInstance(string $instanceId): bool;
+
+    /**
+     * Get comprehensive admin overview of all MCP instances with account information.
+     * This method requires ROLE_ADMIN access.
+     *
+     * @return array<McpInstanceAdminOverviewDto>
+     */
+    public function getMcpInstanceAdminOverview(): array;
 }

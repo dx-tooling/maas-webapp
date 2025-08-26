@@ -70,13 +70,12 @@ readonly class MainNavigationPresentationService extends AbstractMainNavigationS
             );
         }
 
-        // TODO: Add Docker Management dashboard for admins when ready
-        // if ($this->security->isGranted('ROLE_ADMIN')) {
-        //     $entries[] = $this->generateEntry(
-        //         'Docker Management',
-        //         'docker_management.presentation.dashboard',
-        //     );
-        // }
+        if ($this->security->isGranted('ROLE_ADMIN')) {
+            $entries[] = $this->generateEntry(
+                'All MCP Instances',
+                'mcp_instances.presentation.admin_overview',
+            );
+        }
 
         return $entries;
     }

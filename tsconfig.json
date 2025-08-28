@@ -3,5 +3,6 @@
         "noEmit": true,
         "allowImportingTsExtensions": true,
         "lib": ["dom", "es2015"]
-    }
+    },
+    "exclude": ["vendor/"]
 }

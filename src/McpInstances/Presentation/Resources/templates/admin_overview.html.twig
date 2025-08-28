@@ -17,8 +17,8 @@
                     <div class="text-center">
                         <div class="text-3xl font-bold text-green-600 dark:text-green-400">
                             {% set healthyCount = 0 %}
-                            {% for instance in instances %}
-                                {% if instance.isHealthy %}
+                            {% for data in instances %}
+                                {% if data.isHealthy %}
                                     {% set healthyCount = healthyCount + 1 %}
                                 {% endif %}
                             {% endfor %}
@@ -29,8 +29,8 @@
                     <div class="text-center">
                         <div class="text-3xl font-bold text-yellow-600 dark:text-yellow-400">
                             {% set unhealthyCount = 0 %}
-                            {% for instance in instances %}
-                                {% if not instance.isHealthy %}
+                            {% for data in instances %}
+                                {% if not data.isHealthy %}
                                     {% set unhealthyCount = unhealthyCount + 1 %}
                                 {% endif %}
                             {% endfor %}
@@ -41,9 +41,9 @@
                     <div class="text-center">
                         <div class="text-3xl font-bold text-blue-600 dark:text-blue-400">
                             {% set accountIds = [] %}
-                            {% for instance in instances %}
-                                {% if instance.accountId not in accountIds %}
-                                    {% set accountIds = accountIds|merge([instance.accountId]) %}
+                            {% for data in instances %}
+                                {% if data.account.id not in accountIds %}
+                                    {% set accountIds = accountIds|merge([data.account.id]) %}
                                 {% endif %}
                             {% endfor %}
                             {{ accountIds|length }}
@@ -72,54 +72,54 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-dark-200 dark:divide-dark-700">
-                        {% for instance in instances %}
+                        {% for data in instances %}
                             <tr class="etfswui-content-table-row">
                                 <td class="etfswui-table-cell">
                                     <div class="space-y-1">
                                         <div class="font-medium text-dark-900 dark:text-dark-100">
-                                            {{ instance.accountEmail }}
+                                            {{ data.account.email }}
                                         </div>
                                         <div class="text-xs text-dark-500 dark:text-dark-400">
-                                            ID: {{ instance.accountId|slice(0, 8) }}...
+                                            ID: {{ data.account.id|slice(0, 8) }}...
                                         </div>
                                         <div class="flex flex-wrap gap-1">
-                                            {% for role in instance.accountRoles %}
+                                            {% for role in data.account.roles %}
                                                 <span class="etfswui-badge etfswui-badge-info text-xs">{{ role }}</span>
                                             {% endfor %}
                                         </div>
                                         <div class="text-xs text-dark-400 dark:text-dark-500">
-                                            Registered: {{ instance.accountCreatedAt|date('M j, Y') }}
+                                            Registered: {{ data.account.createdAt|date('M j, Y') }}
                                         </div>
                                     </div>
                                 </td>
                                 <td class="etfswui-table-cell">
                                     <div class="space-y-1">
                                         <div class="font-medium text-dark-900 dark:text-dark-100">
-                                            {{ instance.instanceSlug }}
+                                            {{ data.instance.instanceSlug }}
                                         </div>
                                         <div class="text-xs text-dark-500 dark:text-dark-400">
-                                            ID: {{ instance.instanceId|slice(0, 8) }}...
+                                            ID: {{ data.instance.id|slice(0, 8) }}...
                                         </div>
                                         <div class="text-xs text-dark-400 dark:text-dark-500">
-                                            Container: {{ instance.containerName }}
+                                            Container: {{ data.instance.containerName }}
                                         </div>
                                     </div>
                                 </td>
                                 <td class="etfswui-table-cell">
                                     <div class="flex items-center gap-2">
-                                        {% if instance.containerState == 'running' %}
+                                        {% if data.instance.containerState.value == 'running' %}
                                             <span class="etfswui-badge etfswui-badge-success">Running</span>
-                                        {% elseif instance.containerState == 'created' %}
+                                        {% elseif data.instance.containerState.value == 'created' %}
                                             <span class="etfswui-badge etfswui-badge-warning">Created</span>
-                                        {% elseif instance.containerState == 'stopped' %}
+                                        {% elseif data.instance.containerState.value == 'stopped' %}
                                             <span class="etfswui-badge etfswui-badge-error">Stopped</span>
                                         {% else %}
-                                            <span class="etfswui-badge etfswui-badge-error">{{ instance.containerState|title }}</span>
+                                            <span class="etfswui-badge etfswui-badge-error">{{ data.instance.containerState.value|title }}</span>
                                         {% endif %}
                                     </div>
                                 </td>
                                 <td class="etfswui-table-cell">
-                                    {% if instance.isHealthy %}
+                                    {% if data.isHealthy %}
                                         <span class="etfswui-badge etfswui-badge-success">Healthy</span>
                                     {% else %}
                                         <span class="etfswui-badge etfswui-badge-error">Unhealthy</span>
@@ -127,39 +127,39 @@
                                 </td>
                                 <td class="etfswui-table-cell">
                                     <div class="text-sm text-dark-600 dark:text-dark-300">
-                                        {{ instance.instanceCreatedAt|date('M j, Y') }}
+                                        {{ data.instance.createdAt|date('M j, Y') }}
                                     </div>
                                     <div class="text-xs text-dark-400 dark:text-dark-500">
-                                        {{ instance.instanceCreatedAt|date('g:i A') }}
+                                        {{ data.instance.createdAt|date('g:i A') }}
                                     </div>
                                 </td>
                                 <td class="etfswui-table-cell">
                                     <div class="text-sm text-dark-600 dark:text-dark-300">
-                                        {{ instance.screenWidth }}×{{ instance.screenHeight }}
+                                        {{ data.instance.screenWidth }}×{{ data.instance.screenHeight }}
                                     </div>
                                     <div class="text-xs text-dark-400 dark:text-dark-500">
-                                        {{ instance.colorDepth }}bit
+                                        {{ data.instance.colorDepth }}bit
                                     </div>
                                 </td>
                                 <td class="etfswui-table-cell">
                                     <div class="space-y-2">
-                                        {% if instance.mcpEndpoint %}
+                                        {% if data.mcpEndpoint %}
                                             <div>
                                                 <div class="text-xs font-medium text-dark-500 dark:text-dark-400 mb-1">MCP</div>
-                                                <a href="{{ instance.mcpEndpoint }}" 
+                                                <a href="{{ data.mcpEndpoint }}" 
                                                    target="_blank" 
                                                    class="etfswui-link-default text-xs break-all">
-                                                    {{ instance.mcpEndpoint|replace({'https://': ''}) }}
+                                                    {{ data.mcpEndpoint|replace({'https://': ''}) }}
                                                 </a>
                                             </div>
                                         {% endif %}
-                                        {% if instance.vncEndpoint %}
+                                        {% if data.vncEndpoint %}
                                             <div>
                                                 <div class="text-xs font-medium text-dark-500 dark:text-dark-400 mb-1">VNC</div>
-                                                <a href="{{ instance.vncEndpoint }}/vnc.html" 
+                                                <a href="{{ data.vncEndpoint }}/vnc.html" 
                                                    target="_blank" 
                                                    class="etfswui-link-default text-xs break-all">
-                                                    {{ instance.vncEndpoint|replace({'https://': ''}) }}
+                                                    {{ data.vncEndpoint|replace({'https://': ''}) }}
                                                 </a>
                                             </div>
                                         {% endif %}

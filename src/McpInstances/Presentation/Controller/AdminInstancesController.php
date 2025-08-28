@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\McpInstances\Presentation\Controller;
 
 use App\Common\Presentation\Controller\AbstractAccountAwareController;
-use App\McpInstances\Facade\McpInstancesFacadeInterface;
+use App\McpInstances\Domain\Service\McpInstancesDomainService;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
@@ -15,7 +15,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class AdminInstancesController extends AbstractAccountAwareController
 {
     public function __construct(
-        private readonly McpInstancesFacadeInterface $facade
+        private readonly McpInstancesDomainService $domainService
     ) {
     }
 
@@ -26,7 +26,7 @@ class AdminInstancesController extends AbstractAccountAwareController
     )]
     public function overviewAction(): Response
     {
-        $instances = $this->facade->getMcpInstanceAdminOverview();
+        $instances = $this->domainService->getMcpInstanceAdminOverview();
 
         return $this->render(
             '@mcp_instances.presentation/admin_overview.html.twig',

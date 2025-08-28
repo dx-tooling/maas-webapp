@@ -8,7 +8,6 @@ use App\Account\Facade\Dto\AccountCoreInfoDto;
 use App\DockerManagement\Facade\DockerManagementFacadeInterface;
 use App\McpInstances\Domain\Entity\McpInstance;
 use App\McpInstances\Domain\Service\McpInstancesDomainService;
-use App\McpInstances\Facade\McpInstancesFacade;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
 use PHPUnit\Framework\TestCase;
@@ -27,10 +26,9 @@ final class McpInstancesFacadeTest extends TestCase
         $inst = new McpInstance('acc-id', 1280, 720, 24, 'v', 'b');
         $repo->method('findBy')->with(['accountCoreId' => 'acc-id'])->willReturn([$inst]);
 
-        $facade = new McpInstancesFacade($domain, $em, $docker);
-        $infos  = $facade->getMcpInstanceInfosForAccount($accountInfo);
+        $infos = $domain->getMcpInstanceInfosForAccount($accountInfo);
 
         $this->assertCount(1, $infos);
-        $this->assertSame($inst->getVncPassword(), $infos[0]->vncPassword);
+        $this->assertSame($inst->getVncPassword(), $infos[0]->getVncPassword());
     }
 }

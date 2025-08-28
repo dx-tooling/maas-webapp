@@ -48,11 +48,6 @@ readonly class DockerManagementFacade implements DockerManagementFacadeInterface
         return $this->dockerDomainService->restartContainer($instance);
     }
 
-    public function getContainerState(McpInstance $instance): ContainerState
-    {
-        return $this->dockerDomainService->getContainerState($instance);
-    }
-
     public function isContainerHealthy(McpInstance $instance): bool
     {
         return $this->dockerDomainService->isContainerHealthy($instance);
@@ -60,7 +55,7 @@ readonly class DockerManagementFacade implements DockerManagementFacadeInterface
 
     public function getContainerStatus(McpInstance $instance): ContainerStatusDto
     {
-        $state   = $this->getContainerState($instance);
+        $state   = $this->dockerDomainService->getContainerState($instance);
         $running = $state === ContainerState::RUNNING;
         $mcpUp   = $running && $this->dockerDomainService->isMcpEndpointUp($instance);
         $noVncUp = $running && $this->dockerDomainService->isNoVncEndpointUp($instance);

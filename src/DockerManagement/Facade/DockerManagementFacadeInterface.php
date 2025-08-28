@@ -6,7 +6,6 @@ namespace App\DockerManagement\Facade;
 
 use App\DockerManagement\Facade\Dto\ContainerStatusDto;
 use App\McpInstances\Domain\Entity\McpInstance;
-use App\McpInstances\Domain\Enum\ContainerState;
 
 interface DockerManagementFacadeInterface
 {
@@ -24,11 +23,6 @@ interface DockerManagementFacadeInterface
      * Restart the Docker container for the given MCP instance.
      */
     public function restartContainer(McpInstance $instance): bool;
-
-    /**
-     * Get the current state of the container.
-     */
-    public function getContainerState(McpInstance $instance): ContainerState;
 
     /**
      * Check if the container is healthy (endpoints responding).

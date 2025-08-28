@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\McpInstances\Presentation\Controller;
 
 use App\Common\Presentation\Controller\AbstractAccountAwareController;
-use App\McpInstances\Facade\McpInstancesFacadeInterface;
+use App\McpInstances\Domain\Service\McpInstancesDomainService;
 use Exception;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -16,7 +16,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class InstancesController extends AbstractAccountAwareController
 {
     public function __construct(
-        private McpInstancesFacadeInterface $facade
+        private McpInstancesDomainService $domainService
     ) {
     }
 
@@ -28,15 +28,15 @@ class InstancesController extends AbstractAccountAwareController
     public function dashboardAction(): Response
     {
         $accountCoreInfoDto = $this->getAuthenticatedAccountCoreInfo();
-        $instances          = $this->facade->getMcpInstanceInfosForAccount($accountCoreInfoDto);
+        $instances          = $this->domainService->getMcpInstanceInfosForAccount($accountCoreInfoDto);
         $instance           = $instances[0] ?? null;
-        $instanceId         = str_replace('-', '', $instance->id ?? '');
+        $instanceId         = str_replace('-', '', $instance?->getId() ?? '');
 
         // Get process status if instance exists
         $processStatus = null;
         if ($instance) {
             try {
-                $processStatus = $this->facade->getProcessStatusForInstance($instance->id ?? '');
+                $processStatus = $this->domainService->getProcessStatusForInstance($instance->getId() ?? '');
             } catch (Exception $e) {
                 // If there's an error getting process status, we'll show the instance without status
                 $processStatus = null;
@@ -60,7 +60,7 @@ class InstancesController extends AbstractAccountAwareController
     public function createAction(): Response
     {
         $accountCoreInfoDto = $this->getAuthenticatedAccountCoreInfo();
-        $this->facade->createMcpInstance($accountCoreInfoDto);
+        $this->domainService->createMcpInstanceForAccount($accountCoreInfoDto);
         $this->addFlash('success', 'MCP Instance created.');
 
         return $this->redirectToRoute('mcp_instances.presentation.dashboard');
@@ -74,7 +74,7 @@ class InstancesController extends AbstractAccountAwareController
     public function stopAction(): Response
     {
         $accountCoreInfoDto = $this->getAuthenticatedAccountCoreInfo();
-        $this->facade->stopAndRemoveMcpInstance($accountCoreInfoDto);
+        $this->domainService->stopAndRemoveMcpInstanceForAccount($accountCoreInfoDto);
         $this->addFlash('success', 'MCP Instance stopped and removed.');
 
         return $this->redirectToRoute('mcp_instances.presentation.dashboard');
@@ -96,11 +96,11 @@ class InstancesController extends AbstractAccountAwareController
 
         // Verify the user owns this instance
         $accountCoreInfoDto = $this->getAuthenticatedAccountCoreInfo();
-        $userInstances      = $this->facade->getMcpInstanceInfosForAccount($accountCoreInfoDto);
+        $userInstances      = $this->domainService->getMcpInstanceInfosForAccount($accountCoreInfoDto);
 
         $userOwnsInstance = false;
         foreach ($userInstances as $instance) {
-            if ($instance->id === $instanceId) {
+            if ($instance->getId() === $instanceId) {
                 $userOwnsInstance = true;
                 break;
             }
@@ -113,7 +113,7 @@ class InstancesController extends AbstractAccountAwareController
         }
 
         try {
-            $success = $this->facade->restartProcessesForInstance($instanceId);
+            $success = $this->domainService->restartMcpInstance($instanceId);
             if ($success) {
                 $this->addFlash('success', 'All processes have been restarted successfully.');
             } else {

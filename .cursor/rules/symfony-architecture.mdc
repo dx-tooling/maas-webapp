@@ -12,14 +12,14 @@
 - Every feature lives in its own top-level namespace under `App\FeatureName`.
 - Allowed layers (per feature):
   - **Domain**: Pure business logic. May access DB (including raw SQL) for own tables. May reference own Infrastructure and TestHarness. No Presentation/Api references. No cross-feature dependencies (not even DB-level foreign keys).
-  - **Presentation**: UI (web pages, emails, etc.). Controllers, view models, templates. No business logic. May use own Facade, Domain, Infrastructure, or TestHarness. No direct access to other features.
-  - **Api**: Programmatic interfaces (REST, GraphQL, etc.). API controllers, serializers, DTOs. May use own Facade, Domain, Infrastructure, or TestHarness. No direct access to other features.
+  - **Presentation**: UI (web pages, emails, etc.). Controllers, view models, templates. No business logic. May use own Domain, Infrastructure, or TestHarness. **NO direct access to own Facade** - Facades are external interfaces only.
+  - **Api**: Programmatic interfaces (REST, GraphQL, etc.). API controllers, serializers, DTOs. May use own Domain, Infrastructure, or TestHarness. **NO direct access to own Facade** - Facades are external interfaces only.
   - **Infrastructure**: External APIs, filesystem, low-level services. May be referenced by any layer in the same feature. No direct access to other features.
   - **TestHarness**: Test utilities, mocks, simulation tools for both automated testing and developer productivity (e.g., fake data generators). May be referenced by any layer in the same feature. Not for production use.
 - No cross-feature references except via Facade Interfaces. Every feature must provide a Facade Interface for this purpose.
 - No DB-level foreign keys between tables of different features.
 - Each feature must be testable in isolation, using interface-based mocks for dependencies on other features.
-- Layers within a feature are not required to go through their own Facade, but may do so if architecturally sensible.
+- **Facades are EXTERNAL interfaces only - components within the same feature must use Domain services directly, not their own Facade.**
 
 ## Date and Time (Hard Rule)
 - **Never instantiate `DateTimeImmutable`, `DateTime`, or similar directly.**
@@ -34,6 +34,22 @@
   $now = new \DateTimeImmutable();
   $now = new \DateTime();
   ```
+
+## Facade Pattern Usage (Hard Rule)
+- **Facades are EXTERNAL interfaces for other features, NOT internal services within the same feature.**
+- **What Facades Are For:**
+  - External Integration: Facades provide a clean, stable interface for other features to interact with your feature
+  - API Contracts: They define the public contract that other parts of the system can rely on
+  - Abstraction: They hide internal implementation details and provide a simplified interface
+- **What Facades Are NOT For:**
+  - Internal Services: Components within the same feature should NOT use the facade
+  - Internal Communication: Use domain services, application services, or repositories for internal operations
+  - Data Access: Controllers and components should directly use the appropriate service layer
+- **Implementation Rules:**
+  - Controllers and Components: Use domain services directly, not facades
+  - Facade Methods: Should only delegate to domain services, not contain business logic
+  - Service Dependencies: Inject domain services into presentation layer components
+  - External Access: Other features use facades to access your feature's functionality
 
 ## Type System & DTOs (Hard Rule)
 - Use the PHP type system extensively. Avoid untyped or mixed values, parameters, return values, etc.

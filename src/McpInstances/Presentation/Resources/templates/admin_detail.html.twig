@@ -1,0 +1,87 @@
+{% extends '@Webui/base_appshell.html.twig' %}
+
+{% block body %}
+    <div class="max-w-4xl mx-auto px-4">
+        <h1 class="etfswui-pagetitle mb-10 text-left">MCP Instance Details</h1>
+
+        {# Health Overview #}
+        {{ component('mcp_instances|presentation|health_overview', { instanceId: instance.id }) }}
+
+        {# General Instance Data with Secrets #}
+        <div class="etfswui-card mb-8 text-left">
+            <div class="etfswui-card-title">
+                <span class="etfswui-card-title-text">General Instance Data</span>
+            </div>
+            <div class="etfswui-card-content bg-neutral-50 dark:bg-neutral-900">
+                <div class="flex flex-col md:flex-row md:gap-8 gap-4">
+                    <div class="flex-1 space-y-4">
+                        <div>
+                            <div class="etfswui-text font-semibold mb-1">Instance</div>
+                            <div class="etfswui-text-small text-dark-600 dark:text-dark-300">ID: {{ instance.id }}</div>
+                            <div class="etfswui-text-small text-dark-600 dark:text-dark-300">Slug: {{ instance.instanceSlug }}</div>
+                            <div class="etfswui-text-small text-dark-600 dark:text-dark-300">Container: {{ instance.containerName }}</div>
+                        </div>
+
+                        <div>
+                            <div class="etfswui-text font-semibold mb-1">VNC Password</div>
+                            <input type="text" class="etfswui-form-input w-full max-w-xs" value="{{ instance.vncPassword }}" readonly onclick="this.select()" aria-label="VNC Password" />
+                        </div>
+
+                        <div>
+                            <div class="etfswui-text font-semibold mb-1">MCP Bearer Token</div>
+                            <input type="text" class="etfswui-form-input w-full max-w-xl" value="{{ instance.mcpBearer }}" readonly onclick="this.select()" aria-label="MCP Bearer Token" />
+                        </div>
+
+                        <div>
+                            <div class="etfswui-text font-semibold mb-1">MCP URLs</div>
+                            <input type="text" class="etfswui-form-input w-full max-w-xl mb-2" value="https://{{ instance.mcpSubdomain }}/sse" readonly onclick="this.select()" aria-label="MCP SSE URL" />
+                            <input type="text" class="etfswui-form-input w-full max-w-xl" value="https://{{ instance.mcpSubdomain }}/mcp" readonly onclick="this.select" aria-label="MCP URL" />
+                        </div>
+
+        			<div>
+                            <div class="etfswui-text font-semibold mb-1">VNC Web Client</div>
+                            <input type="text" class="etfswui-form-input w-full max-w-xl" value="https://{{ instance.vncSubdomain }}/vnc.html" readonly onclick="this.select()" aria-label="VNC Web Client URL" />
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 text-right">
+                    <span class="etfswui-text-small text-dark-400">Created: {{ instance.createdAt|date('M j, Y g:i A') }}</span>
+                </div>
+            </div>
+        </div>
+
+        {# Quick cURL and Cursor examples for admins #}
+        <div class="etfswui-card mb-8 text-left">
+            <div class="etfswui-card-title">
+                <span class="etfswui-card-title-text">Connection Examples</span>
+            </div>
+            <div class="etfswui-card-content bg-green-50 dark:bg-green-900/10 space-y-4">
+                <div>
+                    <div class="etfswui-text-small mb-1">cURL Example (SSE):</div>
+                    <pre class="etfswui-form-input bg-dark-100 dark:bg-dark-900 text-sm p-3 overflow-x-auto select-all"><code>curl \
+  -H "Authorization: Bearer {{ instance.mcpBearer }}" \
+  https://{{ instance.mcpSubdomain }}/sse</code></pre>
+                </div>
+                <div>
+                    <div class="etfswui-text-small mb-1">Cursor .cursor/mcp.json Example (MCP):</div>
+                    <pre class="etfswui-form-input bg-dark-100 dark:bg-dark-900 text-sm p-3 overflow-x-auto select-all"><code>{
+  "mcpServers": {
+    "playwright-remote": {
+      "url": "https://{{ instance.mcpSubdomain }}/mcp",
+      "headers": {
+        "Authorization": "Bearer {{ instance.mcpBearer }}"
+      }
+    }
+  }
+}</code></pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-6">
+            <a href="{{ path('mcp_instances.presentation.admin_overview') }}" class="etfswui-link-as-button-secondary">Back to Overview</a>
+        </div>
+    </div>
+{% endblock %}
+
+

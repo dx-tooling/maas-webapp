@@ -69,6 +69,7 @@
                             <th scope="col" class="etfswui-table-header">Created</th>
                             <th scope="col" class="etfswui-table-header">Screen</th>
                             <th scope="col" class="etfswui-table-header">Endpoints</th>
+                            <th scope="col" class="etfswui-table-header etfswui-table-header-right">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-dark-200 dark:divide-dark-700">
@@ -163,6 +164,15 @@
                                                 </a>
                                             </div>
                                         {% endif %}
+                                    </div>
+                                </td>
+                                <td class="etfswui-table-cell etfswui-table-cell-right">
+                                    <div class="flex gap-2 items-center justify-end">
+                                        <a href="{{ path('mcp_instances.presentation.admin_detail', { id: data.instance.id }) }}"
+                                           class="etfswui-link-as-button-default">View details</a>
+                                        <form method="post" action="{{ path('mcp_instances.presentation.admin_recreate', { id: data.instance.id }) }}" onsubmit="return confirm('Recreate container for this instance?');">
+                                            <button type="submit" class="etfswui-button-secondary">Recreate container</button>
+                                        </form>
                                     </div>
                                 </td>
                             </tr>

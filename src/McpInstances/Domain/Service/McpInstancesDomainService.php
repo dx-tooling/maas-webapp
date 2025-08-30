@@ -116,10 +116,51 @@ readonly class McpInstancesDomainService
         return $success;
     }
 
+    /**
+     * Stop and remove the existing container, then create and start a new one
+     * with the exact same instance attributes (IDs, slugs, passwords).
+     */
+    public function recreateMcpInstanceContainer(string $instanceId): bool
+    {
+        $repo     = $this->entityManager->getRepository(McpInstance::class);
+        $instance = $repo->find($instanceId);
+        if (!$instance) {
+            return false;
+        }
+
+        // Stop and remove old container (ignore result; it may not exist)
+        $this->dockerFacade->stopAndRemoveContainer($instance);
+
+        // Ensure derived fields exist (container name/slug) before recreation
+        if ($instance->getContainerName() === null || $instance->getInstanceSlug() === null) {
+            $rootDomain = getenv('APP_ROOT_DOMAIN') ?: 'mcp-as-a-service.com';
+            $instance->generateDerivedFields($rootDomain);
+            $this->entityManager->flush();
+        }
+
+        // Create and start new container using the same instance data
+        $success = $this->dockerFacade->createAndStartContainer($instance);
+        if ($success) {
+            $instance->setContainerState(ContainerState::RUNNING);
+        } else {
+            $instance->setContainerState(ContainerState::ERROR);
+        }
+        $this->entityManager->flush();
+
+        return $success;
+    }
+
     /** @return array<McpInstance> */
     public function getMcpInstanceInfos(): array
     {
         return $this->getAllMcpInstances();
+    }
+
+    public function getMcpInstanceById(string $id): ?McpInstance
+    {
+        $repo = $this->entityManager->getRepository(McpInstance::class);
+
+        return $repo->find($id);
     }
 
     /** @return array<McpInstance> */

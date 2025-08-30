@@ -11,6 +11,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Throwable;
 
 #[IsGranted('ROLE_USER')]
 class InstancesController extends AbstractAccountAwareController
@@ -121,6 +122,52 @@ class InstancesController extends AbstractAccountAwareController
             }
         } catch (Exception $e) {
             $this->addFlash('error', 'An error occurred while restarting processes: ' . $e->getMessage());
+        }
+
+        return $this->redirectToRoute('mcp_instances.presentation.dashboard');
+    }
+
+    #[Route(
+        path   : '/account/mcp-instances/recreate-container',
+        name   : 'mcp_instances.presentation.recreate_container',
+        methods: ['POST']
+    )]
+    public function recreateContainerAction(Request $request): Response
+    {
+        $instanceId = (string)$request->request->get('instanceId');
+        if ($instanceId === '') {
+            $this->addFlash('error', 'Instance ID is required.');
+
+            return $this->redirectToRoute('mcp_instances.presentation.dashboard');
+        }
+
+        // Verify ownership
+        $accountCoreInfoDto = $this->getAuthenticatedAccountCoreInfo();
+        $userInstances      = $this->domainService->getMcpInstanceInfosForAccount($accountCoreInfoDto);
+
+        $userOwnsInstance = false;
+        foreach ($userInstances as $instance) {
+            if ($instance->getId() === $instanceId) {
+                $userOwnsInstance = true;
+                break;
+            }
+        }
+
+        if (!$userOwnsInstance) {
+            $this->addFlash('error', 'You can only recreate your own instance container.');
+
+            return $this->redirectToRoute('mcp_instances.presentation.dashboard');
+        }
+
+        try {
+            $success = $this->domainService->recreateMcpInstanceContainer($instanceId);
+            if ($success) {
+                $this->addFlash('success', 'Your container has been recreated successfully.');
+            } else {
+                $this->addFlash('error', 'Failed to recreate your container. Please try again.');
+            }
+        } catch (Throwable $e) {
+            $this->addFlash('error', 'An error occurred while recreating the container: ' . $e->getMessage());
         }
 
         return $this->redirectToRoute('mcp_instances.presentation.dashboard');

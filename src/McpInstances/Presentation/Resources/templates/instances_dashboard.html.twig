@@ -137,9 +137,15 @@
                     <span class="etfswui-card-title-text">Actions</span>
                 </div>
                 <div class="etfswui-card-content bg-neutral-50 dark:bg-neutral-900">
-                    <form method="post" action="{{ path('mcp_instances.presentation.stop') }}">
-                        <button type="submit" class="etfswui-button-danger">Stop & Remove Instance</button>
-                    </form>
+                    <div class="etfswui-card-actions">
+                        <form method="post" action="{{ path('mcp_instances.presentation.recreate_container') }}" onsubmit="return confirm('Recreate this instance?');">
+                            <input type="hidden" name="instanceId" value="{{ instance.id }}" />
+                            <button type="submit" class="etfswui-button-secondary">Recreate Instance</button>
+                        </form>
+                        <form method="post" action="{{ path('mcp_instances.presentation.stop') }}" onsubmit="return confirm('Stop and remove this instance?');">
+                            <button type="submit" class="etfswui-button-danger">Stop & Remove Instance</button>
+                        </form>
+                    </div>
                 </div>
             </div>
 

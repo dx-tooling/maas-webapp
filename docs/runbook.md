@@ -47,6 +47,14 @@ docker ps | grep traefik
 curl -s http://localhost:8080/api/overview | jq
 ```
 
+### Show traefik labels for mcp instance container
+```
+docker inspect mcp-instance-<slug> | jq -r '.[0].Config.Labels
+| to_entries[]
+| select(.key|startswith("traefik.http."))
+| "\(.key)=\(.value)"'
+```
+
 ## Troubleshooting
 
 ### Permission denied on Docker commands

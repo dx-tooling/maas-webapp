@@ -1,4 +1,4 @@
-# MCP Instance Container
+# MCP Instance Container - Legacy Playwright Image
 # Contains: Xvfb, Playwright MCP, x11vnc, websockify/noVNC
 FROM node:22-bookworm
 

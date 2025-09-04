@@ -58,4 +58,10 @@ setup() {
   [[ "$output" == "/bin/docker run --name mcp-instance-abc123 -e FOO=bar maas-mcp-instance" ]]
 }
 
+@test "allows run with prefixed image name (validation)" {
+  run env MAAS_WRAPPER_VALIDATE_ONLY=1 DOCKER_BIN=/bin/docker "$WRAPPER" run --name mcp-instance-xyz987 -e BAR=baz maas-mcp-instance-playwright-v1
+  [ "$status" -eq 0 ]
+  [[ "$output" == "/bin/docker run --name mcp-instance-xyz987 -e BAR=baz maas-mcp-instance-playwright-v1" ]]
+}
+
 

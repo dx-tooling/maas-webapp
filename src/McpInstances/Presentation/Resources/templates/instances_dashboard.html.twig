@@ -27,8 +27,18 @@
                 </div>
                 <div class="etfswui-card-content space-y-6">
                     <p class="etfswui-text">You do not have a Playwright MCP Instance yet. Click below to create one.</p>
-                    <form method="post" action="{{ path('mcp_instances.presentation.create') }}">
-                        <button type="submit" class="etfswui-button-default">Create Instance</button>
+                    <form method="post" action="{{ path('mcp_instances.presentation.create') }}" class="flex flex-col gap-3 md:flex-row md:items-end">
+                        <div>
+                            <label for="instanceType" class="etfswui-text font-semibold mb-1 block">Instance Type</label>
+                            <select id="instanceType" name="instanceType" class="etfswui-form-input w-full max-w-xs">
+                                {% for t in available_types %}
+                                    <option value="{{ t.value }}">{{ t.value }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div>
+                            <button type="submit" class="etfswui-button-default">Create Instance</button>
+                        </div>
                     </form>
                 </div>
             </div>

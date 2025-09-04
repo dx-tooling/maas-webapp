@@ -5,7 +5,7 @@ set -euo pipefail
 # Creates and launches containerized MCP instances with Traefik routing
 
 # Configuration
-MCP_IMAGE_NAME="${MCP_IMAGE_NAME:-maas-mcp-instance}"
+MCP_IMAGE_NAME="${MCP_IMAGE_NAME:-}"
 MCP_CONTAINER_PREFIX="${MCP_CONTAINER_PREFIX:-mcp-instance}"
 MCP_NETWORK="${MCP_NETWORK:-mcp_instances}"
 MCP_MEMORY_LIMIT="${MCP_MEMORY_LIMIT:-1g}"
@@ -19,6 +19,7 @@ TRAEFIK_ENTRYPOINT="${TRAEFIK_ENTRYPOINT:-websecure}"
 
 # MCP Instance Configuration
 INSTANCE_ID="${INSTANCE_ID:-test}"
+INSTANCE_TYPE="${INSTANCE_TYPE:-}"
 SCREEN_WIDTH="${SCREEN_WIDTH:-1280}"
 SCREEN_HEIGHT="${SCREEN_HEIGHT:-720}"
 COLOR_DEPTH="${COLOR_DEPTH:-24}"
@@ -87,6 +88,28 @@ generate_names() {
     VNC_SUBDOMAIN="${VNC_SUBDOMAIN_PREFIX}-${INSTANCE_ID}.${DOMAIN_NAME}"
 }
 
+# Determine image name based on INSTANCE_TYPE if MCP_IMAGE_NAME is not explicitly set
+resolve_image_name() {
+    if [[ -n "${MCP_IMAGE_NAME}" ]]; then
+        RESOLVED_IMAGE_NAME="${MCP_IMAGE_NAME}"
+        return
+    fi
+
+    local type_normalized
+    type_normalized="${INSTANCE_TYPE}"
+
+    # Default to legacy image if no type provided
+    if [[ -z "${type_normalized}" || "${type_normalized}" == "_legacy" || "${type_normalized}" == "legacy" ]]; then
+        RESOLVED_IMAGE_NAME="maas-mcp-instance"
+        return
+    fi
+
+    # Convert enum-like value (e.g., playwright_v1) into image suffix (playwright-v1)
+    local suffix
+    suffix="${type_normalized//_/-}"
+    RESOLVED_IMAGE_NAME="maas-mcp-instance-${suffix}"
+}
+
 # Stop and remove existing container
 cleanup_existing() {
     if docker ps -a --format "table {{.Names}}" | grep -q "^${CONTAINER_NAME}$"; then
@@ -107,6 +130,7 @@ launch_mcp_instance() {
         --restart "${MCP_RESTART_POLICY}"
         --memory="${MCP_MEMORY_LIMIT}"
         -e "INSTANCE_ID=${INSTANCE_ID}"
+        -e "INSTANCE_TYPE=${INSTANCE_TYPE}"
         -e "SCREEN_WIDTH=${SCREEN_WIDTH}"
         -e "SCREEN_HEIGHT=${SCREEN_HEIGHT}"
         -e "COLOR_DEPTH=${COLOR_DEPTH}"
@@ -149,10 +173,10 @@ launch_mcp_instance() {
     for arg in "${docker_args[@]}"; do
         echo "    '${arg}' \\"
     done
-    echo "    '${MCP_IMAGE_NAME}'"
+    echo "    '${RESOLVED_IMAGE_NAME}'"
     echo
 
-    docker run -d "${docker_args[@]}" "${MCP_IMAGE_NAME}"
+    docker run -d "${docker_args[@]}" "${RESOLVED_IMAGE_NAME}"
 
     log_success "Container launched successfully"
 }
@@ -210,6 +234,7 @@ main() {
 
     log_info "Configuration:"
     echo "  - Instance ID: ${INSTANCE_ID}"
+    echo "  - Instance Type: ${INSTANCE_TYPE:-_legacy}"
     echo "  - Container Name: ${CONTAINER_NAME}"
     echo "  - Network: ${MCP_NETWORK}"
     echo "  - Memory Limit: ${MCP_MEMORY_LIMIT}"
@@ -219,6 +244,7 @@ main() {
 
     # Setup and launch
     create_network
+    resolve_image_name
     cleanup_existing
     launch_mcp_instance
 
@@ -232,16 +258,17 @@ main() {
 # Handle script arguments
 case "${1:-}" in
     --help|-h)
-        echo "Usage: $0 [--help] [--instance-id ID] [--forwardauth]"
+        echo "Usage: $0 [--help] [--instance-id ID] [--instance-type TYPE] [--forwardauth]"
         echo ""
         echo "Options:"
         echo "  --help, -h          Show this help message"
         echo "  --instance-id ID    Set instance ID (default: test)"
+        echo "  --instance-type T   Set instance type (e.g., playwright_v1). Defaults to _legacy if omitted"
         echo "  --forwardauth       Enable ForwardAuth middleware for MCP endpoint"
         echo ""
         echo "Environment variables:"
         echo "  # Container Configuration"
-        echo "  MCP_IMAGE_NAME          Docker image (default: maas-mcp-instance)"
+        echo "  MCP_IMAGE_NAME          Docker image override (takes precedence over INSTANCE_TYPE)"
         echo "  MCP_CONTAINER_PREFIX    Container name prefix (default: mcp-instance)"
         echo "  MCP_NETWORK             Docker network (default: mcp_instances)"
         echo "  MCP_MEMORY_LIMIT        Memory limit (default: 1g)"
@@ -254,6 +281,7 @@ case "${1:-}" in
         echo ""
         echo "  # Instance Configuration"
         echo "  INSTANCE_ID             Instance identifier (default: test)"
+        echo "  INSTANCE_TYPE           Instance type key (e.g., playwright_v1). If empty or _legacy, uses legacy image"
         echo "  SCREEN_WIDTH            Screen width (default: 1920)"
         echo "  SCREEN_HEIGHT           Screen height (default: 1080)"
         echo "  COLOR_DEPTH             Color depth (default: 24)"
@@ -290,6 +318,15 @@ case "${1:-}" in
             shift 2
         else
             log_error "Instance ID required after --instance-id"
+            exit 1
+        fi
+        ;;
+    --instance-type)
+        if [[ -n "${2:-}" ]]; then
+            INSTANCE_TYPE="$2"
+            shift 2
+        else
+            log_error "Instance type required after --instance-type"
             exit 1
         fi
         ;;

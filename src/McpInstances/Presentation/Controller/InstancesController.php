@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\McpInstances\Presentation\Controller;
 
 use App\Common\Presentation\Controller\AbstractAccountAwareController;
+use App\McpInstances\Domain\Enum\InstanceType;
 use App\McpInstances\Domain\Service\McpInstancesDomainService;
 use Exception;
 use Symfony\Component\HttpFoundation\Request;
@@ -12,6 +13,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Throwable;
+use ValueError;
 
 #[IsGranted('ROLE_USER')]
 class InstancesController extends AbstractAccountAwareController
@@ -32,6 +34,7 @@ class InstancesController extends AbstractAccountAwareController
         $instances          = $this->domainService->getMcpInstanceInfosForAccount($accountCoreInfoDto);
         $instance           = $instances[0] ?? null;
         $instanceId         = str_replace('-', '', $instance?->getId() ?? '');
+        $availableTypes     = array_filter(InstanceType::cases(), static fn (InstanceType $t) => $t !== InstanceType::_LEGACY);
 
         // Get process status if instance exists
         $processStatus = null;
@@ -49,6 +52,7 @@ class InstancesController extends AbstractAccountAwareController
                 'instance'             => $instance,
                 'instance_id_nohyphen' => $instanceId,
                 'process_status'       => $processStatus,
+                'available_types'      => $availableTypes,
             ]
         );
     }
@@ -58,10 +62,23 @@ class InstancesController extends AbstractAccountAwareController
         name   : 'mcp_instances.presentation.create',
         methods: ['POST']
     )]
-    public function createAction(): Response
+    public function createAction(Request $request): Response
     {
         $accountCoreInfoDto = $this->getAuthenticatedAccountCoreInfo();
-        $this->domainService->createMcpInstanceForAccount($accountCoreInfoDto);
+        $typeValue          = (string) $request->request->get('instanceType', '');
+
+        $instanceType = null;
+        if ($typeValue !== '') {
+            try {
+                $instanceType = InstanceType::from($typeValue);
+            } catch (ValueError) {
+                $this->addFlash('error', 'Invalid instance type selected.');
+
+                return $this->redirectToRoute('mcp_instances.presentation.dashboard');
+            }
+        }
+
+        $this->domainService->createMcpInstanceForAccount($accountCoreInfoDto, $instanceType);
         $this->addFlash('success', 'MCP Instance created.');
 
         return $this->redirectToRoute('mcp_instances.presentation.dashboard');

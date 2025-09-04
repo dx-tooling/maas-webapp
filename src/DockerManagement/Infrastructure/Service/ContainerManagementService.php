@@ -6,6 +6,7 @@ namespace App\DockerManagement\Infrastructure\Service;
 
 use App\McpInstances\Domain\Entity\McpInstance;
 use App\McpInstances\Domain\Enum\ContainerState;
+use App\McpInstances\Domain\Enum\InstanceType;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
@@ -336,8 +337,11 @@ readonly class ContainerManagementService
         $containerName = $instance->getContainerName();
         $instanceSlug  = $instance->getInstanceSlug();
 
+        $imageName = $this->getImageNameForInstanceType($instance->getInstanceType());
+
         $envVars = [
             "INSTANCE_ID={$instanceSlug}",
+            "INSTANCE_TYPE={$instance->getInstanceType()->value}",
             "SCREEN_WIDTH={$instance->getScreenWidth()}",
             "SCREEN_HEIGHT={$instance->getScreenHeight()}",
             "COLOR_DEPTH={$instance->getColorDepth()}",
@@ -359,7 +363,7 @@ readonly class ContainerManagementService
         }
 
         // Wrapper allows only the image name without a tag
-        $args[] = 'maas-mcp-instance';
+        $args[] = $imageName;
 
         return $this->runDocker($args);
     }
@@ -403,5 +407,18 @@ readonly class ContainerManagementService
             "traefik.http.routers.vnc-{$instanceSlug}.service=vnc-{$instanceSlug}",
             "traefik.http.services.vnc-{$instanceSlug}.loadbalancer.server.port=6080"
         ];
+    }
+
+    private function getImageNameForInstanceType(InstanceType $instanceType): string
+    {
+        // Special handling for legacy type to keep the historical image name
+        if ($instanceType === InstanceType::_LEGACY) {
+            return 'maas-mcp-instance';
+        }
+
+        // Convert enum value like 'playwright_v1' -> 'playwright-v1'
+        $suffix = str_replace('_', '-', $instanceType->value);
+
+        return 'maas-mcp-instance-' . $suffix;
     }
 }

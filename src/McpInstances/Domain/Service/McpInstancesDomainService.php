@@ -9,6 +9,7 @@ use App\Account\Facade\Dto\AccountCoreInfoDto;
 use App\DockerManagement\Facade\DockerManagementFacadeInterface;
 use App\McpInstances\Domain\Entity\McpInstance;
 use App\McpInstances\Domain\Enum\ContainerState;
+use App\McpInstances\Domain\Enum\InstanceType;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use LogicException;
@@ -31,7 +32,7 @@ readonly class McpInstancesDomainService
         return $repo->findAll();
     }
 
-    public function createMcpInstance(string $accountCoreId): McpInstance
+    public function createMcpInstance(string $accountCoreId, ?InstanceType $instanceType = null): McpInstance
     {
         // Check if instance already exists
         $repo     = $this->entityManager->getRepository(McpInstance::class);
@@ -55,6 +56,9 @@ readonly class McpInstancesDomainService
             $vncPassword,
             $mcpBearer
         );
+
+        // Assign instance type; default to PLAYWRIGHT_V1 for new instances
+        $instance->setInstanceType($instanceType ?? InstanceType::PLAYWRIGHT_V1);
 
         $this->entityManager->persist($instance);
         $this->entityManager->flush();
@@ -172,9 +176,9 @@ readonly class McpInstancesDomainService
         return $instances;
     }
 
-    public function createMcpInstanceForAccount(AccountCoreInfoDto $accountCoreInfoDto): McpInstance
+    public function createMcpInstanceForAccount(AccountCoreInfoDto $accountCoreInfoDto, ?InstanceType $instanceType = null): McpInstance
     {
-        return $this->createMcpInstance($accountCoreInfoDto->id);
+        return $this->createMcpInstance($accountCoreInfoDto->id, $instanceType);
     }
 
     public function stopAndRemoveMcpInstanceForAccount(AccountCoreInfoDto $accountCoreInfoDto): void

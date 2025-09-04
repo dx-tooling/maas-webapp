@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\McpInstances\Domain\Entity;
 
 use App\McpInstances\Domain\Enum\ContainerState;
+use App\McpInstances\Domain\Enum\InstanceType;
 use DateTimeImmutable;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -76,6 +77,9 @@ class McpInstance
     #[ORM\Column(type: Types::STRING, enumType: ContainerState::class, nullable: false)]
     private ContainerState $containerState;
 
+    #[ORM\Column(type: Types::STRING, enumType: InstanceType::class, nullable: true)]
+    private ?InstanceType $instanceType = null;
+
     #[ORM\Column(type: Types::INTEGER, nullable: false)]
     private int $screenWidth;
 
@@ -115,6 +119,17 @@ class McpInstance
     public function getContainerState(): ContainerState
     {
         return $this->containerState;
+    }
+
+    public function getInstanceType(): InstanceType
+    {
+        // For pre-existing rows from the BEFORE era, treat null as LEGACY
+        return $this->instanceType ?? InstanceType::_LEGACY;
+    }
+
+    public function setInstanceType(InstanceType $instanceType): void
+    {
+        $this->instanceType = $instanceType;
     }
 
     public function getScreenWidth(): int

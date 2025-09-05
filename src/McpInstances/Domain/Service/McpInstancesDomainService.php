@@ -32,6 +32,9 @@ readonly class McpInstancesDomainService
         return $repo->findAll();
     }
 
+    /**
+     * @throws Exception
+     */
     public function createMcpInstance(string $accountCoreId, ?InstanceType $instanceType = null): McpInstance
     {
         // Check if instance already exists
@@ -170,12 +173,14 @@ readonly class McpInstancesDomainService
     /** @return array<McpInstance> */
     public function getMcpInstanceInfosForAccount(AccountCoreInfoDto $accountCoreInfoDto): array
     {
-        $repo      = $this->entityManager->getRepository(McpInstance::class);
-        $instances = $repo->findBy(['accountCoreId' => $accountCoreInfoDto->id]);
+        $repo = $this->entityManager->getRepository(McpInstance::class);
 
-        return $instances;
+        return $repo->findBy(['accountCoreId' => $accountCoreInfoDto->id]);
     }
 
+    /**
+     * @throws Exception
+     */
     public function createMcpInstanceForAccount(AccountCoreInfoDto $accountCoreInfoDto, ?InstanceType $instanceType = null): McpInstance
     {
         return $this->createMcpInstance($accountCoreInfoDto->id, $instanceType);

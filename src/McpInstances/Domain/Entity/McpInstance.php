@@ -11,6 +11,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use EnterpriseToolingForSymfony\SharedBundle\DateAndTime\Service\DateAndTimeService;
 use Exception;
+use Random\RandomException;
 use Symfony\Bridge\Doctrine\IdGenerator\UuidGenerator;
 
 #[ORM\Entity]
@@ -74,10 +75,10 @@ class McpInstance
     #[ORM\Column(type: Types::STRING, length: 128, nullable: true)]
     private ?string $containerName = null;
 
-    #[ORM\Column(type: Types::STRING, enumType: ContainerState::class, nullable: false)]
+    #[ORM\Column(type: Types::STRING, nullable: false, enumType: ContainerState::class)]
     private ContainerState $containerState;
 
-    #[ORM\Column(type: Types::STRING, enumType: InstanceType::class, nullable: true)]
+    #[ORM\Column(type: Types::STRING, nullable: true, enumType: InstanceType::class)]
     private ?InstanceType $instanceType = null;
 
     #[ORM\Column(type: Types::INTEGER, nullable: false)]
@@ -167,29 +168,9 @@ class McpInstance
         return $this->vncSubdomain;
     }
 
-    public function setInstanceSlug(string $instanceSlug): void
-    {
-        $this->instanceSlug = $instanceSlug;
-    }
-
-    public function setContainerName(string $containerName): void
-    {
-        $this->containerName = $containerName;
-    }
-
     public function setContainerState(ContainerState $containerState): void
     {
         $this->containerState = $containerState;
-    }
-
-    public function setMcpSubdomain(string $mcpSubdomain): void
-    {
-        $this->mcpSubdomain = $mcpSubdomain;
-    }
-
-    public function setVncSubdomain(string $vncSubdomain): void
-    {
-        $this->vncSubdomain = $vncSubdomain;
     }
 
     public function generateDerivedFields(string $rootDomain = 'mcp-as-a-service.com'): void
@@ -210,6 +191,9 @@ class McpInstance
         }
     }
 
+    /**
+     * @throws RandomException
+     */
     public static function generateRandomPassword(int $length = 24): string
     {
         if ($length < 1) {
@@ -219,6 +203,9 @@ class McpInstance
         return rtrim(strtr(base64_encode(random_bytes($length)), '+/', '-_'), '=');
     }
 
+    /**
+     * @throws RandomException
+     */
     public static function generateRandomBearer(int $length = 32): string
     {
         if ($length < 1) {

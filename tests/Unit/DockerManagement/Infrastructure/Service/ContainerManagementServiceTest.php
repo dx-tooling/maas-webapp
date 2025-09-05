@@ -7,6 +7,7 @@ namespace App\Tests\Unit\DockerManagement\Infrastructure\Service;
 use App\DockerManagement\Infrastructure\Service\ContainerManagementService;
 use App\McpInstances\Domain\Entity\McpInstance;
 use App\McpInstances\Domain\Enum\ContainerState;
+use App\McpInstances\Domain\Enum\InstanceType;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -38,7 +39,15 @@ final class ContainerManagementServiceTest extends TestCase
     public function testCreateContainerFailsWhenNamesMissing(): void
     {
         $service  = new ContainerManagementService($this->logger, $this->params, $this->router);
-        $instance = new McpInstance('acc', 1280, 720, 24, 'vnc', 'bearer');
+        $instance = new McpInstance(
+            'acc',
+            InstanceType::PLAYWRIGHT_V1,
+            1280,
+            720,
+            24,
+            'vnc',
+            'bearer'
+        );
 
         // Intentionally do not set derived fields; createContainer should log and return false
         $this->assertFalse($service->createContainer($instance));
@@ -47,7 +56,15 @@ final class ContainerManagementServiceTest extends TestCase
     public function testDockerRunInvocationUsesWrapperInValidateOnlyMode(): void
     {
         $service  = new ContainerManagementService($this->logger, $this->params, $this->router);
-        $instance = new McpInstance('acc', 1280, 720, 24, 'vncpass', 'bearer');
+        $instance = new McpInstance(
+            'acc',
+            InstanceType::PLAYWRIGHT_V1,
+            1280,
+            720,
+            24,
+            'vncpass',
+            'bearer'
+        );
 
         // Prepare derived fields so that createContainer proceeds
         // We simulate what generateDerivedFields() does
@@ -81,7 +98,15 @@ final class ContainerManagementServiceTest extends TestCase
         $logger->expects($this->any())->method('info');
 
         $service  = new ContainerManagementService($logger, $this->params, $this->router);
-        $instance = new McpInstance('acc', 1280, 720, 24, 'vncpass', 'bearer');
+        $instance = new McpInstance(
+            'acc',
+            InstanceType::PLAYWRIGHT_V1,
+            1280,
+            720,
+            24,
+            'vncpass',
+            'bearer'
+        );
 
         $r      = new ReflectionClass($instance);
         $idProp = $r->getProperty('id');
@@ -113,9 +138,17 @@ final class ContainerManagementServiceTest extends TestCase
             ->with($this->stringContains('inspect'));
 
         $service  = new ContainerManagementService($logger, $this->params, $this->router);
-        $instance = new McpInstance('acc', 1280, 720, 24, 'vncpass', 'bearer');
-        $r        = new ReflectionClass($instance);
-        $idProp   = $r->getProperty('id');
+        $instance = new McpInstance(
+            'acc',
+            InstanceType::PLAYWRIGHT_V1,
+            1280,
+            720,
+            24,
+            'vncpass',
+            'bearer'
+        );
+        $r      = new ReflectionClass($instance);
+        $idProp = $r->getProperty('id');
         $idProp->setAccessible(true);
         $idProp->setValue($instance, '00000000-0000-0000-0000-000000000abc');
         $instance->generateDerivedFields('mcp-as-a-service.com');

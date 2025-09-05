@@ -22,14 +22,16 @@ class McpInstance
      * @throws Exception
      */
     public function __construct(
-        string $accountCoreId,
-        int    $screenWidth,
-        int    $screenHeight,
-        int    $colorDepth,
-        string $vncPassword,
-        string $mcpBearer
+        string       $accountCoreId,
+        InstanceType $instanceType,
+        int          $screenWidth,
+        int          $screenHeight,
+        int          $colorDepth,
+        string       $vncPassword,
+        string       $mcpBearer
     ) {
         $this->accountCoreId = $accountCoreId;
+        $this->instanceType  = $instanceType;
         $this->screenWidth   = $screenWidth;
         $this->screenHeight  = $screenHeight;
         $this->colorDepth    = $colorDepth;
@@ -79,7 +81,7 @@ class McpInstance
     private ContainerState $containerState;
 
     #[ORM\Column(type: Types::STRING, nullable: true, enumType: InstanceType::class)]
-    private ?InstanceType $instanceType = null;
+    private ?InstanceType $instanceType;
 
     #[ORM\Column(type: Types::INTEGER, nullable: false)]
     private int $screenWidth;
@@ -124,13 +126,8 @@ class McpInstance
 
     public function getInstanceType(): InstanceType
     {
-        // For pre-existing rows from the BEFORE era, treat null as LEGACY
+        // For pre-existing rows from the before-multiple-instance-types era, treat null as LEGACY
         return $this->instanceType ?? InstanceType::_LEGACY;
-    }
-
-    public function setInstanceType(InstanceType $instanceType): void
-    {
-        $this->instanceType = $instanceType;
     }
 
     public function getScreenWidth(): int

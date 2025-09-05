@@ -41,9 +41,8 @@ class InstancesController extends AbstractAccountAwareController
         if ($instance) {
             try {
                 $processStatus = $this->domainService->getProcessStatusForInstance($instance->getId() ?? '');
-            } catch (Exception $e) {
+            } catch (Exception) {
                 // If there's an error getting process status, we'll show the instance without status
-                $processStatus = null;
             }
         }
 
@@ -57,6 +56,9 @@ class InstancesController extends AbstractAccountAwareController
         );
     }
 
+    /**
+     * @throws Exception
+     */
     #[Route(
         path   : '/account/mcp-instances/create',
         name   : 'mcp_instances.presentation.create',

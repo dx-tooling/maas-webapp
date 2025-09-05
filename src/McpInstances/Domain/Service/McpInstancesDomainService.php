@@ -35,8 +35,10 @@ readonly class McpInstancesDomainService
     /**
      * @throws Exception
      */
-    public function createMcpInstance(string $accountCoreId, ?InstanceType $instanceType = null): McpInstance
-    {
+    public function createMcpInstance(
+        string        $accountCoreId,
+        ?InstanceType $instanceType = null
+    ): McpInstance {
         // Check if instance already exists
         $repo     = $this->entityManager->getRepository(McpInstance::class);
         $existing = $repo->findOneBy(['accountCoreId' => $accountCoreId]);
@@ -53,15 +55,13 @@ readonly class McpInstancesDomainService
 
         $instance = new McpInstance(
             $accountCoreId,
+            $instanceType ?? InstanceType::PLAYWRIGHT_V1,
             $screenWidth,
             $screenHeight,
             $colorDepth,
             $vncPassword,
             $mcpBearer
         );
-
-        // Assign instance type; default to PLAYWRIGHT_V1 for new instances
-        $instance->setInstanceType($instanceType ?? InstanceType::PLAYWRIGHT_V1);
 
         $this->entityManager->persist($instance);
         $this->entityManager->flush();
@@ -181,13 +181,16 @@ readonly class McpInstancesDomainService
     /**
      * @throws Exception
      */
-    public function createMcpInstanceForAccount(AccountCoreInfoDto $accountCoreInfoDto, ?InstanceType $instanceType = null): McpInstance
-    {
+    public function createMcpInstanceForAccount(
+        AccountCoreInfoDto $accountCoreInfoDto,
+        ?InstanceType      $instanceType = null
+    ): McpInstance {
         return $this->createMcpInstance($accountCoreInfoDto->id, $instanceType);
     }
 
-    public function stopAndRemoveMcpInstanceForAccount(AccountCoreInfoDto $accountCoreInfoDto): void
-    {
+    public function stopAndRemoveMcpInstanceForAccount(
+        AccountCoreInfoDto $accountCoreInfoDto
+    ): void {
         $this->stopAndRemoveMcpInstance($accountCoreInfoDto->id);
     }
 

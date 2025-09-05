@@ -7,6 +7,7 @@ namespace App\Tests\Unit;
 use App\DockerManagement\Facade\DockerManagementFacadeInterface;
 use App\McpInstances\Domain\Entity\McpInstance;
 use App\McpInstances\Domain\Enum\ContainerState;
+use App\McpInstances\Domain\Enum\InstanceType;
 use App\McpInstances\Domain\Service\McpInstancesDomainService;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
@@ -33,7 +34,8 @@ final class McpInstancesDomainServiceTest extends TestCase
         $this->repo         = $this->createMock(EntityRepository::class);
         $this->dockerFacade = $this->createMock(DockerManagementFacadeInterface::class);
 
-        $this->em->method('getRepository')->willReturn($this->repo);
+        $this->em->method('getRepository')
+                 ->willReturn($this->repo);
 
         $this->service = new McpInstancesDomainService($this->em, $this->dockerFacade);
     }
@@ -43,11 +45,15 @@ final class McpInstancesDomainServiceTest extends TestCase
         $accountId = 'account-uuid-123';
 
         // No existing instance
-        $this->repo->method('findOneBy')->with(['accountCoreId' => $accountId])->willReturn(null);
+        $this->repo->method('findOneBy')
+                   ->with(['accountCoreId' => $accountId])
+                   ->willReturn(null);
 
         // Persist/flush are called; we do not assert exact counts to keep the test resilient
-        $this->em->expects($this->atLeastOnce())->method('persist');
-        $this->em->expects($this->atLeastOnce())->method('flush');
+        $this->em->expects($this->atLeastOnce())
+                 ->method('persist');
+        $this->em->expects($this->atLeastOnce())
+                 ->method('flush');
 
         // Docker facade returns success
         $this->dockerFacade
@@ -64,12 +70,18 @@ final class McpInstancesDomainServiceTest extends TestCase
     {
         $accountId = 'account-uuid-456';
 
-        $this->repo->method('findOneBy')->with(['accountCoreId' => $accountId])->willReturn(null);
+        $this->repo->method('findOneBy')
+                   ->with(['accountCoreId' => $accountId])
+                   ->willReturn(null);
 
         // Track that remove is called when docker creation fails
-        $this->em->expects($this->atLeastOnce())->method('persist');
-        $this->em->expects($this->atLeastOnce())->method('flush');
-        $this->em->expects($this->once())->method('remove')->with($this->isInstanceOf(McpInstance::class));
+        $this->em->expects($this->atLeastOnce())
+                 ->method('persist');
+        $this->em->expects($this->atLeastOnce())
+                 ->method('flush');
+        $this->em->expects($this->once())
+                 ->method('remove')
+                 ->with($this->isInstanceOf(McpInstance::class));
 
         $this->dockerFacade
             ->expects($this->once())
@@ -86,9 +98,19 @@ final class McpInstancesDomainServiceTest extends TestCase
     public function testStopAndRemoveCallsDockerAndRemovesEntity(): void
     {
         $accountId = 'account-uuid-789';
-        $existing  = new McpInstance($accountId, 1280, 720, 24, 'vncpass', 'bearer');
+        $existing  = new McpInstance(
+            $accountId,
+            InstanceType::PLAYWRIGHT_V1,
+            1280,
+            720,
+            24,
+            'vncpass',
+            'bearer'
+        );
 
-        $this->repo->method('findOneBy')->with(['accountCoreId' => $accountId])->willReturn($existing);
+        $this->repo->method('findOneBy')
+                   ->with(['accountCoreId' => $accountId])
+                   ->willReturn($existing);
 
         $this->dockerFacade
             ->expects($this->once())
@@ -96,8 +118,11 @@ final class McpInstancesDomainServiceTest extends TestCase
             ->with($existing)
             ->willReturn(true);
 
-        $this->em->expects($this->once())->method('remove')->with($existing);
-        $this->em->expects($this->atLeastOnce())->method('flush');
+        $this->em->expects($this->once())
+                 ->method('remove')
+                 ->with($existing);
+        $this->em->expects($this->atLeastOnce())
+                 ->method('flush');
 
         $this->service->stopAndRemoveMcpInstance($accountId);
     }
@@ -105,9 +130,19 @@ final class McpInstancesDomainServiceTest extends TestCase
     public function testRestartMcpInstanceUpdatesStateOnSuccess(): void
     {
         $instanceId = 'instance-uuid-1';
-        $existing   = new McpInstance('acc', 1280, 720, 24, 'vncpass', 'bearer');
+        $existing   = new McpInstance(
+            'acc',
+            InstanceType::PLAYWRIGHT_V1,
+            1280,
+            720,
+            24,
+            'vncpass',
+            'bearer'
+        );
 
-        $this->repo->method('find')->with($instanceId)->willReturn($existing);
+        $this->repo->method('find')
+                   ->with($instanceId)
+                   ->willReturn($existing);
 
         $this->dockerFacade
             ->expects($this->once())
@@ -115,7 +150,8 @@ final class McpInstancesDomainServiceTest extends TestCase
             ->with($existing)
             ->willReturn(true);
 
-        $this->em->expects($this->atLeastOnce())->method('flush');
+        $this->em->expects($this->atLeastOnce())
+                 ->method('flush');
 
         $result = $this->service->restartMcpInstance($instanceId);
 
@@ -126,9 +162,19 @@ final class McpInstancesDomainServiceTest extends TestCase
     public function testRestartMcpInstanceSetsErrorOnFailure(): void
     {
         $instanceId = 'instance-uuid-2';
-        $existing   = new McpInstance('acc', 1280, 720, 24, 'vncpass', 'bearer');
+        $existing   = new McpInstance(
+            'acc',
+            InstanceType::PLAYWRIGHT_V1,
+            1280,
+            720,
+            24,
+            'vncpass',
+            'bearer'
+        );
 
-        $this->repo->method('find')->with($instanceId)->willReturn($existing);
+        $this->repo->method('find')
+                   ->with($instanceId)
+                   ->willReturn($existing);
 
         $this->dockerFacade
             ->expects($this->once())
@@ -136,7 +182,8 @@ final class McpInstancesDomainServiceTest extends TestCase
             ->with($existing)
             ->willReturn(false);
 
-        $this->em->expects($this->atLeastOnce())->method('flush');
+        $this->em->expects($this->atLeastOnce())
+                 ->method('flush');
 
         $result = $this->service->restartMcpInstance($instanceId);
 

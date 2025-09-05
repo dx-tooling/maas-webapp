@@ -416,9 +416,6 @@ readonly class ContainerManagementService
             return 'maas-mcp-instance';
         }
 
-        // Convert enum value like 'playwright_v1' -> 'playwright-v1'
-        $suffix = str_replace('_', '-', $instanceType->value);
-
-        return 'maas-mcp-instance-' . $suffix;
+        return 'maas-mcp-instance-' . $instanceType->value;
     }
 }

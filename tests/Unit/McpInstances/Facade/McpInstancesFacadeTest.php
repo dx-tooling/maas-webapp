@@ -7,6 +7,7 @@ namespace App\Tests\Unit\McpInstances\Facade;
 use App\Account\Facade\Dto\AccountCoreInfoDto;
 use App\DockerManagement\Facade\DockerManagementFacadeInterface;
 use App\McpInstances\Domain\Entity\McpInstance;
+use App\McpInstances\Domain\Enum\InstanceType;
 use App\McpInstances\Domain\Service\McpInstancesDomainService;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
@@ -23,7 +24,15 @@ final class McpInstancesFacadeTest extends TestCase
         $accountInfo = new AccountCoreInfoDto('acc-id');
 
         $em->method('getRepository')->willReturn($repo);
-        $inst = new McpInstance('acc-id', 1280, 720, 24, 'v', 'b');
+        $inst = new McpInstance(
+            'acc-id',
+            InstanceType::PLAYWRIGHT_V1,
+            1280,
+            720,
+            24,
+            'v',
+            'b'
+        );
         $repo->method('findBy')->with(['accountCoreId' => 'acc-id'])->willReturn([$inst]);
 
         $infos = $domain->getMcpInstanceInfosForAccount($accountInfo);

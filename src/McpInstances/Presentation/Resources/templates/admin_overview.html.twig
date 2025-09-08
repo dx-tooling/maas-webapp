@@ -108,14 +108,14 @@
                                 </td>
                                 <td class="etfswui-table-cell">
                                     <div class="flex items-center gap-2">
-                                        {% if data.instance.containerState.value == 'running' %}
+                                        {% if data.instance.containerState == 'running' %}
                                             <span class="etfswui-badge etfswui-badge-success">Running</span>
-                                        {% elseif data.instance.containerState.value == 'created' %}
+                                        {% elseif data.instance.containerState == 'created' %}
                                             <span class="etfswui-badge etfswui-badge-warning">Created</span>
-                                        {% elseif data.instance.containerState.value == 'stopped' %}
+                                        {% elseif data.instance.containerState == 'stopped' %}
                                             <span class="etfswui-badge etfswui-badge-error">Stopped</span>
                                         {% else %}
-                                            <span class="etfswui-badge etfswui-badge-error">{{ data.instance.containerState.value|title }}</span>
+                                            <span class="etfswui-badge etfswui-badge-error">{{ data.instance.containerState|title }}</span>
                                         {% endif %}
                                     </div>
                                 </td>

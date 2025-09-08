@@ -6,7 +6,8 @@ namespace App\McpInstances\Presentation\Controller;
 
 use App\Common\Presentation\Controller\AbstractAccountAwareController;
 use App\McpInstances\Domain\Enum\InstanceType;
-use App\McpInstances\Domain\Service\McpInstancesDomainService;
+use App\McpInstances\Domain\Service\McpInstancesDomainServiceInterface;
+use App\McpInstances\Presentation\McpInstancesPresentationService;
 use Exception;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -19,7 +20,8 @@ use ValueError;
 class InstancesController extends AbstractAccountAwareController
 {
     public function __construct(
-        private McpInstancesDomainService $domainService
+        private McpInstancesDomainServiceInterface $domainService,
+        private McpInstancesPresentationService    $presentationService,
     ) {
     }
 
@@ -31,27 +33,16 @@ class InstancesController extends AbstractAccountAwareController
     public function dashboardAction(): Response
     {
         $accountCoreInfoDto = $this->getAuthenticatedAccountCoreInfo();
-        $instances          = $this->domainService->getMcpInstanceInfosForAccount($accountCoreInfoDto);
-        $instance           = $instances[0] ?? null;
-        $instanceId         = str_replace('-', '', $instance?->getId() ?? '');
-        $availableTypes     = array_filter(InstanceType::cases(), static fn (InstanceType $t) => $t !== InstanceType::_LEGACY);
+        $dashboardData      = $this->presentationService->getDashboardData($accountCoreInfoDto);
 
-        // Get process status if instance exists
-        $processStatus = null;
-        if ($instance) {
-            try {
-                $processStatus = $this->domainService->getProcessStatusForInstance($instance->getId() ?? '');
-            } catch (Exception) {
-                // If there's an error getting process status, we'll show the instance without status
-            }
-        }
+        $instanceId = str_replace('-', '', $dashboardData->instance->id ?? '');
 
         return $this->render(
             '@mcp_instances.presentation/instances_dashboard.html.twig', [
-                'instance'             => $instance,
+                'instance'             => $dashboardData->instance,
                 'instance_id_nohyphen' => $instanceId,
-                'process_status'       => $processStatus,
-                'available_types'      => $availableTypes,
+                'process_status'       => $dashboardData->processStatus,
+                'available_types'      => $dashboardData->availableTypes,
             ]
         );
     }

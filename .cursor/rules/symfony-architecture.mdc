@@ -59,6 +59,7 @@
     - Simple, one-dimensional key-value pairs, but only in very local contexts (e.g., passing between two methods in the same class, where a DTO would be overkill).
   - **Associative arrays must never be used as pseudo-objects or data structures that cross class or feature boundaries.**
   - All structured data passed between classes, layers, or features must use proper DTOs or value objects.
+  - **Classes shall never emit associative arrays, especially not multi-dimensional ones, unless it's in a very local context (e.g. private method in a class).**
 - Example:
   ```php
   // ✅ Correct: List of DTOs
@@ -77,6 +78,35 @@
           ]
       ]
   ]; // Use DTOs instead!
+  ```
+
+## Cross-Layer Dependencies (Hard Rule)
+- **Elements from layer A can reference and use elements from layer B, as long as they are either interfaces or values (enums, DTOs, but not entities).**
+- **Everything that can be easily mocked (interfaces) or does not need to be mocked (DTOs, Enums) can be used from other layers.**
+- **Example: Presentation layer can directly use interfaces, DTOs and enums from Domain, and doesn't need to replicate them, if these happen to serve the interests of Presentation anyway.**
+- **For everything else, Presentation can still create its own elements and translate/transpose accordingly.**
+- **Domain entities should never be exposed to Presentation layer - use DTOs instead.**
+- Example:
+  ```php
+  // ✅ Correct: Presentation using Domain interfaces and DTOs
+  class PresentationService {
+      public function __construct(
+          private DomainServiceInterface $domainService, // Interface from Domain
+          private SomeEnum $enum, // Enum from Domain
+      ) {}
+
+      public function getData(): PresentationDto {
+          $domainDto = $this->domainService->getData(); // DTO from Domain
+          return $this->mapToPresentation($domainDto);
+      }
+  }
+
+  // ❌ Incorrect: Presentation using Domain entities
+  class PresentationService {
+      public function __construct(
+          private DomainEntity $entity, // Entity from Domain - NOT ALLOWED
+      ) {}
+  }
   ```
 
 ## PHP/Symfony Best Practices

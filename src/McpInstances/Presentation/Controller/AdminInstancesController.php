@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace App\McpInstances\Presentation\Controller;
 
 use App\Common\Presentation\Controller\AbstractAccountAwareController;
-use App\McpInstances\Domain\Service\McpInstancesDomainService;
+use App\McpInstances\Domain\Service\McpInstancesDomainServiceInterface;
+use App\McpInstances\Presentation\McpInstancesPresentationService;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -17,7 +18,8 @@ use Throwable;
 class AdminInstancesController extends AbstractAccountAwareController
 {
     public function __construct(
-        private readonly McpInstancesDomainService $domainService
+        private readonly McpInstancesDomainServiceInterface $domainService,
+        private readonly McpInstancesPresentationService    $presentationService,
     ) {
     }
 
@@ -28,7 +30,7 @@ class AdminInstancesController extends AbstractAccountAwareController
     )]
     public function overviewAction(): Response
     {
-        $instances = $this->domainService->getMcpInstanceAdminOverview();
+        $instances = $this->presentationService->getAdminOverviewData();
 
         return $this->render(
             '@mcp_instances.presentation/admin_overview.html.twig',
@@ -45,7 +47,7 @@ class AdminInstancesController extends AbstractAccountAwareController
     )]
     public function detailAction(string $id, Request $request): Response
     {
-        $instance = $this->domainService->getMcpInstanceById($id);
+        $instance = $this->presentationService->getMcpInstanceInfoById($id);
 
         if ($instance === null) {
             return $this->redirectToRoute('mcp_instances.presentation.admin_overview');
@@ -54,7 +56,7 @@ class AdminInstancesController extends AbstractAccountAwareController
         // Attempt to fetch process status and container endpoints; ignore failures for resilience
         $processStatus = null;
         try {
-            $processStatus = $this->domainService->getProcessStatusForInstance($instance->getId() ?? '');
+            $processStatus = $this->presentationService->getProcessStatusForInstance($instance->id);
         } catch (Throwable) {
             $processStatus = null;
         }

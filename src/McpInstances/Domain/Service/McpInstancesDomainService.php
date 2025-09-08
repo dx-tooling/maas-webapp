@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\McpInstances\Domain\Service;
 
-use App\Account\Domain\Entity\AccountCore;
 use App\Account\Facade\Dto\AccountCoreInfoDto;
 use App\DockerManagement\Facade\DockerManagementFacadeInterface;
+use App\McpInstances\Domain\Dto\ProcessStatusContainerDto;
+use App\McpInstances\Domain\Dto\ProcessStatusDto;
+use App\McpInstances\Domain\Dto\ServiceStatusDto;
 use App\McpInstances\Domain\Entity\McpInstance;
 use App\McpInstances\Domain\Enum\ContainerState;
 use App\McpInstances\Domain\Enum\InstanceType;
@@ -14,7 +16,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use LogicException;
 
-readonly class McpInstancesDomainService
+readonly class McpInstancesDomainService implements McpInstancesDomainServiceInterface
 {
     public function __construct(
         private EntityManagerInterface          $entityManager,
@@ -196,28 +198,8 @@ readonly class McpInstancesDomainService
 
     /**
      * Get process status for a specific MCP instance.
-     *
-     * @return array{
-     *   instanceId: string,
-     *   processes: array{
-     *     xvfb: array<string, mixed>|null,
-     *     mcp: array<string, mixed>|null,
-     *     vnc: array<string, mixed>|null,
-     *     websocket: array<string, mixed>|null
-     *   },
-     *   allRunning: bool,
-     *   containerStatus: array{
-     *     containerName: string,
-     *     state: string,
-     *     healthy: bool,
-     *     mcpUp: bool,
-     *     noVncUp: bool,
-     *     mcpEndpoint: string|null,
-     *     vncEndpoint: string|null
-     *   }
-     * }
      */
-    public function getProcessStatusForInstance(string $instanceId): array
+    public function getProcessStatusForInstance(string $instanceId): ProcessStatusDto
     {
         $repo     = $this->entityManager->getRepository(McpInstance::class);
         $instance = $repo->find($instanceId);
@@ -237,90 +219,28 @@ readonly class McpInstancesDomainService
 
         $allRunning = $xvfbUp && $mcpUp && $noVncUp && $websocketUp;
 
-        return [
-            'instanceId' => $instance->getId() ?? '',
-            'processes'  => [
-                'xvfb'      => $xvfbUp ? ['status' => 'running'] : null,
-                'mcp'       => $mcpUp ? ['status' => 'running'] : null,
-                'vnc'       => $noVncUp ? ['status' => 'running'] : null,
-                'websocket' => $websocketUp ? ['status' => 'running'] : null,
-            ],
-            'allRunning'      => $allRunning,
-            'containerStatus' => [
-                'containerName' => $containerStatus->containerName,
-                'state'         => $containerStatus->state,
-                'healthy'       => $containerStatus->healthy,
-                'mcpUp'         => $mcpUp,
-                'noVncUp'       => $noVncUp,
-                'mcpEndpoint'   => $containerStatus->mcpEndpoint,
-                'vncEndpoint'   => $containerStatus->vncEndpoint,
-            ]
-        ];
-    }
+        $processes = new ServiceStatusDto(
+            $xvfbUp ? 'running' : null,
+            $mcpUp ? 'running' : null,
+            $noVncUp ? 'running' : null,
+            $websocketUp ? 'running' : null,
+        );
 
-    /**
-     * Get comprehensive admin overview of all MCP instances with account information.
-     * This method requires ROLE_ADMIN access.
-     *
-     * @return array<array{
-     *   instance: McpInstance,
-     *   account: AccountCore,
-     *   isHealthy: bool,
-     *   mcpEndpoint: string|null,
-     *   vncEndpoint: string|null
-     * }>
-     */
-    public function getMcpInstanceAdminOverview(): array
-    {
-        // Get all MCP instances first
-        $instances = $this->getAllMcpInstances();
+        $containerStatusDto = new ProcessStatusContainerDto(
+            $containerStatus->containerName,
+            $containerStatus->state,
+            $containerStatus->healthy,
+            $mcpUp,
+            $noVncUp,
+            $containerStatus->mcpEndpoint,
+            $containerStatus->vncEndpoint,
+        );
 
-        if (empty($instances)) {
-            return [];
-        }
-
-        $overviewData = [];
-        foreach ($instances as $instance) {
-            // Get the account for this instance
-            $accountRepo = $this->entityManager->getRepository(AccountCore::class);
-            $account     = $accountRepo->find($instance->getAccountCoreId());
-
-            if (!$account) {
-                continue; // Skip if account not found
-            }
-
-            // Get container status for health check
-            try {
-                $containerStatus = $this->dockerFacade->getContainerStatus($instance);
-                $isHealthy       = $containerStatus->healthy;
-                $mcpEndpoint     = $containerStatus->mcpEndpoint;
-                $vncEndpoint     = $containerStatus->vncEndpoint;
-            } catch (Exception $e) {
-                // If Docker facade fails, use default values
-                $isHealthy   = false;
-                $mcpEndpoint = null;
-                $vncEndpoint = null;
-            }
-
-            $overviewData[] = [
-                'instance'    => $instance,
-                'account'     => $account,
-                'isHealthy'   => $isHealthy,
-                'mcpEndpoint' => $mcpEndpoint,
-                'vncEndpoint' => $vncEndpoint,
-            ];
-        }
-
-        // Sort by account creation date (newest first), then instance creation date
-        usort($overviewData, function (array $a, array $b) {
-            $accountCompare = $b['account']->getCreatedAt() <=> $a['account']->getCreatedAt();
-            if ($accountCompare !== 0) {
-                return $accountCompare;
-            }
-
-            return $b['instance']->getCreatedAt() <=> $a['instance']->getCreatedAt();
-        });
-
-        return $overviewData;
+        return new ProcessStatusDto(
+            $instance->getId() ?? '',
+            $processes,
+            $allRunning,
+            $containerStatusDto,
+        );
     }
 }

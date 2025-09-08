@@ -1,4 +1,4 @@
-# MCP Instance Docker Image
+# MCP Instance Docker Image — Legacy Playwright
 
 This Docker image contains a complete Playwright MCP environment with VNC access.
 

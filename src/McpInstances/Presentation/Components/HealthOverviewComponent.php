@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace App\McpInstances\Presentation\Components;
 
-use App\McpInstances\Domain\Service\McpInstancesDomainService;
+use App\McpInstances\Domain\Dto\ProcessStatusDto;
+use App\McpInstances\Presentation\McpInstancesPresentationService;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
 use Symfony\UX\LiveComponent\Attribute\LiveProp;
 use Symfony\UX\LiveComponent\DefaultActionTrait;
@@ -20,33 +21,12 @@ final class HealthOverviewComponent
     #[LiveProp(writable: false)]
     public string $instanceId;
 
-    public function __construct(private readonly McpInstancesDomainService $domainService)
+    public function __construct(private readonly McpInstancesPresentationService $presentationService)
     {
     }
 
-    /**
-     * @return array{
-     *   instanceId: string,
-     *   processes: array{
-     *     xvfb: array<string, mixed>|null,
-     *     mcp: array<string, mixed>|null,
-     *     vnc: array<string, mixed>|null,
-     *     websocket: array<string, mixed>|null
-     *   },
-     *   allRunning: bool,
-     *   containerStatus: array{
-     *     containerName: string,
-     *     state: string,
-     *     healthy: bool,
-     *     mcpUp: bool,
-     *     noVncUp: bool,
-     *     mcpEndpoint: string|null,
-     *     vncEndpoint: string|null
-     *   }
-     * }
-     */
-    public function getStatus(): array
+    public function getStatus(): ProcessStatusDto
     {
-        return $this->domainService->getProcessStatusForInstance($this->instanceId);
+        return $this->presentationService->getProcessStatusForInstance($this->instanceId);
     }
 }

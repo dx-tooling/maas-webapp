@@ -15,7 +15,7 @@
         </div>
         <div class="etfswui-card-content">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {% set p = this.status.processes %}
+                {% set p = status.processes %}
                 {# Xvfb #}
                 <div class="flex items-center justify-between p-4 rounded-md border {{ p.xvfb ? 'bg-green-50 dark:bg-green-900/10 border-green-200 dark:border-green-800' : 'bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-800' }}">
                     <div class="flex items-center gap-3">

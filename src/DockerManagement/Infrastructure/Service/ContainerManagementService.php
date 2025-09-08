@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\DockerManagement\Infrastructure\Service;
 
-use App\McpInstances\Domain\Config\Service\InstanceTypesConfigService;
+use App\McpInstances\Domain\Config\Service\InstanceTypesConfigServiceInterface;
 use App\McpInstances\Domain\Entity\McpInstance;
 use App\McpInstances\Domain\Enum\ContainerState;
 use App\McpInstances\Domain\Enum\InstanceType;
@@ -17,10 +17,10 @@ use Symfony\Component\Routing\RouterInterface;
 readonly class ContainerManagementService
 {
     public function __construct(
-        private LoggerInterface            $logger,
-        private ParameterBagInterface      $params,
-        private RouterInterface            $router,
-        private InstanceTypesConfigService $instanceTypesConfigService
+        private LoggerInterface                     $logger,
+        private ParameterBagInterface               $params,
+        private RouterInterface                     $router,
+        private InstanceTypesConfigServiceInterface $instanceTypesConfigService
     ) {
     }
 

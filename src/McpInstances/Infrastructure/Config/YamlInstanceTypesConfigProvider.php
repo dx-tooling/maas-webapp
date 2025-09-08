@@ -11,7 +11,6 @@ use App\McpInstances\Domain\Config\Dto\InstanceDockerConfig;
 use App\McpInstances\Domain\Config\Dto\InstanceTypeConfig;
 use App\McpInstances\Domain\Config\Dto\McpInstanceTypesConfig;
 use App\McpInstances\Domain\Config\Exception\InvalidInstanceTypesConfigException;
-use App\McpInstances\Domain\Config\Service\InstanceTypesConfigProviderInterface;
 use App\McpInstances\Domain\Enum\InstanceType;
 use Symfony\Component\Yaml\Yaml;
 use ValueError;

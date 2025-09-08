@@ -6,7 +6,7 @@ namespace App\DockerManagement\Facade;
 
 use App\DockerManagement\Facade\Dto\ContainerStatusDto;
 use App\DockerManagement\Infrastructure\Service\ContainerManagementService;
-use App\McpInstances\Domain\Config\Service\InstanceTypesConfigService;
+use App\McpInstances\Domain\Config\Service\InstanceTypesConfigServiceInterface;
 use App\McpInstances\Domain\Dto\EndpointStatusDto;
 use App\McpInstances\Domain\Dto\InstanceStatusDto;
 use App\McpInstances\Domain\Entity\McpInstance;
@@ -15,8 +15,8 @@ use App\McpInstances\Domain\Enum\ContainerState;
 readonly class DockerManagementFacade implements DockerManagementFacadeInterface
 {
     public function __construct(
-        private ContainerManagementService $dockerDomainService,
-        private InstanceTypesConfigService $configService
+        private ContainerManagementService          $dockerDomainService,
+        private InstanceTypesConfigServiceInterface $configService
     ) {
     }
 

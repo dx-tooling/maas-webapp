@@ -7,8 +7,9 @@ namespace App\McpInstances\Domain\Config\Service;
 use App\McpInstances\Domain\Config\Dto\EndpointConfig;
 use App\McpInstances\Domain\Config\Dto\InstanceTypeConfig;
 use App\McpInstances\Domain\Enum\InstanceType;
+use App\McpInstances\Infrastructure\Config\InstanceTypesConfigProviderInterface;
 
-final readonly class InstanceTypesConfigService
+final readonly class InstanceTypesConfigService implements InstanceTypesConfigServiceInterface
 {
     public function __construct(
         private InstanceTypesConfigProviderInterface $provider
@@ -23,8 +24,6 @@ final readonly class InstanceTypesConfigService
     }
 
     /**
-     * Build Traefik labels based on endpoints; forwardauth if auth == 'bearer'.
-     *
      * @return string[]
      */
     public function buildTraefikLabels(

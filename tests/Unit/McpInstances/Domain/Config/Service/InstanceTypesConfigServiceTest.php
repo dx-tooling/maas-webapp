@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Tests\Unit\McpInstances\Domain;
+namespace App\Tests\Unit\McpInstances\Domain\Config\Service;
 
 use App\McpInstances\Domain\Config\Dto\EndpointConfig;
 use App\McpInstances\Domain\Config\Dto\InstanceDockerConfig;

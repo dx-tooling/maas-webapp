@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Tests\Unit;
+namespace App\Tests\Unit\McpInstances\Domain\Service;
 
+use App\Account\Facade\Dto\AccountCoreInfoDto;
 use App\DockerManagement\Facade\DockerManagementFacadeInterface;
 use App\McpInstances\Domain\Entity\McpInstance;
 use App\McpInstances\Domain\Enum\ContainerState;
@@ -189,5 +190,31 @@ final class McpInstancesDomainServiceTest extends TestCase
 
         $this->assertFalse($result);
         $this->assertSame(ContainerState::ERROR, $existing->getContainerState());
+    }
+
+    public function testGetMcpInstanceInfosForAccountDelegatesToRepo(): void
+    {
+        $em          = $this->createMock(EntityManagerInterface::class);
+        $repo        = $this->createMock(EntityRepository::class);
+        $docker      = $this->createMock(DockerManagementFacadeInterface::class);
+        $domain      = new McpInstancesDomainService($em, $docker);
+        $accountInfo = new AccountCoreInfoDto('acc-id');
+
+        $em->method('getRepository')->willReturn($repo);
+        $inst = new McpInstance(
+            'acc-id',
+            InstanceType::PLAYWRIGHT_V1,
+            1280,
+            720,
+            24,
+            'v',
+            'b'
+        );
+        $repo->method('findBy')->with(['accountCoreId' => 'acc-id'])->willReturn([$inst]);
+
+        $infos = $domain->getMcpInstanceInfosForAccount($accountInfo);
+
+        $this->assertCount(1, $infos);
+        $this->assertSame($inst->getVncPassword(), $infos[0]->getVncPassword());
     }
 }

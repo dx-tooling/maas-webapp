@@ -20,8 +20,8 @@ use ValueError;
 class InstancesController extends AbstractAccountAwareController
 {
     public function __construct(
-        private McpInstancesDomainServiceInterface $domainService,
-        private McpInstancesPresentationService    $presentationService,
+        private readonly McpInstancesDomainServiceInterface $domainService,
+        private readonly McpInstancesPresentationService    $presentationService,
     ) {
     }
 

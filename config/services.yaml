@@ -20,6 +20,13 @@ services:
             - "../src/Entity/"
             - "../src/Kernel.php"
 
+    App\McpInstances\Domain\Config\Service\InstanceTypesConfigProviderInterface:
+        alias: App\McpInstances\Infrastructure\Config\YamlInstanceTypesConfigProvider
+
+    App\McpInstances\Infrastructure\Config\YamlInstanceTypesConfigProvider:
+        arguments:
+            $configFilePath: "%kernel.project_dir%/config/mcp_instance_type_configurations.yaml"
+
     Symfony\Component\HttpFoundation\Session\Storage\Handler\PdoSessionHandler:
         arguments:
             - "%env(resolve:DATABASE_PRODUCT)%://%env(resolve:DATABASE_USER)%:%env(resolve:DATABASE_PASSWORD)%@%env(resolve:DATABASE_HOST)%:%env(resolve:DATABASE_PORT)%/%env(resolve:DATABASE_DB)%?serverVersion=%env(resolve:DATABASE_SERVERVERSION)%"

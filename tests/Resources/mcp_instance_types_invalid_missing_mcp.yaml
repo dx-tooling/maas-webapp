@@ -1,0 +1,9 @@
+mcp_instance_types:
+    playwright-v1:
+        display_name: "Playwright MCP v1"
+        docker:
+            image: "maas-mcp-instance-playwright-v1"
+        endpoints:
+            vnc:
+                port: 6080
+                external_paths: ["/vnc.html"]

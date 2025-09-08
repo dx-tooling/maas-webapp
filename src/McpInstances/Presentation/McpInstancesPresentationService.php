@@ -7,6 +7,8 @@ namespace App\McpInstances\Presentation;
 use App\Account\Domain\Entity\AccountCore;
 use App\Account\Facade\Dto\AccountCoreInfoDto;
 use App\DockerManagement\Facade\DockerManagementFacadeInterface;
+use App\McpInstances\Domain\Config\Service\InstanceTypesConfigService;
+use App\McpInstances\Domain\Dto\InstanceStatusDto;
 use App\McpInstances\Domain\Dto\ProcessStatusDto;
 use App\McpInstances\Domain\Enum\InstanceType;
 use App\McpInstances\Domain\Service\McpInstancesDomainServiceInterface;
@@ -23,6 +25,7 @@ readonly class McpInstancesPresentationService
         private McpInstancesDomainServiceInterface $domainService,
         private EntityManagerInterface             $entityManager,
         private DockerManagementFacadeInterface    $dockerFacade,
+        private InstanceTypesConfigService         $typesConfig,
     ) {
     }
 
@@ -36,6 +39,7 @@ readonly class McpInstancesPresentationService
 
         $instanceDto   = null;
         $processStatus = null;
+        $genericStatus = null;
 
         if ($instance) {
             $instanceDto = $this->mapMcpInstanceToDto($instance);
@@ -44,6 +48,12 @@ readonly class McpInstancesPresentationService
                 $processStatus = $this->getProcessStatusForInstance($instance->getId() ?? '');
             } catch (Exception) {
                 // If there's an error getting process status, we'll show the instance without status
+            }
+
+            try {
+                $genericStatus = $this->getInstanceStatusForInstance($instance->getId() ?? '');
+            } catch (Exception) {
+                $genericStatus = null;
             }
         }
 
@@ -55,6 +65,7 @@ readonly class McpInstancesPresentationService
         return new DashboardDataDto(
             $instanceDto,
             $processStatus,
+            $genericStatus,
             $availableTypes,
         );
     }
@@ -65,6 +76,19 @@ readonly class McpInstancesPresentationService
     public function getProcessStatusForInstance(string $instanceId): ProcessStatusDto
     {
         return $this->domainService->getProcessStatusForInstance($instanceId);
+    }
+
+    /**
+     * Get generic instance status with dynamic endpoints for a specific MCP instance.
+     */
+    public function getInstanceStatusForInstance(string $instanceId): ?InstanceStatusDto
+    {
+        $instance = $this->domainService->getMcpInstanceById($instanceId);
+        if ($instance === null) {
+            return null;
+        }
+
+        return $this->dockerFacade->getInstanceStatus($instance);
     }
 
     /**
@@ -141,6 +165,13 @@ readonly class McpInstancesPresentationService
      */
     private function mapMcpInstanceToDto(\App\McpInstances\Domain\Entity\McpInstance $instance): McpInstanceInfoDto
     {
+        $typeCfg  = $this->typesConfig->getTypeConfig($instance->getInstanceType());
+        $display  = ($typeCfg !== null) ? $typeCfg->displayName : $instance->getInstanceType()->value;
+        $vncPaths = [];
+        if ($typeCfg !== null && array_key_exists('vnc', $typeCfg->endpoints)) {
+            $vncPaths = $typeCfg->endpoints['vnc']->externalPaths;
+        }
+
         return new McpInstanceInfoDto(
             $instance->getId() ?? '',
             $instance->getCreatedAt(),
@@ -149,6 +180,7 @@ readonly class McpInstancesPresentationService
             $instance->getContainerName(),
             $instance->getContainerState()->value,
             $instance->getInstanceType()->value,
+            $display,
             $instance->getScreenWidth(),
             $instance->getScreenHeight(),
             $instance->getColorDepth(),
@@ -156,6 +188,7 @@ readonly class McpInstancesPresentationService
             $instance->getMcpBearer(),
             $instance->getMcpSubdomain(),
             $instance->getVncSubdomain(),
+            $vncPaths,
         );
     }
 

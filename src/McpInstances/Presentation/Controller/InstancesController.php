@@ -42,6 +42,7 @@ class InstancesController extends AbstractAccountAwareController
                 'instance'             => $dashboardData->instance,
                 'instance_id_nohyphen' => $instanceId,
                 'process_status'       => $dashboardData->processStatus,
+                'generic_status'       => $dashboardData->genericStatus,
                 'available_types'      => $dashboardData->availableTypes,
             ]
         );

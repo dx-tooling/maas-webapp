@@ -6,13 +6,17 @@ namespace App\DockerManagement\Facade;
 
 use App\DockerManagement\Facade\Dto\ContainerStatusDto;
 use App\DockerManagement\Infrastructure\Service\ContainerManagementService;
+use App\McpInstances\Domain\Config\Service\InstanceTypesConfigService;
+use App\McpInstances\Domain\Dto\EndpointStatusDto;
+use App\McpInstances\Domain\Dto\InstanceStatusDto;
 use App\McpInstances\Domain\Entity\McpInstance;
 use App\McpInstances\Domain\Enum\ContainerState;
 
 readonly class DockerManagementFacade implements DockerManagementFacadeInterface
 {
     public function __construct(
-        private ContainerManagementService $dockerDomainService
+        private ContainerManagementService $dockerDomainService,
+        private InstanceTypesConfigService $configService
     ) {
     }
 
@@ -69,6 +73,48 @@ readonly class DockerManagementFacade implements DockerManagementFacadeInterface
             $instance->getVncSubdomain() ? 'https://' . $instance->getVncSubdomain() : null,
             $mcpUp,
             $noVncUp
+        );
+    }
+
+    public function getInstanceStatus(McpInstance $instance): InstanceStatusDto
+    {
+        $containerState = $this->dockerDomainService->getContainerState($instance);
+        $running        = $containerState === ContainerState::RUNNING;
+
+        $rootDomain = getenv('APP_ROOT_DOMAIN') ?: 'mcp-as-a-service.com';
+        $typeCfg    = $this->configService->getTypeConfig($instance->getInstanceType());
+        $endpoints  = [];
+
+        if ($typeCfg !== null) {
+            foreach ($typeCfg->endpoints as $endpointId => $epCfg) {
+                $isUp = false;
+                if ($running && $epCfg->health !== null && $epCfg->health->http !== null) {
+                    // Probe via docker exec curl http://localhost:{port}{path}
+                    $path   = $epCfg->health->http->path;
+                    $status = $this->dockerDomainService->execCurlStatus($instance, 'http://localhost:' . $epCfg->port . $path);
+                    $isUp   = $status > 0 && $status < $epCfg->health->http->acceptStatusLt;
+                }
+
+                // Build external URLs from external_paths and host pattern
+                $host         = $endpointId . '-' . ($instance->getInstanceSlug() ?? '') . '.' . $rootDomain;
+                $externalUrls = [];
+                foreach ($epCfg->externalPaths as $p) {
+                    $externalUrls[] = 'https://' . $host . $p;
+                }
+
+                $requiresAuth = ($epCfg->auth === 'bearer') || ($endpointId === 'mcp');
+                $hasHealth    = $epCfg->health !== null && $epCfg->health->http !== null;
+
+                $endpoints[] = new EndpointStatusDto($endpointId, $isUp, $externalUrls, $requiresAuth, $hasHealth);
+            }
+        }
+
+        return new InstanceStatusDto(
+            $instance->getId()            ?? '',
+            $instance->getContainerName() ?? '',
+            $containerState->value,
+            $running,
+            $endpoints
         );
     }
 }

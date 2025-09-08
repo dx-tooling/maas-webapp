@@ -2,7 +2,10 @@
 
 {% block body %}
     <div class="max-w-4xl mx-auto px-4">
-        <h1 class="etfswui-pagetitle mb-10 text-left">Playwright MCP Instance Dashboard</h1>
+        <h1 class="etfswui-pagetitle mb-1 text-left">MCP Instance Dashboard</h1>
+        {% if instance is not null %}
+            <div class="etfswui-text text-left mb-8 text-dark-600 dark:text-dark-300">{{ instance.instanceTypeDisplayName }}</div>
+        {% endif %}
 
         {% for message in app.flashes('success') %}
             <div class="etfswui-alert etfswui-alert-success mb-6">
@@ -26,7 +29,7 @@
                     <span class="etfswui-card-title-text">No MCP Instance</span>
                 </div>
                 <div class="etfswui-card-content space-y-6">
-                    <p class="etfswui-text">You do not have a Playwright MCP Instance yet. Click below to create one.</p>
+                    <p class="etfswui-text">You do not have an MCP Instance yet. Click below to create one.</p>
                     <form method="post" action="{{ path('mcp_instances.presentation.create') }}" class="flex flex-col gap-3 md:flex-row md:items-end">
                         <div>
                             <label for="instanceType" class="etfswui-text font-semibold mb-1 block">Instance Type</label>
@@ -63,10 +66,6 @@
                     <div class="flex flex-col md:flex-row md:gap-8 gap-4">
                         <div class="flex-1 space-y-4">
                             <div>
-                                <div class="etfswui-text font-semibold mb-1">VNC Password</div>
-                                <input type="text" class="etfswui-form-input w-full max-w-xs" value="{{ instance.vncPassword }}" readonly onclick="this.select()" aria-label="VNC Password" />
-                            </div>
-                            <div>
                                 <div class="etfswui-text font-semibold mb-1">MCP Bearer Token</div>
                                 <input type="text" class="etfswui-form-input w-full max-w-xl" value="{{ instance.mcpBearer }}" readonly onclick="this.select()" aria-label="MCP Bearer Token" />
                             </div>
@@ -75,10 +74,16 @@
                                 <input type="text" class="etfswui-form-input w-full max-w-xl mb-2" value="https://{{ instance.mcpSubdomain }}/sse" readonly onclick="this.select()" aria-label="MCP SSE URL" id="mcp-url-sse-field" />
                                 <input type="text" class="etfswui-form-input w-full max-w-xl" value="https://{{ instance.mcpSubdomain }}/mcp" readonly onclick="this.select()" aria-label="MCP URL" id="mcp-url-mcp-field" />
                             </div>
-                            <div>
-                                <div class="etfswui-text font-semibold mb-1">VNC Web Client</div>
-                                <input type="text" class="etfswui-form-input w-full max-w-xl" value="https://{{ instance.vncSubdomain }}/vnc.html" readonly onclick="this.select()" aria-label="VNC Web Client URL" id="vnc-address-field" />
-                            </div>
+                            {% if instance.vncSubdomain and instance.vncExternalPaths|length > 0 %}
+                                <div>
+                                    <div class="etfswui-text font-semibold mb-1">VNC Web Client</div>
+                                    <input type="text" class="etfswui-form-input w-full max-w-xl" value="https://{{ instance.vncSubdomain }}{{ instance.vncExternalPaths[0] }}" readonly onclick="this.select()" aria-label="VNC Web Client URL" id="vnc-address-field" />
+                                </div>
+                                <div>
+                                    <div class="etfswui-text font-semibold mb-1">VNC Password</div>
+                                    <input type="text" class="etfswui-form-input w-full max-w-xs" value="{{ instance.vncPassword }}" readonly onclick="this.select()" aria-label="VNC Password" />
+                                </div>
+                            {% endif %}
                         </div>
                     </div>
                     <div class="mt-4 text-right">
@@ -87,61 +92,110 @@
                 </div>
             </div>
 
-            {# 2. Playwright MCP Endpoint #}
+            {# 2. MCP Endpoint(s) #}
             <div class="etfswui-card mb-8 text-left">
                 <div class="etfswui-card-title">
-                    <span class="etfswui-card-title-text">Playwright MCP Endpoint</span>
+                    <span class="etfswui-card-title-text">MCP Endpoint(s)</span>
                 </div>
                 <div class="etfswui-card-content bg-green-50 dark:bg-green-900/10 space-y-4">
-                    <div>
-                        <div class="etfswui-text-small mb-1">Endpoint URL (SSE):</div>
-                        <input type="text" class="etfswui-form-input w-full max-w-xl" value="https://{{ instance.mcpSubdomain }}/sse" readonly onclick="this.select()" aria-label="SSE Endpoint" id="endpoint-url" />
-                    </div>
-                    <div>
-                        <div class="etfswui-text-small mb-1">cURL Example (SSE):</div>
-                        <pre class="etfswui-form-input bg-dark-100 dark:bg-dark-900 text-sm p-3 overflow-x-auto select-all">
-<code id="curl-example">curl \
+                    {% set mcp_base = 'https://' ~ instance.mcpSubdomain %}
+                    {% set mcp_paths = ['/mcp','/sse'] %}
+                    <div class="etfswui-text-small text-dark-600 dark:text-dark-300">Paths: {{ mcp_paths|join(', ') }}</div>
+                    {% for p in mcp_paths %}
+                        <div class="etfswui-text font-semibold">{{ p }}</div>
+                        <div>
+                            <div class="etfswui-text-small mb-1">Endpoint URL:</div>
+                            <input type="text" class="etfswui-form-input w-full max-w-xl" value="{{ mcp_base ~ p }}" readonly onclick="this.select()" aria-label="MCP Endpoint" />
+                        </div>
+                        <div>
+                            <div class="etfswui-text-small mb-1">cURL Example:</div>
+                            <pre class="etfswui-form-input bg-dark-100 dark:bg-dark-900 text-sm p-3 overflow-x-auto select-all"><code>curl \
   -H "Authorization: Bearer {{ instance.mcpBearer }}" \
-  https://{{ instance.mcpSubdomain }}/sse</code></pre>
-                    </div>
-                    <div>
-                        <div class="etfswui-text-small mb-1">Cursor IDE .cursor/mcp.json Example (MCP):</div>
-                        <pre class="etfswui-form-input bg-dark-100 dark:bg-dark-900 text-sm p-3 overflow-x-auto select-all">
-<code id="cursor-example">{
+  {{ mcp_base ~ p }}</code></pre>
+                        </div>
+                        <div>
+                            <div class="etfswui-text-small mb-1">Cursor IDE .cursor/mcp.json Example (MCP):</div>
+                            <pre class="etfswui-form-input bg-dark-100 dark:bg-dark-900 text-sm p-3 overflow-x-auto select-all"><code>{
   "mcpServers": {
     "playwright-remote": {
-        "url": "https://{{ instance.mcpSubdomain }}/mcp",
+        "url": "{{ mcp_base ~ p }}",
         "headers": {
             "Authorization": "Bearer {{ instance.mcpBearer }}"
         }
     }
   }
 }</code></pre>
-                    </div>
+                        </div>
+                    {% endfor %}
                 </div>
             </div>
 
-            {# 3. VNC Web Client #}
-            <div class="etfswui-card mb-8 text-left">
-                <div class="etfswui-card-title">
-                    <span class="etfswui-card-title-text">VNC Web Client</span>
-                </div>
-                <div class="etfswui-card-content bg-neutral-50 dark:bg-neutral-900 space-y-4">
-                    <div class="etfswui-text mb-2">
-                        This allows you to access the Playwright MCP browser session via VNC. When prompted for a password, use:
+            {% if instance.vncSubdomain and instance.vncExternalPaths|length > 0 %}
+                {# 3. VNC Web Client #}
+                <div class="etfswui-card mb-8 text-left">
+                    <div class="etfswui-card-title">
+                        <span class="etfswui-card-title-text">VNC Web Client</span>
                     </div>
-                    <input type="text" class="etfswui-form-input w-full max-w-xs mb-4" value="{{ instance.vncPassword }}" readonly onclick="this.select()" aria-label="VNC Password" />
-                    <div class="flex gap-2 items-center">
-                        <a href="https://{{ instance.vncSubdomain }}/vnc.html"
-                           class="etfswui-link-as-button-secondary"
-                           target="_blank" rel="noopener noreferrer">
-                            Open VNC Web Client
-                        </a>
+                    <div class="etfswui-card-content bg-neutral-50 dark:bg-neutral-900 space-y-4">
+                        <div class="etfswui-text mb-2">
+                            This allows you to access the MCP session via VNC. When prompted for a password, use:
+                        </div>
+                        <input type="text" class="etfswui-form-input w-full max-w-xs mb-4" value="{{ instance.vncPassword }}" readonly onclick="this.select()" aria-label="VNC Password" />
+                        <div class="flex gap-2 items-center">
+                            <a href="https://{{ instance.vncSubdomain }}{{ instance.vncExternalPaths[0] }}"
+                               class="etfswui-link-as-button-secondary"
+                               target="_blank" rel="noopener noreferrer">
+                                Open VNC Web Client
+                            </a>
+                        </div>
                     </div>
                 </div>
-            </div>
+            {% endif %}
 
-            {# 4. Actions #}
+            {# 4. Other Endpoints #}
+            {% if generic_status is defined and generic_status and generic_status.endpoints|length > 0 %}
+                {% set others = generic_status.endpoints|filter(e => e.id != 'mcp' and e.id != 'vnc') %}
+                {% for ep in others %}
+                    <div class="etfswui-card mb-8 text-left">
+                        <div class="etfswui-card-title">
+                            <span class="etfswui-card-title-text">Endpoint: {{ ep.id|upper }}</span>
+                        </div>
+                        <div class="etfswui-card-content bg-neutral-50 dark:bg-neutral-900 space-y-4">
+                            {# Paths note #}
+                            <div class="etfswui-text-small text-dark-600 dark:text-dark-300">
+                                Paths:
+                                {% for url in ep.externalUrls %}
+                                    {% set parts = url|split('/') %}
+                                    {% set rel = '/' ~ (parts|slice(3)|join('/')) %}
+                                    {{ rel }}{% if not loop.last %}, {% endif %}
+                                {% endfor %}
+                            </div>
+                            {% for url in ep.externalUrls %}
+                                {# Per-path subtitle #}
+                                {% set parts = url|split('/') %}
+                                {% set rel = '/' ~ (parts|slice(3)|join('/')) %}
+                                <div class="etfswui-text font-semibold">{{ rel }}</div>
+                                <div>
+                                    <div class="etfswui-text-small mb-1">Endpoint URL:</div>
+                                    <input type="text" class="etfswui-form-input w-full max-w-xl" value="{{ url }}" readonly onclick="this.select()" aria-label="{{ ep.id }} Endpoint" />
+                                </div>
+                                <div>
+                                    <div class="etfswui-text-small mb-1">cURL Example:</div>
+                                    {% if ep.requiresAuthBearer %}
+                                        <pre class="etfswui-form-input bg-dark-100 dark:bg-dark-900 text-sm p-3 overflow-x-auto select-all"><code>curl \
+  -H "Authorization: Bearer {{ instance.mcpBearer }}" \
+  {{ url }}</code></pre>
+                                    {% else %}
+                                        <pre class="etfswui-form-input bg-dark-100 dark:bg-dark-900 text-sm p-3 overflow-x-auto select-all"><code>curl {{ url }}</code></pre>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            {# 5. Actions #}
             <div class="etfswui-card mb-12 text-left">
                 <div class="etfswui-card-title">
                     <span class="etfswui-card-title-text">Actions</span>

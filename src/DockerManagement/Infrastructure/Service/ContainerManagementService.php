@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\DockerManagement\Infrastructure\Service;
 
+use App\McpInstances\Domain\Config\Service\InstanceTypesConfigService;
 use App\McpInstances\Domain\Entity\McpInstance;
 use App\McpInstances\Domain\Enum\ContainerState;
 use App\McpInstances\Domain\Enum\InstanceType;
@@ -16,9 +17,10 @@ use Symfony\Component\Routing\RouterInterface;
 readonly class ContainerManagementService
 {
     public function __construct(
-        private LoggerInterface       $logger,
-        private ParameterBagInterface $params,
-        private RouterInterface       $router
+        private LoggerInterface            $logger,
+        private ParameterBagInterface      $params,
+        private RouterInterface            $router,
+        private InstanceTypesConfigService $instanceTypesConfigService
     ) {
     }
 
@@ -328,6 +330,27 @@ readonly class ContainerManagementService
     }
 
     /**
+     * Execute a curl to retrieve HTTP status code inside the container for arbitrary URL.
+     */
+    public function execCurlStatus(McpInstance $instance, string $url): int
+    {
+        $containerName = $instance->getContainerName();
+        if (!$containerName) {
+            return 0;
+        }
+        if ($this->getContainerState($instance) !== ContainerState::RUNNING) {
+            return 0;
+        }
+
+        $result = $this->runDocker(['exec', $containerName, 'sh', '-lc', 'curl -s -o /dev/null -w "%{http_code}" ' . escapeshellarg($url)]);
+        if ($result['exitCode'] !== 0) {
+            return 0;
+        }
+
+        return (int) trim($result['stdout']);
+    }
+
+    /**
      * Build and execute `docker run` for the instance.
      *
      * @return array{exitCode:int, stdout:string, stderr:string}
@@ -374,48 +397,26 @@ readonly class ContainerManagementService
     private function buildTraefikLabels(McpInstance $instance): array
     {
         $instanceSlug = $instance->getInstanceSlug();
-        $mcpBearer    = $instance->getMcpBearer();
+        $rootDomain   = getenv('APP_ROOT_DOMAIN') ?: 'mcp-as-a-service.com';
 
-        // Get domain configuration from environment
-        $rootDomain = getenv('APP_ROOT_DOMAIN') ?: 'mcp-as-a-service.com';
+        $forwardAuthUrl = $this->router->generate('authentication.presentation.mcp_bearer_check', [], RouterInterface::ABSOLUTE_URL);
 
-        return [
-            'traefik.enable=true',
-
-            // MCP router and service
-            "traefik.http.routers.mcp-{$instanceSlug}.rule=Host(`mcp-{$instanceSlug}.{$rootDomain}`)",
-            "traefik.http.routers.mcp-{$instanceSlug}.entrypoints=websecure",
-            "traefik.http.routers.mcp-{$instanceSlug}.tls=true",
-            "traefik.http.routers.mcp-{$instanceSlug}.service=mcp-{$instanceSlug}",
-            "traefik.http.services.mcp-{$instanceSlug}.loadbalancer.server.port=8080",
-
-            // MCP ForwardAuth middleware
-            "traefik.http.middlewares.mcp-{$instanceSlug}-auth.forwardauth.address=" . $this->router->generate('authentication.presentation.mcp_bearer_check', [], RouterInterface::ABSOLUTE_URL),
-            // Ensure our custom header is forwarded to the auth service
-            "traefik.http.middlewares.mcp-{$instanceSlug}-auth.forwardauth.authRequestHeaders=Authorization,X-MCP-Instance",
-
-            // Context middleware: inject stable instance header for auth and backends
-            "traefik.http.middlewares.ctx-{$instanceSlug}.headers.customrequestheaders.X-MCP-Instance={$instanceSlug}",
-
-            // Apply both context and auth middlewares to the MCP router (order matters: context first)
-            "traefik.http.routers.mcp-{$instanceSlug}.middlewares=ctx-{$instanceSlug},mcp-{$instanceSlug}-auth",
-
-            // VNC router and service
-            "traefik.http.routers.vnc-{$instanceSlug}.rule=Host(`vnc-{$instanceSlug}.{$rootDomain}`)",
-            "traefik.http.routers.vnc-{$instanceSlug}.entrypoints=websecure",
-            "traefik.http.routers.vnc-{$instanceSlug}.tls=true",
-            "traefik.http.routers.vnc-{$instanceSlug}.service=vnc-{$instanceSlug}",
-            "traefik.http.services.vnc-{$instanceSlug}.loadbalancer.server.port=6080"
-        ];
+        return $this->instanceTypesConfigService->buildTraefikLabels(
+            $instance->getInstanceType(),
+            (string) $instanceSlug,
+            (string) $rootDomain,
+            $forwardAuthUrl
+        );
     }
 
     private function getImageNameForInstanceType(InstanceType $instanceType): string
     {
-        // Special handling for legacy type to keep the historical image name
-        if ($instanceType === InstanceType::_LEGACY) {
-            return 'maas-mcp-instance';
+        $typeCfg = $this->instanceTypesConfigService->getTypeConfig($instanceType);
+        if ($typeCfg !== null) {
+            return $typeCfg->docker->image;
         }
 
+        // Fallback (should not happen if config is correct)
         return 'maas-mcp-instance-' . $instanceType->value;
     }
 }

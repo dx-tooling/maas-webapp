@@ -1,0 +1,77 @@
+# MCP Instance Types Configuration (.dist)
+#
+# Copy this file to mcp_instance_type_configurations.yaml and adjust as needed.
+#
+# Schema overview:
+# mcp_instance_types:                       # required
+#   <instanceTypeKey>:                      # must match App\McpInstances\Domain\Enum\InstanceType values
+#     display_name: <string>                # required, shown in UI
+#     docker:                               # required
+#       image: <string>                     # required, docker image name
+#       env:                                # optional map<string,string>, extra env passed to container
+#         SOME_ENV: "value"
+#     endpoints:                            # required map keyed by endpoint id (e.g., mcp, vnc, ...)
+#       <endpointId>:                       # id also defines the first subdomain segment
+#         port: <int>                       # required internal container port for this endpoint
+#         auth: <string|null>               # optional, e.g., "bearer" to enable ForwardAuth; omit or null for none
+#         external_paths:                   # required list of external URL paths to show in UI
+#           - "/path"
+#         health:                           # optional
+#           http:                           # optional
+#             path: "/health-or-root"     # required when http present; must start with '/'
+#             accept_status_lt: 500         # optional int in [100..599], default 500
+#
+# Conventions used by the app:
+# - Hostnames are derived as: <endpointId>-<instanceSlug>.<rootDomain>
+# - Traefik labels are generated from endpoints; ForwardAuth applies when auth == "bearer" (or for endpointId == "mcp").
+# - The presence of an endpoint with id "mcp" is required for each instance type.
+
+mcp_instance_types:
+    # Example legacy type (fully specified)
+    _legacy:
+        display_name: "Legacy Playwright MCP"
+        docker:
+            image: "maas-mcp-instance"    # legacy image name
+            # env:
+            #     EXTRA_FLAG: "1"         # optional extra env vars
+        endpoints:
+            mcp:
+                port: 8080
+                auth: bearer               # enable ForwardAuth
+                external_paths: ["/mcp", "/sse"]
+                health:
+                    http:
+                        path: "/mcp"
+                        accept_status_lt: 500
+            vnc:
+                port: 6080
+                # auth: null              # unauthenticated by default
+                external_paths: ["/vnc.html"]
+                health:
+                    http:
+                        path: "/"
+                        accept_status_lt: 500
+
+    # Example non-legacy type (playwright-v1)
+    playwright-v1:
+        display_name: "Playwright MCP v1"
+        docker:
+            image: "maas-mcp-instance-playwright-v1"
+        endpoints:
+            mcp:
+                port: 8080
+                auth: bearer
+                external_paths: ["/mcp", "/sse"]
+                health:
+                    http:
+                        path: "/mcp"
+                        accept_status_lt: 500
+            vnc:
+                port: 6080
+                external_paths: ["/vnc.html"]
+                health:
+                    http:
+                        path: "/"
+                        accept_status_lt: 500
+
+

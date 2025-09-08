@@ -16,6 +16,7 @@ readonly class McpInstanceInfoDto
         public ?string           $containerName,
         public string            $containerState,
         public string            $instanceType,
+        public string            $instanceTypeDisplayName,
         public int               $screenWidth,
         public int               $screenHeight,
         public int               $colorDepth,
@@ -23,6 +24,8 @@ readonly class McpInstanceInfoDto
         public string            $mcpBearer,
         public ?string           $mcpSubdomain,
         public ?string           $vncSubdomain,
+        /** @var array<int,string> */
+        public array             $vncExternalPaths = [],
     ) {
     }
 }

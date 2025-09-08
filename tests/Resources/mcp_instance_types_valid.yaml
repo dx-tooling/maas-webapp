@@ -1,0 +1,44 @@
+mcp_instance_types:
+    playwright-v1:
+        display_name: "Playwright MCP v1"
+        docker:
+            image: "maas-mcp-instance-playwright-v1"
+            env:
+                EXTRA_FLAG: "1"
+        endpoints:
+            mcp:
+                port: 8080
+                auth: bearer
+                external_paths: ["/mcp", "/sse"]
+                health:
+                    http:
+                        path: "/mcp"
+                        accept_status_lt: 500
+            vnc:
+                port: 6080
+                external_paths: ["/vnc.html"]
+                health:
+                    http:
+                        path: "/"
+                        accept_status_lt: 500
+
+    _legacy:
+        display_name: "Legacy MCP"
+        docker:
+            image: "maas-mcp-instance"
+        endpoints:
+            mcp:
+                port: 8080
+                auth: bearer
+                external_paths: ["/mcp", "/sse"]
+                health:
+                    http:
+                        path: "/mcp"
+                        accept_status_lt: 500
+            vnc:
+                port: 6080
+                external_paths: ["/vnc.html"]
+                health:
+                    http:
+                        path: "/"
+                        accept_status_lt: 500

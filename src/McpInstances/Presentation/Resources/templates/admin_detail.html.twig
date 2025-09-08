@@ -22,10 +22,12 @@
                             <div class="etfswui-text-small text-dark-600 dark:text-dark-300">Container: {{ instance.containerName }}</div>
                         </div>
 
-                        <div>
-                            <div class="etfswui-text font-semibold mb-1">VNC Password</div>
-                            <input type="text" class="etfswui-form-input w-full max-w-xs" value="{{ instance.vncPassword }}" readonly onclick="this.select()" aria-label="VNC Password" />
-                        </div>
+                        {% if instance.vncSubdomain and instance.vncExternalPaths|length > 0 %}
+                            <div>
+                                <div class="etfswui-text font-semibold mb-1">VNC Password</div>
+                                <input type="text" class="etfswui-form-input w-full max-w-xs" value="{{ instance.vncPassword }}" readonly onclick="this.select()" aria-label="VNC Password" />
+                            </div>
+                        {% endif %}
 
                         <div>
                             <div class="etfswui-text font-semibold mb-1">MCP Bearer Token</div>
@@ -38,10 +40,12 @@
                             <input type="text" class="etfswui-form-input w-full max-w-xl" value="https://{{ instance.mcpSubdomain }}/mcp" readonly onclick="this.select" aria-label="MCP URL" />
                         </div>
 
-        			<div>
-                            <div class="etfswui-text font-semibold mb-1">VNC Web Client</div>
-                            <input type="text" class="etfswui-form-input w-full max-w-xl" value="https://{{ instance.vncSubdomain }}/vnc.html" readonly onclick="this.select()" aria-label="VNC Web Client URL" />
-                        </div>
+                        {% if instance.vncSubdomain and instance.vncExternalPaths|length > 0 %}
+                            <div>
+                                <div class="etfswui-text font-semibold mb-1">VNC Web Client</div>
+                                <input type="text" class="etfswui-form-input w-full max-w-xl" value="https://{{ instance.vncSubdomain }}{{ instance.vncExternalPaths[0] }}" readonly onclick="this.select()" aria-label="VNC Web Client URL" />
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
                 <div class="mt-4 text-right">

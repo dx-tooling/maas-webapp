@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\McpInstances\Presentation\Components;
 
+use App\McpInstances\Domain\Dto\InstanceStatusDto;
 use App\McpInstances\Domain\Dto\ProcessStatusDto;
 use App\McpInstances\Presentation\McpInstancesPresentationService;
 use Symfony\UX\LiveComponent\Attribute\AsLiveComponent;
@@ -28,5 +29,10 @@ final class HealthOverviewComponent
     public function getStatus(): ProcessStatusDto
     {
         return $this->presentationService->getProcessStatusForInstance($this->instanceId);
+    }
+
+    public function getGenericStatus(): ?InstanceStatusDto
+    {
+        return $this->presentationService->getInstanceStatusForInstance($this->instanceId);
     }
 }

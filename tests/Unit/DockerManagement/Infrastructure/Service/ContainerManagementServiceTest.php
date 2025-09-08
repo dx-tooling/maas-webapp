@@ -5,6 +5,12 @@ declare(strict_types=1);
 namespace App\Tests\Unit\DockerManagement\Infrastructure\Service;
 
 use App\DockerManagement\Infrastructure\Service\ContainerManagementService;
+use App\McpInstances\Domain\Config\Dto\EndpointConfig;
+use App\McpInstances\Domain\Config\Dto\InstanceDockerConfig;
+use App\McpInstances\Domain\Config\Dto\InstanceTypeConfig;
+use App\McpInstances\Domain\Config\Dto\McpInstanceTypesConfig;
+use App\McpInstances\Domain\Config\Service\InstanceTypesConfigProviderInterface;
+use App\McpInstances\Domain\Config\Service\InstanceTypesConfigService;
 use App\McpInstances\Domain\Entity\McpInstance;
 use App\McpInstances\Domain\Enum\ContainerState;
 use App\McpInstances\Domain\Enum\InstanceType;
@@ -38,7 +44,8 @@ final class ContainerManagementServiceTest extends TestCase
 
     public function testCreateContainerFailsWhenNamesMissing(): void
     {
-        $service  = new ContainerManagementService($this->logger, $this->params, $this->router);
+        $svc      = $this->createInstanceTypesConfigService();
+        $service  = new ContainerManagementService($this->logger, $this->params, $this->router, $svc);
         $instance = new McpInstance(
             'acc',
             InstanceType::PLAYWRIGHT_V1,
@@ -55,7 +62,8 @@ final class ContainerManagementServiceTest extends TestCase
 
     public function testDockerRunInvocationUsesWrapperInValidateOnlyMode(): void
     {
-        $service  = new ContainerManagementService($this->logger, $this->params, $this->router);
+        $svc      = $this->createInstanceTypesConfigService();
+        $service  = new ContainerManagementService($this->logger, $this->params, $this->router, $svc);
         $instance = new McpInstance(
             'acc',
             InstanceType::PLAYWRIGHT_V1,
@@ -97,7 +105,8 @@ final class ContainerManagementServiceTest extends TestCase
         $logger = $this->createMock(LoggerInterface::class);
         $logger->expects($this->any())->method('info');
 
-        $service  = new ContainerManagementService($logger, $this->params, $this->router);
+        $svc      = $this->createInstanceTypesConfigService();
+        $service  = new ContainerManagementService($logger, $this->params, $this->router, $svc);
         $instance = new McpInstance(
             'acc',
             InstanceType::PLAYWRIGHT_V1,
@@ -137,7 +146,8 @@ final class ContainerManagementServiceTest extends TestCase
             ->method('info')
             ->with($this->stringContains('inspect'));
 
-        $service  = new ContainerManagementService($logger, $this->params, $this->router);
+        $svc      = $this->createInstanceTypesConfigService();
+        $service  = new ContainerManagementService($logger, $this->params, $this->router, $svc);
         $instance = new McpInstance(
             'acc',
             InstanceType::PLAYWRIGHT_V1,
@@ -163,5 +173,23 @@ final class ContainerManagementServiceTest extends TestCase
         putenv('MAAS_WRAPPER_NO_SUDO');
         putenv('MAAS_WRAPPER_VALIDATE_ONLY');
         putenv('DOCKER_BIN');
+    }
+
+    // Helper to construct a minimal config service with endpoints 'mcp' and 'vnc'
+    private function createInstanceTypesConfigService(): InstanceTypesConfigService
+    {
+        $provider = $this->createMock(InstanceTypesConfigProviderInterface::class);
+        $provider->method('getConfig')->willReturn(new McpInstanceTypesConfig([
+            'playwright-v1' => new InstanceTypeConfig(
+                'Playwright',
+                new InstanceDockerConfig('maas-mcp-instance-playwright-v1'),
+                [
+                    'mcp' => new EndpointConfig(8080, 'bearer', ['/mcp', '/sse'], null),
+                    'vnc' => new EndpointConfig(6080, null, ['/vnc.html'], null),
+                ]
+            )
+        ]));
+
+        return new InstanceTypesConfigService($provider);
     }
 }

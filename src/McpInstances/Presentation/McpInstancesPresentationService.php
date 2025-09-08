@@ -57,10 +57,17 @@ readonly class McpInstancesPresentationService
             }
         }
 
-        $availableTypes = array_filter(
-            InstanceType::cases(),
-            static fn (InstanceType $t) => $t !== InstanceType::_LEGACY
-        );
+        $availableTypes = array_values(array_filter(
+            array_map(function (InstanceType $t): array {
+                $cfg = $this->typesConfig->getTypeConfig($t);
+
+                return [
+                    'value'   => $t->value,
+                    'display' => ($cfg !== null) ? $cfg->displayName : $t->value,
+                ];
+            }, InstanceType::cases()),
+            static fn (array $x): bool => $x['value'] !== InstanceType::_LEGACY->value
+        ));
 
         return new DashboardDataDto(
             $instanceDto,

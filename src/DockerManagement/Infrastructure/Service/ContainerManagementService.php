@@ -411,12 +411,16 @@ readonly class ContainerManagementService
 
     private function getImageNameForInstanceType(InstanceType $instanceType): string
     {
+        // Prefer explicit image if provided in config, otherwise derive
         $typeCfg = $this->instanceTypesConfigService->getTypeConfig($instanceType);
-        if ($typeCfg !== null) {
+        if ($typeCfg !== null && $typeCfg->docker->image !== '') {
             return $typeCfg->docker->image;
         }
 
-        // Fallback (should not happen if config is correct)
+        if ($instanceType === InstanceType::_LEGACY) {
+            return 'maas-mcp-instance';
+        }
+
         return 'maas-mcp-instance-' . $instanceType->value;
     }
 }

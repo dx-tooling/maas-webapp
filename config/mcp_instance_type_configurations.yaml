@@ -1,8 +1,6 @@
 mcp_instance_types:
     _legacy:
         display_name: "Legacy Playwright MCP"
-        docker:
-            image: "maas-mcp-instance"
         endpoints:
             mcp:
                 port: 8080
@@ -22,8 +20,6 @@ mcp_instance_types:
 
     playwright-v1:
         display_name: "Playwright MCP v1"
-        docker:
-            image: "maas-mcp-instance-playwright-v1"
         endpoints:
             mcp:
                 port: 8080
@@ -47,4 +43,16 @@ mcp_instance_types:
                 health:
                     http:
                         path: "/mcp"
+                        accept_status_lt: 500
+
+    linux-cmd-line-v1:
+        display_name: "Linux Command Line MCP v1"
+        endpoints:
+            mcp:
+                port: 8080
+                auth: bearer
+                external_paths: ["/sse"]
+                health:
+                    http:
+                        path: "/sse"
                         accept_status_lt: 500

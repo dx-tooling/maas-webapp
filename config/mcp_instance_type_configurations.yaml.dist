@@ -6,8 +6,8 @@
 # mcp_instance_types:                       # required
 #   <instanceTypeKey>:                      # must match App\McpInstances\Domain\Enum\InstanceType values
 #     display_name: <string>                # required, shown in UI
-#     docker:                               # required
-#       image: <string>                     # required, docker image name
+#     docker:                               # optional
+#       image: <string>                     # optional, overrides derived name
 #       env:                                # optional map<string,string>, extra env passed to container
 #         SOME_ENV: "value"
 #     endpoints:                            # required map keyed by endpoint id (e.g., mcp, vnc, ...)
@@ -31,7 +31,7 @@ mcp_instance_types:
     _legacy:
         display_name: "Legacy Playwright MCP"
         docker:
-            image: "maas-mcp-instance"    # legacy image name
+            # image: "maas-mcp-instance"    # optional override; default derives from type
             # env:
             #     EXTRA_FLAG: "1"         # optional extra env vars
         endpoints:
@@ -56,7 +56,7 @@ mcp_instance_types:
     playwright-v1:
         display_name: "Playwright MCP v1"
         docker:
-            image: "maas-mcp-instance-playwright-v1"
+            # image: "maas-mcp-instance-playwright-v1"  # optional override; default derives from type
         endpoints:
             mcp:
                 port: 8080

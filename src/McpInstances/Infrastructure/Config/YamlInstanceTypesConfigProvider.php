@@ -55,9 +55,9 @@ final class YamlInstanceTypesConfigProvider implements InstanceTypesConfigProvid
             }
             $displayName = $displayNameRaw;
 
-            $docker = $typeData['docker'] ?? null;
-            if (!is_array($docker) || !array_key_exists('image', $docker) || !is_string($docker['image']) || $docker['image'] === '') {
-                throw new InvalidInstanceTypesConfigException('docker.image is required for ' . $typeKey);
+            $docker = $typeData['docker'] ?? [];
+            if (!is_array($docker)) {
+                throw new InvalidInstanceTypesConfigException('docker must be an object when provided for ' . $typeKey);
             }
             $env = [];
             if (array_key_exists('env', $docker)) {
@@ -71,7 +71,8 @@ final class YamlInstanceTypesConfigProvider implements InstanceTypesConfigProvid
                     $env[$ek] = $ev;
                 }
             }
-            $dockerConfig = new InstanceDockerConfig($docker['image'], $env);
+            $image        = is_string($docker['image'] ?? null) ? (string) $docker['image'] : '';
+            $dockerConfig = new InstanceDockerConfig($image, $env);
 
             // endpoints
             if (!array_key_exists('endpoints', $typeData) || !is_array($typeData['endpoints'])) {

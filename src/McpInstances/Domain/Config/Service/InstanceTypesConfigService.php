@@ -5,21 +5,17 @@ declare(strict_types=1);
 namespace App\McpInstances\Domain\Config\Service;
 
 use App\McpInstances\Domain\Config\Dto\EndpointConfig;
-use App\McpInstances\Domain\Config\Dto\McpInstanceTypesConfig;
+use App\McpInstances\Domain\Config\Dto\InstanceTypeConfig;
 use App\McpInstances\Domain\Enum\InstanceType;
 
 final readonly class InstanceTypesConfigService
 {
-    public function __construct(private InstanceTypesConfigProviderInterface $provider)
-    {
+    public function __construct(
+        private InstanceTypesConfigProviderInterface $provider
+    ) {
     }
 
-    public function getTypesConfig(): McpInstanceTypesConfig
-    {
-        return $this->provider->getConfig();
-    }
-
-    public function getTypeConfig(InstanceType $type): ?\App\McpInstances\Domain\Config\Dto\InstanceTypeConfig
+    public function getTypeConfig(InstanceType $type): ?InstanceTypeConfig
     {
         $config = $this->provider->getConfig();
 
@@ -31,8 +27,12 @@ final readonly class InstanceTypesConfigService
      *
      * @return string[]
      */
-    public function buildTraefikLabels(InstanceType $type, string $instanceSlug, string $rootDomain, string $forwardAuthUrl): array
-    {
+    public function buildTraefikLabels(
+        InstanceType $type,
+        string       $instanceSlug,
+        string       $rootDomain,
+        string       $forwardAuthUrl
+    ): array {
         $typeCfg = $this->getTypeConfig($type);
         if ($typeCfg === null) {
             return [];
@@ -41,7 +41,16 @@ final readonly class InstanceTypesConfigService
         $labels = ['traefik.enable=true'];
 
         foreach ($typeCfg->endpoints as $endpointId => $ep) {
-            $labels = array_merge($labels, $this->labelsForEndpoint($endpointId, $ep, $instanceSlug, $rootDomain, $forwardAuthUrl));
+            $labels = array_merge(
+                $labels,
+                $this->labelsForEndpoint(
+                    $endpointId,
+                    $ep,
+                    $instanceSlug,
+                    $rootDomain,
+                    $forwardAuthUrl
+                )
+            );
         }
 
         return $labels;
@@ -50,8 +59,13 @@ final readonly class InstanceTypesConfigService
     /**
      * @return string[]
      */
-    private function labelsForEndpoint(string $endpointId, EndpointConfig $ep, string $slug, string $rootDomain, string $forwardAuthUrl): array
-    {
+    private function labelsForEndpoint(
+        string         $endpointId,
+        EndpointConfig $ep,
+        string         $slug,
+        string         $rootDomain,
+        string         $forwardAuthUrl
+    ): array {
         $host    = $endpointId . '-' . $slug . '.' . $rootDomain;
         $router  = $endpointId . '-' . $slug;
         $service = $endpointId . '-' . $slug;

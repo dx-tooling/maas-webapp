@@ -9,16 +9,15 @@ use App\McpInstances\Domain\Config\Dto\EndpointConfig;
 use App\McpInstances\Domain\Config\Dto\InstanceDockerConfig;
 use App\McpInstances\Domain\Config\Dto\InstanceTypeConfig;
 use App\McpInstances\Domain\Config\Service\InstanceTypesConfigServiceInterface;
-use App\McpInstances\Domain\Entity\McpInstance as DomainMcpInstance;
 use App\McpInstances\Domain\Enum\InstanceType;
 use App\McpInstances\Domain\Service\McpInstancesDomainServiceInterface;
 use App\McpInstances\Presentation\Controller\AdminInstancesController;
 use App\McpInstances\Presentation\McpInstancesPresentationService;
+use App\Tests\Support\DomainTestHelper;
 use App\Tests\Support\WebUiTestHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use PHPUnit\Framework\TestCase;
-use ReflectionProperty;
 use Symfony\Component\DomCrawler\Crawler;
 use Symfony\Component\HttpFoundation\Response;
 use Twig\Environment;
@@ -93,7 +92,7 @@ final class AdminInstancesControllerTest extends TestCase
         $vncPassword = 'secret';
         $mcpBearer   = 'bearer-token';
 
-        $domainInstance = $this->newDomainInstance(
+        $domainInstance = DomainTestHelper::newDomainInstance(
             $accountId,
             InstanceType::PLAYWRIGHT_V1,
             1280,
@@ -102,7 +101,7 @@ final class AdminInstancesControllerTest extends TestCase
             $vncPassword,
             $mcpBearer
         );
-        $this->setPrivateProperty($domainInstance, 'id', $instanceId);
+        DomainTestHelper::setPrivateProperty($domainInstance, 'id', $instanceId);
         $domainInstance->generateDerivedFields('example.test');
 
         // Provide instance type config so mapping yields vnc external paths
@@ -175,32 +174,5 @@ final class AdminInstancesControllerTest extends TestCase
         // MCP Endpoint(s) card
         $mcpCard = $crawler->filterXPath("//div[contains(@class,'etfswui-card')][.//span[contains(@class,'etfswui-card-title-text') and normalize-space(.)='MCP Endpoint(s)']]");
         $this->assertGreaterThan(0, $mcpCard->count());
-    }
-
-    private function newDomainInstance(
-        string       $accountCoreId,
-        InstanceType $type,
-        int          $screenWidth,
-        int          $screenHeight,
-        int          $colorDepth,
-        string       $vncPassword,
-        string       $mcpBearer
-    ): DomainMcpInstance {
-        return new DomainMcpInstance(
-            $accountCoreId,
-            $type,
-            $screenWidth,
-            $screenHeight,
-            $colorDepth,
-            $vncPassword,
-            $mcpBearer
-        );
-    }
-
-    private function setPrivateProperty(object $object, string $property, mixed $value): void
-    {
-        $ref = new ReflectionProperty($object, $property);
-        $ref->setAccessible(true);
-        $ref->setValue($object, $value);
     }
 }

@@ -55,7 +55,7 @@
 - Use the PHP type system extensively. Avoid untyped or mixed values, parameters, return values, etc.
 - **No complex, multi-level associative arrays.**
   - Arrays are only allowed as:
-    - Non-associative lists of values (e.g., `string[]`, `UserDto[]`), all values same type.
+    - Non-associative lists of values (e.g., `list<string>`, `list<UserDto>`), all values same type - and not `string[]` or `UserDto[]`.
     - Simple, one-dimensional key-value pairs, but only in very local contexts (e.g., passing between two methods in the same class, where a DTO would be overkill).
   - **Associative arrays must never be used as pseudo-objects or data structures that cross class or feature boundaries.**
   - All structured data passed between classes, layers, or features must use proper DTOs or value objects.

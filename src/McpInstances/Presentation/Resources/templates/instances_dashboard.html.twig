@@ -2,9 +2,9 @@
 
 {% block body %}
     <div class="max-w-4xl mx-auto px-4">
-        <h1 class="etfswui-pagetitle mb-1 text-left">MCP Instance Dashboard</h1>
+        <h1 class="etfswui-pagetitle mb-1 text-left" data-test-id="page-title">MCP Instance Dashboard</h1>
         {% if instance is not null %}
-            <div class="etfswui-text text-left mb-8 text-dark-600 dark:text-dark-300">{{ instance.instanceTypeDisplayName }}</div>
+            <div class="etfswui-text text-left mb-8 text-dark-600 dark:text-dark-300" data-test-id="instance-type-display">{{ instance.instanceTypeDisplayName }}</div>
         {% endif %}
 
         {% for message in app.flashes('success') %}
@@ -52,7 +52,7 @@
             {{ component('mcp_instances|presentation|health_overview', { instanceId: instance.id }) }}
 
             {# 1. General Instance Data #}
-            <div class="etfswui-card mb-8 text-left">
+            <div class="etfswui-card mb-8 text-left" data-test-id="card-general">
                 <div class="etfswui-card-title flex items-center justify-between">
                     <span class="etfswui-card-title-text">General Instance Data</span>
                     <span class="flex items-center gap-2">
@@ -68,21 +68,21 @@
                         <div class="flex-1 space-y-4">
                             <div>
                                 <div class="etfswui-text font-semibold mb-1">MCP Bearer Token</div>
-                                <input type="text" class="etfswui-form-input w-full max-w-xl" value="{{ instance.mcpBearer }}" readonly onclick="this.select()" aria-label="MCP Bearer Token" />
+                                <input type="text" class="etfswui-form-input w-full max-w-xl" value="{{ instance.mcpBearer }}" readonly onclick="this.select()" aria-label="MCP Bearer Token" data-test-id="mcp-bearer" />
                             </div>
                             <div>
                                 <div class="etfswui-text font-semibold mb-1">MCP URLs</div>
-                                <input type="text" class="etfswui-form-input w-full max-w-xl mb-2" value="https://{{ instance.mcpSubdomain }}/sse" readonly onclick="this.select()" aria-label="MCP SSE URL" id="mcp-url-sse-field" />
-                                <input type="text" class="etfswui-form-input w-full max-w-xl" value="https://{{ instance.mcpSubdomain }}/mcp" readonly onclick="this.select()" aria-label="MCP URL" id="mcp-url-mcp-field" />
+                                <input type="text" class="etfswui-form-input w-full max-w-xl mb-2" value="https://{{ instance.mcpSubdomain }}/sse" readonly onclick="this.select()" aria-label="MCP SSE URL" id="mcp-url-sse-field" data-test-id="mcp-url-sse" />
+                                <input type="text" class="etfswui-form-input w-full max-w-xl" value="https://{{ instance.mcpSubdomain }}/mcp" readonly onclick="this.select()" aria-label="MCP URL" id="mcp-url-mcp-field" data-test-id="mcp-url-mcp" />
                             </div>
                             {% if instance.vncSubdomain and instance.vncExternalPaths|length > 0 %}
                                 <div>
                                     <div class="etfswui-text font-semibold mb-1">VNC Web Client</div>
-                                    <input type="text" class="etfswui-form-input w-full max-w-xl" value="https://{{ instance.vncSubdomain }}{{ instance.vncExternalPaths[0] }}" readonly onclick="this.select()" aria-label="VNC Web Client URL" id="vnc-address-field" />
+                                    <input type="text" class="etfswui-form-input w-full max-w-xl" value="https://{{ instance.vncSubdomain }}{{ instance.vncExternalPaths[0] }}" readonly onclick="this.select()" aria-label="VNC Web Client URL" id="vnc-address-field" data-test-id="vnc-url" />
                                 </div>
                                 <div>
                                     <div class="etfswui-text font-semibold mb-1">VNC Password</div>
-                                    <input type="text" class="etfswui-form-input w-full max-w-xs" value="{{ instance.vncPassword }}" readonly onclick="this.select()" aria-label="VNC Password" />
+                                    <input type="text" class="etfswui-form-input w-full max-w-xs" value="{{ instance.vncPassword }}" readonly onclick="this.select()" aria-label="VNC Password" data-test-id="vnc-password" />
                                 </div>
                             {% endif %}
                         </div>
@@ -94,7 +94,7 @@
             </div>
 
             {# 2. MCP Endpoint(s) #}
-            <div class="etfswui-card mb-8 text-left">
+            <div class="etfswui-card mb-8 text-left" data-test-id="card-mcp-endpoints">
                 <div class="etfswui-card-title">
                     <span class="etfswui-card-title-text">MCP Endpoint(s)</span>
                 </div>
@@ -133,7 +133,7 @@
 
             {% if instance.vncSubdomain and instance.vncExternalPaths|length > 0 %}
                 {# 3. VNC Web Client #}
-                <div class="etfswui-card mb-8 text-left">
+                <div class="etfswui-card mb-8 text-left" data-test-id="card-vnc">
                     <div class="etfswui-card-title">
                         <span class="etfswui-card-title-text">VNC Web Client</span>
                     </div>
@@ -141,7 +141,7 @@
                         <div class="etfswui-text mb-2">
                             This allows you to access the MCP session via VNC. When prompted for a password, use:
                         </div>
-                        <input type="text" class="etfswui-form-input w-full max-w-xs mb-4" value="{{ instance.vncPassword }}" readonly onclick="this.select()" aria-label="VNC Password" />
+                        <input type="text" class="etfswui-form-input w-full max-w-xs mb-4" value="{{ instance.vncPassword }}" readonly onclick="this.select()" aria-label="VNC Password" data-test-id="vnc-password" />
                         <div class="flex gap-2 items-center">
                             <a href="https://{{ instance.vncSubdomain }}{{ instance.vncExternalPaths[0] }}"
                                class="etfswui-link-as-button-secondary"

@@ -66,15 +66,15 @@ final class AdminInstancesControllerTest extends TestCase
         $crawler  = new Crawler((string) $response->getContent());
 
         // Page title exists
-        $title = $crawler->filter('h1.etfswui-pagetitle');
+        $title = $crawler->filter('[data-test-id="page-title"]');
         $this->assertCount(1, $title);
         $this->assertSame('MCP Instances Admin Overview', trim($title->text()));
 
         // Cards
-        $statsCard = $crawler->filterXPath("//div[contains(@class,'etfswui-card')][.//span[contains(@class,'etfswui-card-title-text') and normalize-space(.)='Platform Statistics']]");
+        $statsCard = $crawler->filter('[data-test-id="card-stats"]');
         $this->assertGreaterThan(0, $statsCard->count());
 
-        $tableCard = $crawler->filterXPath("//div[contains(@class,'etfswui-card')][.//span[contains(@class,'etfswui-card-title-text') and normalize-space(.)='All MCP Instances']]");
+        $tableCard = $crawler->filter('[data-test-id="card-table"]');
         $this->assertGreaterThan(0, $tableCard->count());
     }
 
@@ -155,24 +155,24 @@ final class AdminInstancesControllerTest extends TestCase
         $crawler  = new Crawler((string) $response->getContent());
 
         // Page title exists
-        $title = $crawler->filter('h1.etfswui-pagetitle');
+        $title = $crawler->filter('[data-test-id="page-title"]');
         $this->assertCount(1, $title);
         $this->assertSame('MCP Instance Details', trim($title->text()));
 
         // General Instance Data card exists
-        $general = $crawler->filterXPath("//div[contains(@class,'etfswui-card')][.//span[contains(@class,'etfswui-card-title-text') and normalize-space(.)='General Instance Data']]");
+        $general = $crawler->filter('[data-test-id="card-general"]');
         $this->assertGreaterThan(0, $general->count());
 
         // VNC Password input present
-        $vncInput = $crawler->filter('input[aria-label="VNC Password"]');
+        $vncInput = $crawler->filter('[data-test-id="vnc-password"]');
         $this->assertGreaterThan(0, $vncInput->count());
 
         // MCP Bearer token input present
-        $bearerInput = $crawler->filter('input[aria-label="MCP Bearer Token"]');
+        $bearerInput = $crawler->filter('[data-test-id="mcp-bearer"]');
         $this->assertGreaterThan(0, $bearerInput->count());
 
         // MCP Endpoint(s) card
-        $mcpCard = $crawler->filterXPath("//div[contains(@class,'etfswui-card')][.//span[contains(@class,'etfswui-card-title-text') and normalize-space(.)='MCP Endpoint(s)']]");
+        $mcpCard = $crawler->filter('[data-test-id="card-mcp-endpoints"]');
         $this->assertGreaterThan(0, $mcpCard->count());
     }
 }

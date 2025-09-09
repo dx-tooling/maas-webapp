@@ -168,39 +168,42 @@ class InstancesControllerTest extends TestCase
         $crawler = new Crawler($html);
 
         // Page title exists
-        $title = $crawler->filter('h1.etfswui-pagetitle');
+        $title = $crawler->filter('[data-test-id="page-title"]');
         $this->assertCount(1, $title);
         $this->assertSame('MCP Instance Dashboard', trim($title->text()));
 
         // Instance display name present
-        $displayNode = $crawler->filterXPath("//div[contains(@class,'etfswui-text') and contains(., 'Playwright v1')]");
-        $this->assertGreaterThan(0, $displayNode->count());
+        $displayNode = $crawler->filter('[data-test-id="instance-type-display"]');
+        $this->assertGreaterThan(0, count($displayNode));
 
         // General Instance Data card exists
-        $generalCard = $crawler->filterXPath("//div[contains(@class,'etfswui-card')][.//span[contains(@class,'etfswui-card-title-text') and normalize-space(.)='General Instance Data']]");
-        $this->assertGreaterThan(0, $generalCard->count());
+        $generalCard = $crawler->filter('[data-test-id="card-general"]');
+        $this->assertGreaterThan(0, count($generalCard));
 
         // MCP Bearer token input present with expected value
-        $bearerInput = $crawler->filter('input[aria-label="MCP Bearer Token"]');
+        $bearerInput = $crawler->filter('[data-test-id="mcp-bearer"]');
         $this->assertCount(1, $bearerInput);
-        $this->assertSame($mcpBearer, (string) $bearerInput->attr('value'));
+        $bearerVals = $bearerInput->extract(['value']);
+        $this->assertSame($mcpBearer, $bearerVals[0] ?? null);
 
         // MCP Endpoint(s) card contains both paths /mcp and /sse
-        $mcpCard = $crawler->filterXPath("//div[contains(@class,'etfswui-card')][.//span[contains(@class,'etfswui-card-title-text') and normalize-space(.)='MCP Endpoint(s)']]");
-        $this->assertGreaterThan(0, $mcpCard->count());
+        $mcpCard = $crawler->filter('[data-test-id="card-mcp-endpoints"]');
+        $this->assertGreaterThan(0, count($mcpCard));
         $this->assertStringContainsString('/mcp', $mcpCard->text());
         $this->assertStringContainsString('/sse', $mcpCard->text());
 
         // VNC Web Client card contains password and link
-        $vncCard = $crawler->filterXPath("//div[contains(@class,'etfswui-card')][.//span[contains(@class,'etfswui-card-title-text') and normalize-space(.)='VNC Web Client']]");
-        $this->assertGreaterThan(0, $vncCard->count());
-        $this->assertSame($vncPassword, (string) $vncCard->filter('input[aria-label="VNC Password"]')->attr('value'));
-        $this->assertGreaterThan(0, $vncCard->filter('a[target="_blank"]')->count());
+        $vncCard = $crawler->filter('[data-test-id="card-vnc"]');
+        $this->assertGreaterThan(0, count($vncCard));
+        $vncPwdInput = $vncCard->filter('[data-test-id="vnc-password"]');
+        $vncVals     = $vncPwdInput->extract(['value']);
+        $this->assertSame($vncPassword, $vncVals[0] ?? null);
+        $this->assertGreaterThan(0, count($vncCard->filter('a[target="_blank"]')));
 
         // Actions contain the two forms with expected action paths (via stubbed path())
         $actionsCard = $crawler->filterXPath("//div[contains(@class,'etfswui-card')][.//span[contains(@class,'etfswui-card-title-text') and normalize-space(.)='Actions']]");
-        $this->assertGreaterThan(0, $actionsCard->count());
-        $this->assertGreaterThan(0, $actionsCard->filter('form[action="/mcp_instances.presentation.recreate_container"]')->count());
-        $this->assertGreaterThan(0, $actionsCard->filter('form[action="/mcp_instances.presentation.stop"]')->count());
+        $this->assertGreaterThan(0, count($actionsCard));
+        $this->assertGreaterThan(0, count($actionsCard->filter('form[action="/mcp_instances.presentation.recreate_container"]')));
+        $this->assertGreaterThan(0, count($actionsCard->filter('form[action="/mcp_instances.presentation.stop"]')));
     }
 }

@@ -2,9 +2,9 @@
 
 {% block body %}
     <div class="max-w-7xl mx-auto px-4">
-        <h1 class="etfswui-pagetitle mb-10 text-left">MCP Instances Admin Overview</h1>
+        <h1 class="etfswui-pagetitle mb-10 text-left" data-test-id="page-title">MCP Instances Admin Overview</h1>
 
-        <div class="etfswui-card mb-8">
+        <div class="etfswui-card mb-8" data-test-id="card-stats">
             <div class="etfswui-card-title">
                 <span class="etfswui-card-title-text">Platform Statistics</span>
             </div>
@@ -54,12 +54,12 @@
             </div>
         </div>
 
-        <div class="etfswui-card">
+        <div class="etfswui-card" data-test-id="card-table">
             <div class="etfswui-card-title">
                 <span class="etfswui-card-title-text">All MCP Instances</span>
             </div>
             <div class="overflow-x-auto">
-                <table class="etfswui-table">
+                <table class="etfswui-table" data-test-id="instances-table">
                     <thead class="bg-dark-50 dark:bg-dark-700/50">
                         <tr>
                             <th scope="col" class="etfswui-table-header">Account</th>
@@ -74,7 +74,7 @@
                     </thead>
                     <tbody class="divide-y divide-dark-200 dark:divide-dark-700">
                         {% for data in instances %}
-                            <tr class="etfswui-content-table-row">
+                            <tr class="etfswui-content-table-row" data-test-class="instances-row">
                                 <td class="etfswui-table-cell">
                                     <div class="space-y-1">
                                         <div class="font-medium text-dark-900 dark:text-dark-100">
@@ -142,7 +142,7 @@
                                         {{ data.instance.colorDepth }}bit
                                     </div>
                                 </td>
-                                <td class="etfswui-table-cell">
+                                <td class="etfswui-table-cell" data-test-class="instances-endpoints">
                                     <div class="space-y-2">
                                         {% if data.mcpEndpoint %}
                                             <div>

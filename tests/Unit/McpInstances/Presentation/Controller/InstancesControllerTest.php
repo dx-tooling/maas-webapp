@@ -23,6 +23,7 @@ use App\McpInstances\Presentation\McpInstancesPresentationService;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use ReflectionProperty;
+use Symfony\Component\DomCrawler\Crawler;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Twig\Environment;
@@ -166,22 +167,44 @@ class InstancesControllerTest extends TestCase
         $response = $controller->dashboardAction();
         $html     = (string) $response->getContent();
 
-        // Basic sanity checks on the final HTML structure
-        $this->assertStringContainsString('MCP Instance Dashboard', $html);
-        // Display name from InstanceTypesConfig
-        $this->assertStringContainsString('Playwright v1', $html);
-        // Bearer token present
-        $this->assertStringContainsString($mcpBearer, $html);
-        // MCP endpoints section
-        $this->assertStringContainsString('MCP Endpoint(s)', $html);
-        $this->assertStringContainsString('/mcp', $html);
-        $this->assertStringContainsString('/sse', $html);
-        // VNC section based on DTO external paths
-        $this->assertStringContainsString('VNC Web Client', $html);
-        $this->assertStringContainsString($vncPassword, $html);
-        // Actions form posts via stubbed path() function
-        $this->assertStringContainsString('/mcp_instances.presentation.recreate_container', $html);
-        $this->assertStringContainsString('/mcp_instances.presentation.stop', $html);
+        // Use Symfony DomCrawler for structured assertions
+        $crawler = new Crawler($html);
+
+        // Page title exists
+        $title = $crawler->filter('h1.etfswui-pagetitle');
+        $this->assertCount(1, $title);
+        $this->assertSame('MCP Instance Dashboard', trim($title->text()));
+
+        // Instance display name present
+        $displayNode = $crawler->filterXPath("//div[contains(@class,'etfswui-text') and contains(., 'Playwright v1')]");
+        $this->assertGreaterThan(0, $displayNode->count());
+
+        // General Instance Data card exists
+        $generalCard = $crawler->filterXPath("//div[contains(@class,'etfswui-card')][.//span[contains(@class,'etfswui-card-title-text') and normalize-space(.)='General Instance Data']]");
+        $this->assertGreaterThan(0, $generalCard->count());
+
+        // MCP Bearer token input present with expected value
+        $bearerInput = $crawler->filter('input[aria-label="MCP Bearer Token"]');
+        $this->assertCount(1, $bearerInput);
+        $this->assertSame($mcpBearer, (string) $bearerInput->attr('value'));
+
+        // MCP Endpoint(s) card contains both paths /mcp and /sse
+        $mcpCard = $crawler->filterXPath("//div[contains(@class,'etfswui-card')][.//span[contains(@class,'etfswui-card-title-text') and normalize-space(.)='MCP Endpoint(s)']]");
+        $this->assertGreaterThan(0, $mcpCard->count());
+        $this->assertStringContainsString('/mcp', $mcpCard->text());
+        $this->assertStringContainsString('/sse', $mcpCard->text());
+
+        // VNC Web Client card contains password and link
+        $vncCard = $crawler->filterXPath("//div[contains(@class,'etfswui-card')][.//span[contains(@class,'etfswui-card-title-text') and normalize-space(.)='VNC Web Client']]");
+        $this->assertGreaterThan(0, $vncCard->count());
+        $this->assertSame($vncPassword, (string) $vncCard->filter('input[aria-label="VNC Password"]')->attr('value'));
+        $this->assertGreaterThan(0, $vncCard->filter('a[target="_blank"]')->count());
+
+        // Actions contain the two forms with expected action paths (via stubbed path())
+        $actionsCard = $crawler->filterXPath("//div[contains(@class,'etfswui-card')][.//span[contains(@class,'etfswui-card-title-text') and normalize-space(.)='Actions']]");
+        $this->assertGreaterThan(0, $actionsCard->count());
+        $this->assertGreaterThan(0, $actionsCard->filter('form[action="/mcp_instances.presentation.recreate_container"]')->count());
+        $this->assertGreaterThan(0, $actionsCard->filter('form[action="/mcp_instances.presentation.stop"]')->count());
     }
 
     private function createTwigEnvironment(): Environment

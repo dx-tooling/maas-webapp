@@ -56,7 +56,7 @@ final class InstanceTypesConfigServiceTest extends TestCase
     }
 
     /**
-     * @param array<int,string> $labels
+     * @param list<string> $labels
      */
     private function containsSubstring(array $labels, string $needle): bool
     {

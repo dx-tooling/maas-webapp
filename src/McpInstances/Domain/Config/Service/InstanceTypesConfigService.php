@@ -8,6 +8,7 @@ use App\McpInstances\Domain\Config\Dto\EndpointConfig;
 use App\McpInstances\Domain\Config\Dto\InstanceTypeConfig;
 use App\McpInstances\Domain\Enum\InstanceType;
 use App\McpInstances\Infrastructure\Config\InstanceTypesConfigProviderInterface;
+use RuntimeException;
 
 final readonly class InstanceTypesConfigService implements InstanceTypesConfigServiceInterface
 {
@@ -24,7 +25,7 @@ final readonly class InstanceTypesConfigService implements InstanceTypesConfigSe
     }
 
     /**
-     * @return string[]
+     * @return list<string>
      */
     public function buildTraefikLabels(
         InstanceType $type,
@@ -50,6 +51,10 @@ final readonly class InstanceTypesConfigService implements InstanceTypesConfigSe
                     $forwardAuthUrl
                 )
             );
+        }
+
+        if (!array_is_list($labels)) {
+            throw new RuntimeException('Labels must be a list');
         }
 
         return $labels;

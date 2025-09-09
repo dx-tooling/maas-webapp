@@ -123,13 +123,23 @@ final class YamlInstanceTypesConfigProvider implements InstanceTypesConfigProvid
                         if (!is_array($httpDef)) {
                             throw new InvalidInstanceTypesConfigException('endpoint.health.http must be object for ' . $endpointId);
                         }
+
                         $path = $httpDef['path'] ?? null;
                         if (!is_string($path) || $path === '' || $path[0] !== '/') {
                             throw new InvalidInstanceTypesConfigException('endpoint.health.http.path must be absolute path for ' . $endpointId);
                         }
-                        $accept = (int) ($httpDef['accept_status_lt'] ?? 500);
+
+                        $acceptRaw = $httpDef['accept_status_lt'] ?? 500;
+                        if (!is_int($acceptRaw)) {
+                            throw new InvalidInstanceTypesConfigException(
+                                'endpoint.health.http.accept_status_lt must be an integer for ' . $endpointId
+                            );
+                        }
+                        $accept = $acceptRaw;
                         if ($accept < 100 || $accept > 599) {
-                            throw new InvalidInstanceTypesConfigException('endpoint.health.http.accept_status_lt invalid for ' . $endpointId);
+                            throw new InvalidInstanceTypesConfigException(
+                                'endpoint.health.http.accept_status_lt must be between 100 and 599 for ' . $endpointId
+                            );
                         }
                         $httpCfg = new EndpointHealthHttpConfig($path, $accept);
                     }

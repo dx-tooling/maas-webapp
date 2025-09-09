@@ -10,6 +10,7 @@ use App\DockerManagement\Facade\DockerManagementFacadeInterface;
 use App\McpInstances\Domain\Config\Service\InstanceTypesConfigServiceInterface;
 use App\McpInstances\Domain\Dto\InstanceStatusDto;
 use App\McpInstances\Domain\Dto\ProcessStatusDto;
+use App\McpInstances\Domain\Entity\McpInstance;
 use App\McpInstances\Domain\Enum\InstanceType;
 use App\McpInstances\Domain\Service\McpInstancesDomainServiceInterface;
 use App\McpInstances\Presentation\Dto\AdminAccountDto;
@@ -18,6 +19,7 @@ use App\McpInstances\Presentation\Dto\DashboardDataDto;
 use App\McpInstances\Presentation\Dto\McpInstanceInfoDto;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
+use ValueError;
 
 readonly class McpInstancesPresentationService
 {
@@ -170,13 +172,17 @@ readonly class McpInstancesPresentationService
     /**
      * Map McpInstance domain entity to presentation DTO.
      */
-    private function mapMcpInstanceToDto(\App\McpInstances\Domain\Entity\McpInstance $instance): McpInstanceInfoDto
+    private function mapMcpInstanceToDto(McpInstance $instance): McpInstanceInfoDto
     {
         $typeCfg  = $this->typesConfig->getTypeConfig($instance->getInstanceType());
         $display  = ($typeCfg !== null) ? $typeCfg->displayName : $instance->getInstanceType()->value;
         $vncPaths = [];
         if ($typeCfg !== null && array_key_exists('vnc', $typeCfg->endpoints)) {
             $vncPaths = $typeCfg->endpoints['vnc']->externalPaths;
+        }
+
+        if (!array_is_list($vncPaths)) {
+            throw new ValueError('vncPaths must be a list');
         }
 
         return new McpInstanceInfoDto(

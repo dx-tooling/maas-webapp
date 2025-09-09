@@ -20,6 +20,7 @@ use App\McpInstances\Domain\Enum\InstanceType;
 use App\McpInstances\Domain\Service\McpInstancesDomainServiceInterface;
 use App\McpInstances\Presentation\Controller\InstancesController;
 use App\McpInstances\Presentation\McpInstancesPresentationService;
+use App\Tests\Support\WebUiTestHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use ReflectionProperty;
@@ -27,16 +28,12 @@ use Symfony\Component\DomCrawler\Crawler;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Twig\Environment;
-use Twig\Loader\ArrayLoader;
-use Twig\Loader\ChainLoader;
-use Twig\Loader\FilesystemLoader;
-use Twig\TwigFunction;
 
 class InstancesControllerTest extends TestCase
 {
     public function testDashboardRendersExpectedHtmlStructureWithInstancePresent(): void
     {
-        $twig = $this->createTwigEnvironment();
+        $twig = WebUiTestHelper::createTwigEnvironment();
 
         // Mocks for dependencies outside Presentation layer
         $domainService = $this->createMock(McpInstancesDomainServiceInterface::class);
@@ -205,54 +202,6 @@ class InstancesControllerTest extends TestCase
         $this->assertGreaterThan(0, $actionsCard->count());
         $this->assertGreaterThan(0, $actionsCard->filter('form[action="/mcp_instances.presentation.recreate_container"]')->count());
         $this->assertGreaterThan(0, $actionsCard->filter('form[action="/mcp_instances.presentation.stop"]')->count());
-    }
-
-    private function createTwigEnvironment(): Environment
-    {
-        $templateDir = __DIR__ . '/../../../../../src/McpInstances/Presentation/Resources/templates';
-
-        $fs = new FilesystemLoader();
-        $fs->addPath($templateDir, 'mcp_instances.presentation');
-
-        $array = new ArrayLoader([
-            // Minimal base template to satisfy "extends '@Webui/base_appshell.html.twig'"
-            '@Webui/base_appshell.html.twig' => <<<'TWIG'
-<!DOCTYPE html>
-<html>
-<head><meta charset="utf-8"><title>Base</title></head>
-<body>
-{% block body %}{% endblock %}
-</body>
-</html>
-TWIG,
-        ]);
-
-        $loader = new ChainLoader([$array, $fs]);
-        $twig   = new Environment($loader);
-
-        // Stub path(name) -> "/" . name
-        $twig->addFunction(new TwigFunction('path', function (string $name): string {
-            return '/' . $name;
-        }));
-
-        // Stub component(name, props) -> predictable placeholder
-        $twig->addFunction(new TwigFunction('component', function (string $name, array $props = []): string {
-            return '<div data-component="' . htmlspecialchars($name, ENT_QUOTES) . '"></div>';
-        }, ['is_safe' => ['html']]));
-
-        // Provide a minimal 'app' global with flashes()
-        $app = new class {
-            /**
-             * @return array<int,string>
-             */
-            public function flashes(string $type): array
-            {
-                return [];
-            }
-        };
-        $twig->addGlobal('app', $app);
-
-        return $twig;
     }
 
     private function newDomainInstance(

@@ -37,9 +37,10 @@ ENV MCP_PORT=8080 \
 # Expose ports
 EXPOSE 8080
 
-# Health checks (treat < 500 as healthy like app logic) — linux-cmd-line uses /sse
+# Health checks (treat < 500 as healthy like app logic)
+# Use /mcp which is the SSE session initiator endpoint and returns < 500 on availability
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -s -o /dev/null -w "%{http_code}" http://localhost:${MCP_PORT}/sse | grep -E "^(0|[1-4][0-9]{2})$" >/dev/null || exit 1
+    CMD curl -s -o /dev/null -w "%{http_code}" http://localhost:${MCP_PORT}/mcp | grep -E "^(0|[1-4][0-9]{2})$" >/dev/null || exit 1
 
 # Start supervisor
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]

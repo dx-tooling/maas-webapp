@@ -20,8 +20,8 @@ docker run --rm -d \
 echo "Waiting for services to start..."
 sleep 6
 
-# Check health (consider HTTP < 500 as healthy like the app logic) — linux-cmd-line uses /sse
-MCP_CODE=$(docker exec mcp-test sh -lc 'curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/sse' || echo 0)
+# Check health (consider HTTP < 500 as healthy like the app logic) — probe /mcp
+MCP_CODE=$(docker exec mcp-test sh -lc 'curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/mcp' || echo 0)
 if [ "$MCP_CODE" -gt 0 ] && [ "$MCP_CODE" -lt 500 ]; then
   echo "✅ MCP endpoint is healthy (code: $MCP_CODE)"
 else

@@ -21,7 +21,7 @@ This Docker image packages the Linux command-line MCP server with a minimal runt
 
 ## Exposed Ports
 
-- `8080`: MCP protocol endpoint (`/mcp`)
+- `8080`: MCP protocol endpoint (`/mcp` + `/messages` for POST)
 
 ## Health Checks
 

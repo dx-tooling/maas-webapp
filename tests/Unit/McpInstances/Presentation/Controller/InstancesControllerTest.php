@@ -4,8 +4,258 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\McpInstances\Presentation\Controller;
 
+use App\Account\Domain\Entity\AccountCore;
+use App\DockerManagement\Facade\DockerManagementFacadeInterface;
+use App\McpInstances\Domain\Config\Dto\EndpointConfig;
+use App\McpInstances\Domain\Config\Dto\InstanceDockerConfig;
+use App\McpInstances\Domain\Config\Dto\InstanceTypeConfig;
+use App\McpInstances\Domain\Config\Service\InstanceTypesConfigServiceInterface;
+use App\McpInstances\Domain\Dto\EndpointStatusDto;
+use App\McpInstances\Domain\Dto\InstanceStatusDto;
+use App\McpInstances\Domain\Dto\ProcessStatusContainerDto;
+use App\McpInstances\Domain\Dto\ProcessStatusDto;
+use App\McpInstances\Domain\Dto\ServiceStatusDto;
+use App\McpInstances\Domain\Entity\McpInstance as DomainMcpInstance;
+use App\McpInstances\Domain\Enum\InstanceType;
+use App\McpInstances\Domain\Service\McpInstancesDomainServiceInterface;
+use App\McpInstances\Presentation\Controller\InstancesController;
+use App\McpInstances\Presentation\McpInstancesPresentationService;
+use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
+use ReflectionProperty;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Security\Core\User\UserInterface;
+use Twig\Environment;
+use Twig\Loader\ArrayLoader;
+use Twig\Loader\ChainLoader;
+use Twig\Loader\FilesystemLoader;
+use Twig\TwigFunction;
 
 class InstancesControllerTest extends TestCase
 {
+    public function testDashboardRendersExpectedHtmlStructureWithInstancePresent(): void
+    {
+        $twig = $this->createTwigEnvironment();
+
+        // Mocks for dependencies outside Presentation layer
+        $domainService = $this->createMock(McpInstancesDomainServiceInterface::class);
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $dockerFacade  = $this->createMock(DockerManagementFacadeInterface::class);
+        $typesConfig   = $this->createMock(InstanceTypesConfigServiceInterface::class);
+
+        // Prepare a domain entity with stable values
+        $accountId   = 'acc-123';
+        $instanceId  = '11111111-2222-3333-4444-555555555555';
+        $mcpBearer   = 'test-bearer';
+        $vncPassword = 'test-vnc-pass';
+
+        $domainInstance = $this->newDomainInstance(
+            $accountId,
+            InstanceType::PLAYWRIGHT_V1,
+            1280,
+            720,
+            24,
+            $vncPassword,
+            $mcpBearer
+        );
+        // Set ID and derived fields
+        $this->setPrivateProperty($domainInstance, 'id', $instanceId);
+        $domainInstance->generateDerivedFields('example.test');
+
+        // Mock type config to provide display name and endpoint paths
+        $typesConfig->method('getTypeConfig')
+            ->willReturnCallback(function (InstanceType $t): ?InstanceTypeConfig {
+                if ($t !== InstanceType::PLAYWRIGHT_V1) {
+                    return null;
+                }
+
+                return new InstanceTypeConfig(
+                    'Playwright v1',
+                    new InstanceDockerConfig('some/image:tag', []),
+                    [
+                        'mcp' => new EndpointConfig(8080, 'bearer', ['/mcp', '/sse'], null),
+                        'vnc' => new EndpointConfig(6080, null, ['/vnc'], null),
+                    ]
+                );
+            });
+
+        // Domain service returns the instance for the account
+        $domainService->method('getMcpInstanceInfosForAccount')
+            ->willReturn([$domainInstance]);
+
+        // Domain service returns a ProcessStatusDto used by the health component
+        $domainService->method('getProcessStatusForInstance')
+            ->with($instanceId)
+            ->willReturn(new ProcessStatusDto(
+                $instanceId,
+                new ServiceStatusDto('running', 'running', 'running', 'running'),
+                true,
+                new ProcessStatusContainerDto(
+                    'mcp-instance-abcdef',
+                    'running',
+                    true,
+                    true,
+                    true,
+                    'https://mcp.example.test/mcp',
+                    'https://vnc.example.test/vnc'
+                )
+            ));
+
+        // Docker facade returns generic instance status used by the dashboard
+        $dockerFacade->method('getInstanceStatus')
+            ->willReturn(new InstanceStatusDto(
+                $instanceId,
+                'mcp-instance-abcdef',
+                'running',
+                true,
+                [
+                    new EndpointStatusDto('mcp', true, ['https://mcp-example.test/mcp', 'https://mcp-example.test/sse'], true, true),
+                    new EndpointStatusDto('vnc', true, ['https://vnc-example.test/vnc'], false, false),
+                ]
+            ));
+
+        // Presentation service depends on domain lookup by ID for generic status
+        $domainService->method('getMcpInstanceById')
+            ->with($instanceId)
+            ->willReturn($domainInstance);
+
+        $presentation = new McpInstancesPresentationService(
+            $domainService,
+            $entityManager,
+            $dockerFacade,
+            $typesConfig
+        );
+
+        // Controller that uses our Twig env and returns a fixed authenticated user
+        $controller = new class($domainService, $presentation, $twig, $accountId) extends InstancesController {
+            public function __construct(
+                McpInstancesDomainServiceInterface $domain,
+                McpInstancesPresentationService    $presentation,
+                private Environment                $twig,
+                private string                     $accountId
+            ) {
+                parent::__construct($domain, $presentation);
+            }
+
+            /**
+             * @param array<string,mixed> $parameters
+             */
+            protected function render(string $view, array $parameters = [], ?Response $response = null): Response
+            {
+                $html = $this->twig->render($view, $parameters);
+
+                return new Response($html);
+            }
+
+            public function getUser(): ?UserInterface
+            {
+                $user = new AccountCore('user@example.test', 'hash');
+                // Inject an ID so AbstractAccountAwareController accepts it
+                $ref = new ReflectionProperty(AccountCore::class, 'id');
+                $ref->setAccessible(true);
+                $ref->setValue($user, $this->accountId);
+
+                if ($this->accountId === '') {
+                    return null;
+                }
+
+                return $user;
+            }
+        };
+
+        $response = $controller->dashboardAction();
+        $html     = (string) $response->getContent();
+
+        // Basic sanity checks on the final HTML structure
+        $this->assertStringContainsString('MCP Instance Dashboard', $html);
+        // Display name from InstanceTypesConfig
+        $this->assertStringContainsString('Playwright v1', $html);
+        // Bearer token present
+        $this->assertStringContainsString($mcpBearer, $html);
+        // MCP endpoints section
+        $this->assertStringContainsString('MCP Endpoint(s)', $html);
+        $this->assertStringContainsString('/mcp', $html);
+        $this->assertStringContainsString('/sse', $html);
+        // VNC section based on DTO external paths
+        $this->assertStringContainsString('VNC Web Client', $html);
+        $this->assertStringContainsString($vncPassword, $html);
+        // Actions form posts via stubbed path() function
+        $this->assertStringContainsString('/mcp_instances.presentation.recreate_container', $html);
+        $this->assertStringContainsString('/mcp_instances.presentation.stop', $html);
+    }
+
+    private function createTwigEnvironment(): Environment
+    {
+        $templateDir = __DIR__ . '/../../../../../src/McpInstances/Presentation/Resources/templates';
+
+        $fs = new FilesystemLoader();
+        $fs->addPath($templateDir, 'mcp_instances.presentation');
+
+        $array = new ArrayLoader([
+            // Minimal base template to satisfy "extends '@Webui/base_appshell.html.twig'"
+            '@Webui/base_appshell.html.twig' => <<<'TWIG'
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>Base</title></head>
+<body>
+{% block body %}{% endblock %}
+</body>
+</html>
+TWIG,
+        ]);
+
+        $loader = new ChainLoader([$array, $fs]);
+        $twig   = new Environment($loader);
+
+        // Stub path(name) -> "/" . name
+        $twig->addFunction(new TwigFunction('path', function (string $name): string {
+            return '/' . $name;
+        }));
+
+        // Stub component(name, props) -> predictable placeholder
+        $twig->addFunction(new TwigFunction('component', function (string $name, array $props = []): string {
+            return '<div data-component="' . htmlspecialchars($name, ENT_QUOTES) . '"></div>';
+        }, ['is_safe' => ['html']]));
+
+        // Provide a minimal 'app' global with flashes()
+        $app = new class {
+            /**
+             * @return array<int,string>
+             */
+            public function flashes(string $type): array
+            {
+                return [];
+            }
+        };
+        $twig->addGlobal('app', $app);
+
+        return $twig;
+    }
+
+    private function newDomainInstance(
+        string       $accountCoreId,
+        InstanceType $type,
+        int          $screenWidth,
+        int          $screenHeight,
+        int          $colorDepth,
+        string       $vncPassword,
+        string       $mcpBearer
+    ): DomainMcpInstance {
+        return new DomainMcpInstance(
+            $accountCoreId,
+            $type,
+            $screenWidth,
+            $screenHeight,
+            $colorDepth,
+            $vncPassword,
+            $mcpBearer
+        );
+    }
+
+    private function setPrivateProperty(object $object, string $property, mixed $value): void
+    {
+        $ref = new ReflectionProperty($object, $property);
+        $ref->setAccessible(true);
+        $ref->setValue($object, $value);
+    }
 }

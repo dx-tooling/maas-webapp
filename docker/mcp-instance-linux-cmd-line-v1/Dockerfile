@@ -18,8 +18,9 @@ RUN useradd -m -s /bin/bash mcp \
 # Install the Linux Cmd-Line MCP server from GitHub
 USER mcp
 WORKDIR /home/mcp
+ADD "https://api.github.com/repos/dx-tooling/maas-mcpserver-linux-cmd-line/commits?per_page=1" skipcache
 RUN npm init -y \
-    && npm install "git://github.com/dx-tooling/maas-mcpserver-linux-cmd-line.git#4f3ca33"
+    && npm install "git://github.com/dx-tooling/maas-mcpserver-linux-cmd-line.git"
 
 # Copy supervisor configuration
 USER root

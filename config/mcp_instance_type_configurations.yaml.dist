@@ -6,6 +6,7 @@
 # mcp_instance_types:                       # required
 #   <instanceTypeKey>:                      # must match App\McpInstances\Domain\Enum\InstanceType values
 #     display_name: <string>                # required, shown in UI
+#     description: <string>                 # required, shown in UI tiles
 #     docker:                               # optional
 #       image: <string>                     # optional, overrides derived name
 #       env:                                # optional map<string,string>, extra env passed to container

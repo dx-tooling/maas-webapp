@@ -64,8 +64,9 @@ readonly class McpInstancesPresentationService
                 $cfg = $this->typesConfig->getTypeConfig($t);
 
                 return [
-                    'value'   => $t->value,
-                    'display' => ($cfg !== null) ? $cfg->displayName : $t->value,
+                    'value'       => $t->value,
+                    'display'     => ($cfg !== null) ? $cfg->displayName : $t->value,
+                    'description' => ($cfg !== null) ? $cfg->description : '',
                 ];
             }, InstanceType::cases()),
             static fn (array $x): bool => $x['value'] !== InstanceType::_LEGACY->value

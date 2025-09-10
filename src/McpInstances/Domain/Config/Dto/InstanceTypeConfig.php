@@ -11,6 +11,7 @@ readonly class InstanceTypeConfig
      */
     public function __construct(
         public string               $displayName,
+        public string               $description,
         public InstanceDockerConfig $docker,
         public array                $endpoints,
     ) {

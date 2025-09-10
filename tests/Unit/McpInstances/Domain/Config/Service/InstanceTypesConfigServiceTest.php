@@ -25,7 +25,7 @@ final class InstanceTypesConfigServiceTest extends TestCase
         ];
 
         $types = new McpInstanceTypesConfig([
-            'playwright-v1' => new InstanceTypeConfig('Playwright MCP v1', new InstanceDockerConfig('img'), $endpoints)
+            'playwright-v1' => new InstanceTypeConfig('Playwright MCP v1', 'Playwright automation for web testing', new InstanceDockerConfig('img'), $endpoints)
         ]);
 
         $provider->method('getConfig')->willReturn($types);

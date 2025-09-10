@@ -32,7 +32,9 @@ USER mcp
 WORKDIR /home/mcp
 ADD "https://api.github.com/repos/dx-tooling/maas-mcpserver-linux-cmd-line/commits?per_page=1" skipcache
 RUN npm init -y \
-    && npm install "git://github.com/dx-tooling/maas-mcpserver-linux-cmd-line.git"
+    && npm install "git://github.com/dx-tooling/maas-mcpserver-linux-cmd-line.git" \
+    && cd /home/mcp/node_modules/maas-mcpserver-linux-cmd-line \
+    && (npm ci && npm run build || true)
 
 # Copy supervisor configuration
 USER root

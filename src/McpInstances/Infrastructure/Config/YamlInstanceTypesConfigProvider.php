@@ -54,6 +54,12 @@ final class YamlInstanceTypesConfigProvider implements InstanceTypesConfigProvid
             }
             $displayName = $displayNameRaw;
 
+            $descriptionRaw = $typeData['description'] ?? null;
+            if (!is_string($descriptionRaw) || $descriptionRaw === '') {
+                throw new InvalidInstanceTypesConfigException('description is required for ' . $typeKey);
+            }
+            $description = $descriptionRaw;
+
             $docker = $typeData['docker'] ?? [];
             if (!is_array($docker)) {
                 throw new InvalidInstanceTypesConfigException('docker must be an object when provided for ' . $typeKey);
@@ -161,6 +167,7 @@ final class YamlInstanceTypesConfigProvider implements InstanceTypesConfigProvid
 
             $types[$typeKey] = new InstanceTypeConfig(
                 $displayName,
+                $description,
                 $dockerConfig,
                 $endpointMap
             );

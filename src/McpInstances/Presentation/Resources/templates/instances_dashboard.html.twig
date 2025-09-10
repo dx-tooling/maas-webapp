@@ -29,21 +29,27 @@
                     <span class="etfswui-card-title-text">No MCP Instance</span>
                 </div>
                 <div class="etfswui-card-content space-y-6">
-                    <p class="etfswui-text">You do not have an MCP Instance yet. Click below to create one.</p>
-                    <form method="post" action="{{ path('mcp_instances.presentation.create') }}" class="flex flex-col gap-3 md:flex-row md:items-end">
-                        <div>
-                            <label for="instanceType">
-                                <select id="instanceType" name="instanceType" class="etfswui-form-input">
-                                    {% for t in available_types %}
-                                        <option value="{{ t.value }}">{{ t.display }}</option>
-                                    {% endfor %}
-                                </select>
-                            </label>
-                        </div>
-                        <div>
-                            <button type="submit" class="etfswui-button-default">Create Instance</button>
-                        </div>
-                    </form>
+                    <p class="etfswui-text">You do not have an MCP Instance yet. Choose an instance type below to create one.</p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {% for t in available_types %}
+                            <form method="post" action="{{ path('mcp_instances.presentation.create') }}" class="instance-type-tile-form">
+                                <input type="hidden" name="instanceType" value="{{ t.value }}" />
+                                <button type="submit" class="instance-type-tile etfswui-card hover:shadow-lg transition-all duration-200 cursor-pointer border-2 border-transparent hover:border-primary-200 dark:hover:border-primary-700 w-full text-left" 
+                                        data-test-id="instance-type-tile-{{ t.value }}">
+                                    <div class="etfswui-card-content">
+                                        <h3 class="etfswui-h4 mb-2 text-primary-600 dark:text-primary-400">{{ t.display }}</h3>
+                                        <p class="etfswui-text-small text-dark-500 dark:text-dark-400 mb-4">{{ t.description }}</p>
+                                        <div class="flex items-center justify-end">
+                                            <span class="etfswui-text-small text-primary-500 dark:text-primary-400 font-medium">
+                                                Click to create →
+                                            </span>
+                                        </div>
+                                    </div>
+                                </button>
+                            </form>
+                        {% endfor %}
+                    </div>
                 </div>
             </div>
         {% else %}
@@ -252,7 +258,30 @@
                 }
             </style>
 
-            {# JavaScript no longer needed - all URLs are now static subdomains #}
+            <style>
+                .instance-type-tile-form {
+                    display: contents;
+                }
+                
+                .instance-type-tile {
+                    background: none;
+                    border: none;
+                    padding: 0;
+                    margin: 0;
+                    font: inherit;
+                    color: inherit;
+                    text-decoration: none;
+                }
+                
+                .instance-type-tile:focus {
+                    outline: 2px solid #3b82f6;
+                    outline-offset: 2px;
+                }
+                
+                .instance-type-tile:hover {
+                    transform: translateY(-1px);
+                }
+            </style>
         {% endif %}
 
         <div class="etfswui-alert etfswui-alert-info mx-auto mt-8 px-4 w-full">

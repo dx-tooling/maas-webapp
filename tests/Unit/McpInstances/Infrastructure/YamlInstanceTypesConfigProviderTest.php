@@ -22,6 +22,7 @@ final class YamlInstanceTypesConfigProviderTest extends TestCase
 
         $pv1 = $cfg->types['playwright-v1'];
         self::assertSame('Playwright MCP v1', $pv1->displayName);
+        self::assertSame('Modern Playwright MCP instance with enhanced automation features and improved performance', $pv1->description);
         self::assertSame('maas-mcp-instance-playwright-v1', $pv1->docker->image);
         self::assertArrayHasKey('mcp', $pv1->endpoints);
         self::assertArrayHasKey('vnc', $pv1->endpoints);

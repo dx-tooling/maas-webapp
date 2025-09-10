@@ -69,6 +69,7 @@ class InstancesControllerTest extends TestCase
 
                 return new InstanceTypeConfig(
                     'Playwright v1',
+                    'Playwright automation for web testing',
                     new InstanceDockerConfig('some/image:tag', []),
                     [
                         'mcp' => new EndpointConfig(8080, 'bearer', ['/mcp', '/sse'], null),

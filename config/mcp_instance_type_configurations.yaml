@@ -1,6 +1,7 @@
 mcp_instance_types:
     _legacy:
         display_name: "Legacy Playwright MCP"
+        description: "Original MCP instance with Playwright automation capabilities for web testing and interaction"
         endpoints:
             mcp:
                 port: 8080
@@ -20,6 +21,7 @@ mcp_instance_types:
 
     playwright-v1:
         display_name: "Playwright MCP v1"
+        description: "Modern Playwright MCP instance with enhanced automation features and improved performance"
         endpoints:
             mcp:
                 port: 8080
@@ -39,6 +41,7 @@ mcp_instance_types:
 
     linux-cmd-line-v1:
         display_name: "Linux Command Line MCP v1"
+        description: "Command-line focused MCP instance for terminal operations and shell scripting automation"
         endpoints:
             mcp:
                 port: 8080

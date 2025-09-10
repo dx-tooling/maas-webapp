@@ -112,6 +112,7 @@ final class AdminInstancesControllerTest extends TestCase
 
             return new InstanceTypeConfig(
                 'Playwright v1',
+                'Playwright automation for web testing',
                 new InstanceDockerConfig('img:tag', []),
                 [
                     'mcp' => new EndpointConfig(8080, 'bearer', ['/mcp', '/sse'], null),

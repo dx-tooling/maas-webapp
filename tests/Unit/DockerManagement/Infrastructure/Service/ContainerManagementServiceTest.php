@@ -182,6 +182,7 @@ final class ContainerManagementServiceTest extends TestCase
         $provider->method('getConfig')->willReturn(new McpInstanceTypesConfig([
             'playwright-v1' => new InstanceTypeConfig(
                 'Playwright',
+                'Playwright automation for web testing',
                 new InstanceDockerConfig('maas-mcp-instance-playwright-v1'),
                 [
                     'mcp' => new EndpointConfig(8080, 'bearer', ['/mcp', '/sse'], null),

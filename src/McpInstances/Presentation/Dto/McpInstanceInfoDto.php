@@ -26,6 +26,8 @@ readonly class McpInstanceInfoDto
         public ?string           $vncSubdomain,
         /** @var list<string> */
         public array             $vncExternalPaths = [],
+        /** @var list<string> */
+        public array             $mcpExternalPaths = [],
     ) {
     }
 }

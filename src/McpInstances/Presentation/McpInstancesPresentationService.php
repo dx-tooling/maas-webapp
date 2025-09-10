@@ -178,12 +178,22 @@ readonly class McpInstancesPresentationService
         $typeCfg  = $this->typesConfig->getTypeConfig($instance->getInstanceType());
         $display  = ($typeCfg !== null) ? $typeCfg->displayName : $instance->getInstanceType()->value;
         $vncPaths = [];
-        if ($typeCfg !== null && array_key_exists('vnc', $typeCfg->endpoints)) {
-            $vncPaths = $typeCfg->endpoints['vnc']->externalPaths;
+        $mcpPaths = [];
+
+        if ($typeCfg !== null) {
+            if (array_key_exists('vnc', $typeCfg->endpoints)) {
+                $vncPaths = $typeCfg->endpoints['vnc']->externalPaths;
+            }
+            if (array_key_exists('mcp', $typeCfg->endpoints)) {
+                $mcpPaths = $typeCfg->endpoints['mcp']->externalPaths;
+            }
         }
 
         if (!array_is_list($vncPaths)) {
             throw new ValueError('vncPaths must be a list');
+        }
+        if (!array_is_list($mcpPaths)) {
+            throw new ValueError('mcpPaths must be a list');
         }
 
         return new McpInstanceInfoDto(
@@ -203,6 +213,7 @@ readonly class McpInstancesPresentationService
             $instance->getMcpSubdomain(),
             $instance->getVncSubdomain(),
             $vncPaths,
+            $mcpPaths,
         );
     }
 

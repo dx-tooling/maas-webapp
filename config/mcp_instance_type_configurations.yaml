@@ -41,7 +41,7 @@ mcp_instance_types:
 
     linux-cmd-line-v1:
         display_name: "Linux Command Line MCP v1"
-        description: "This MCP server allows your AI agent to execute any Linux command within a real (but fully sandboxed) Debian \"Bookworm\" server environment."
+        description: 'This MCP server allows your AI agent to execute any Linux command within a real (but fully sandboxed) Debian "Bookworm" server environment.'
         endpoints:
             mcp:
                 port: 8080

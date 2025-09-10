@@ -20,12 +20,12 @@ docker run --rm -d \
 echo "Waiting for services to start..."
 sleep 6
 
-# Check health (consider HTTP < 500 as healthy like the app logic) — probe /mcp
-MCP_CODE=$(docker exec mcp-test sh -lc 'curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/mcp' || echo 0)
-if [ "$MCP_CODE" -gt 0 ] && [ "$MCP_CODE" -lt 500 ]; then
-  echo "✅ MCP endpoint is healthy (code: $MCP_CODE)"
+# Use /health which is the health check endpoint and must return 200 for healthy status
+HEALTH_ENDPOINT_RESPONSE_CODE=$(docker exec mcp-test sh -lc 'curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/health' || echo 0)
+if [ "$HEALTH_ENDPOINT_RESPONSE_CODE" -eq "200" ]; then
+  echo "✅ Health endpoint is healthy (code: $HEALTH_ENDPOINT_RESPONSE_CODE)"
 else
-  echo "❌ MCP endpoint failed (code: $MCP_CODE)"
+  echo "❌ Health endpoint is not healthy (code: $HEALTH_ENDPOINT_RESPONSE_CODE)"
   docker logs mcp-test || true
   docker stop mcp-test || true
   exit 1
@@ -36,5 +36,3 @@ docker stop mcp-test
 
 echo "✅ MCP Instance image built and tested successfully!"
 echo "Usage: docker run -e INSTANCE_ID=myid maas-mcp-instance-linux-cmd-line-v1:latest"
-
-

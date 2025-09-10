@@ -19,7 +19,7 @@ RUN useradd -m -s /bin/bash mcp \
 USER mcp
 WORKDIR /home/mcp
 RUN npm init -y \
-    && npm install https://github.com/dx-tooling/maas-mcpserver-linux-cmd-line.git
+    && npm install "git://github.com/dx-tooling/maas-mcpserver-linux-cmd-line.git#4f3ca33"
 
 # Copy supervisor configuration
 USER root
@@ -37,12 +37,9 @@ ENV MCP_PORT=8080 \
 # Expose ports
 EXPOSE 8080
 
-# Health checks (treat < 500 as healthy like app logic)
-# Use /mcp which is the SSE session initiator endpoint and returns < 500 on availability
+# Use /health which is the health check endpoint and must return 200 for healthy status
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -s -o /dev/null -w "%{http_code}" http://localhost:${MCP_PORT}/mcp | grep -E "^(0|[1-4][0-9]{2})$" >/dev/null || exit 1
+    CMD curl -s -o /dev/null -w "%{http_code}" http://localhost:${MCP_PORT}/health | grep -q "^200$" || exit 1
 
 # Start supervisor
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
-
-

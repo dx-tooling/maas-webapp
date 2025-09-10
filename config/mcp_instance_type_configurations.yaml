@@ -54,5 +54,5 @@ mcp_instance_types:
                 external_paths: ["/sse"]
                 health:
                     http:
-                        path: "/sse"
-                        accept_status_lt: 500
+                        path: "/health"
+                        accept_status_lt: 201

@@ -30,14 +30,14 @@
                 </div>
                 <div class="etfswui-card-content space-y-6">
                     <p class="etfswui-text">You do not have an MCP Instance yet. Choose an instance type below to create one.</p>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {% for t in available_types %}
                             <form method="post" action="{{ path('mcp_instances.presentation.create') }}" class="instance-type-tile-form">
                                 <input type="hidden" name="instanceType" value="{{ t.value }}" />
-                                <button type="submit" class="instance-type-tile etfswui-card hover:shadow-lg transition-all duration-200 cursor-pointer border-2 border-transparent hover:border-primary-200 dark:hover:border-primary-700 w-full text-left" 
+                                <button type="submit" class="instance-type-tile etfswui-card hover:shadow-lg transition-all duration-200 cursor-pointer border-2 border-transparent hover:border-primary-200 dark:hover:border-primary-700 w-full text-left h-full"
                                         data-test-id="instance-type-tile-{{ t.value }}">
-                                    <div class="etfswui-card-content">
+                                    <div class="etfswui-card-content flex flex-col justify-between h-full">
                                         <h3 class="etfswui-h4 mb-2 text-primary-600 dark:text-primary-400">{{ t.display }}</h3>
                                         <p class="etfswui-text-small text-dark-500 dark:text-dark-400 mb-4">{{ t.description }}</p>
                                         <div class="flex items-center justify-end">
@@ -262,7 +262,7 @@
                 .instance-type-tile-form {
                     display: contents;
                 }
-                
+
                 .instance-type-tile {
                     background: none;
                     border: none;
@@ -272,12 +272,12 @@
                     color: inherit;
                     text-decoration: none;
                 }
-                
+
                 .instance-type-tile:focus {
                     outline: 2px solid #3b82f6;
                     outline-offset: 2px;
                 }
-                
+
                 .instance-type-tile:hover {
                     transform: translateY(-1px);
                 }

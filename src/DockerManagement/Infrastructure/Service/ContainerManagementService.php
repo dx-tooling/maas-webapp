@@ -279,7 +279,34 @@ readonly class ContainerManagementService
             return false;
         }
 
-        return $this->isMcpEndpointUp($instance) && $this->isNoVncEndpointUp($instance);
+        // Get all configured endpoints and check their health
+        $typeCfg = $this->instanceTypesConfigService->getTypeConfig($instance->getInstanceType());
+        if ($typeCfg === null) {
+            return false;
+        }
+
+        // Check each endpoint that has health configuration
+        foreach ($typeCfg->endpoints as $endpointId => $endpoint) {
+            if ($endpoint->health?->http === null) {
+                continue; // Skip endpoints without health checks
+            }
+
+            $port       = $endpoint->port;
+            $healthPath = $endpoint->health->http->path;
+            $maxStatus  = $endpoint->health->http->acceptStatusLt;
+
+            $result = $this->runDocker(['exec', $containerName, 'sh', '-lc', 'curl -s -o /dev/null -w "%{http_code}" http://localhost:' . $port . $healthPath]);
+            if ($result['exitCode'] !== 0) {
+                return false;
+            }
+            $code = (int) trim($result['stdout']);
+
+            if ($code <= 0 || $code >= $maxStatus) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     public function isContainerRunning(McpInstance $instance): bool
@@ -298,14 +325,25 @@ readonly class ContainerManagementService
             return false;
         }
 
-        // Consider the endpoint up if HTTP status is < 500 (400 is acceptable for GET on /mcp)
-        $mcpResult = $this->runDocker(['exec', $containerName, 'sh', '-lc', 'curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/mcp']);
+        // Get MCP endpoint configuration
+        $typeCfg = $this->instanceTypesConfigService->getTypeConfig($instance->getInstanceType());
+        if ($typeCfg === null || !array_key_exists('mcp', $typeCfg->endpoints)) {
+            return false;
+        }
+
+        $mcpEndpoint = $typeCfg->endpoints['mcp'];
+        $port        = $mcpEndpoint->port;
+        $healthPath  = $mcpEndpoint->health?->http->path           ?? '/mcp';
+        $maxStatus   = $mcpEndpoint->health?->http->acceptStatusLt ?? 500;
+
+        // Check the health endpoint
+        $mcpResult = $this->runDocker(['exec', $containerName, 'sh', '-lc', 'curl -s -o /dev/null -w "%{http_code}" http://localhost:' . $port . $healthPath]);
         if ($mcpResult['exitCode'] !== 0) {
             return false;
         }
         $code = (int) trim($mcpResult['stdout']);
 
-        return $code > 0 && $code < 500;
+        return $code > 0 && $code < $maxStatus;
     }
 
     public function isNoVncEndpointUp(McpInstance $instance): bool
@@ -319,14 +357,25 @@ readonly class ContainerManagementService
             return false;
         }
 
-        // noVNC should return 200 OK; treat any < 500 as up to be resilient to minor errors
-        $vncResult = $this->runDocker(['exec', $containerName, 'sh', '-lc', 'curl -s -o /dev/null -w "%{http_code}" http://localhost:6080']);
+        // Get VNC endpoint configuration
+        $typeCfg = $this->instanceTypesConfigService->getTypeConfig($instance->getInstanceType());
+        if ($typeCfg === null || !array_key_exists('vnc', $typeCfg->endpoints)) {
+            return false;
+        }
+
+        $vncEndpoint = $typeCfg->endpoints['vnc'];
+        $port        = $vncEndpoint->port;
+        $healthPath  = $vncEndpoint->health?->http->path           ?? '/';
+        $maxStatus   = $vncEndpoint->health?->http->acceptStatusLt ?? 500;
+
+        // Check the health endpoint
+        $vncResult = $this->runDocker(['exec', $containerName, 'sh', '-lc', 'curl -s -o /dev/null -w "%{http_code}" http://localhost:' . $port . $healthPath]);
         if ($vncResult['exitCode'] !== 0) {
             return false;
         }
         $code = (int) trim($vncResult['stdout']);
 
-        return $code > 0 && $code < 500;
+        return $code > 0 && $code < $maxStatus;
     }
 
     /**

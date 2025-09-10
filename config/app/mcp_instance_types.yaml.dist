@@ -1,6 +1,6 @@
 # MCP Instance Types Configuration (.dist)
 #
-# Copy this file to mcp_instance_type_configurations.yaml and adjust as needed.
+# Copy this file to mcp_instance_types.yaml and adjust as needed.
 #
 # Schema overview:
 # mcp_instance_types:                       # required

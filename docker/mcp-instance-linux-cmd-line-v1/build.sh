@@ -5,7 +5,7 @@ set -e
 
 echo "Building MCP Instance Docker image (linux-cmd-line-v1)..."
 
-# Build the image
+# Build the image (context is this directory)
 docker build -t maas-mcp-instance-linux-cmd-line-v1:latest .
 
 echo "Testing the image..."

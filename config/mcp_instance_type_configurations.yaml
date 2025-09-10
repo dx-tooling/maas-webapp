@@ -31,18 +31,10 @@ mcp_instance_types:
                         accept_status_lt: 500
             vnc:
                 port: 6080
-                external_paths: ["/vnc-cysd.html"]
+                external_paths: ["/vnc.html"]
                 health:
                     http:
                         path: "/"
-                        accept_status_lt: 500
-            blurp:
-                port: 608
-                auth: bearer
-                external_paths: ["/mcp", "/b"]
-                health:
-                    http:
-                        path: "/mcp"
                         accept_status_lt: 500
 
     linux-cmd-line-v1:
@@ -56,3 +48,10 @@ mcp_instance_types:
                     http:
                         path: "/health"
                         accept_status_lt: 201
+            vnc:
+                port: 6080
+                external_paths: ["/vnc.html"]
+                health:
+                    http:
+                        path: "/"
+                        accept_status_lt: 500

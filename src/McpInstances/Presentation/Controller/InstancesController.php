@@ -9,6 +9,7 @@ use App\McpInstances\Domain\Enum\InstanceType;
 use App\McpInstances\Domain\Service\McpInstancesDomainServiceInterface;
 use App\McpInstances\Presentation\McpInstancesPresentationService;
 use Exception;
+use LogicException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -32,18 +33,17 @@ class InstancesController extends AbstractAccountAwareController
     )]
     public function dashboardAction(): Response
     {
+        // Keep route name and method for backward compatibility, but render overview
         $accountCoreInfoDto = $this->getAuthenticatedAccountCoreInfo();
-        $dashboardData      = $this->presentationService->getDashboardData($accountCoreInfoDto);
-
-        $instanceId = str_replace('-', '', $dashboardData->instance->id ?? '');
+        $instances          = $this->presentationService->getInstancesForAccount($accountCoreInfoDto);
+        $availableTypes     = $this->presentationService->getAvailableTypes();
+        $limit              = \App\McpInstances\Domain\Enum\UsageLimits::MAX_RUNNING_INSTANCES->value;
 
         return $this->render(
-            '@mcp_instances.presentation/instances_dashboard.html.twig', [
-                'instance'             => $dashboardData->instance,
-                'instance_id_nohyphen' => $instanceId,
-                'process_status'       => $dashboardData->processStatus,
-                'generic_status'       => $dashboardData->genericStatus,
-                'available_types'      => $dashboardData->availableTypes,
+            '@mcp_instances.presentation/instances_overview.html.twig', [
+                'instances'       => $instances,
+                'available_types' => $availableTypes,
+                'limit'           => $limit,
             ]
         );
     }
@@ -72,10 +72,52 @@ class InstancesController extends AbstractAccountAwareController
             }
         }
 
-        $this->domainService->createMcpInstanceForAccount($accountCoreInfoDto, $instanceType);
-        $this->addFlash('success', 'MCP Instance created.');
+        try {
+            $instance = $this->domainService->createMcpInstanceForAccount($accountCoreInfoDto, $instanceType);
+            $this->addFlash('success', 'MCP Instance created.');
+
+            return $this->redirectToRoute('mcp_instances.presentation.detail', ['id' => $instance->getId()]);
+        } catch (LogicException $e) {
+            $this->addFlash('error', $e->getMessage());
+        }
 
         return $this->redirectToRoute('mcp_instances.presentation.dashboard');
+    }
+
+    #[Route(
+        path   : '/account/mcp-instances/{id}',
+        name   : 'mcp_instances.presentation.detail',
+        methods: ['GET']
+    )]
+    public function detailAction(string $id): Response
+    {
+        $account     = $this->getAuthenticatedAccountCoreInfo();
+        $instanceDto = $this->presentationService->getMcpInstanceInfoById($id);
+        if ($instanceDto === null || $instanceDto->accountCoreId !== $account->id) {
+            $this->addFlash('error', 'Instance not found.');
+
+            return $this->redirectToRoute('mcp_instances.presentation.dashboard');
+        }
+
+        $processStatus = null;
+        try {
+            $processStatus = $this->presentationService->getProcessStatusForInstance($id);
+        } catch (Throwable) {
+            $processStatus = null;
+        }
+
+        $genericStatus = null;
+        try {
+            $genericStatus = $this->presentationService->getInstanceStatusForInstance($id);
+        } catch (Throwable) {
+            $genericStatus = null;
+        }
+
+        return $this->render('@mcp_instances.presentation/instances_detail.html.twig', [
+            'instance'       => $instanceDto,
+            'process_status' => $processStatus,
+            'generic_status' => $genericStatus,
+        ]);
     }
 
     #[Route(
@@ -87,6 +129,35 @@ class InstancesController extends AbstractAccountAwareController
     {
         $accountCoreInfoDto = $this->getAuthenticatedAccountCoreInfo();
         $this->domainService->stopAndRemoveMcpInstanceForAccount($accountCoreInfoDto);
+        $this->addFlash('success', 'All MCP Instances for your account stopped and removed.');
+
+        return $this->redirectToRoute('mcp_instances.presentation.dashboard');
+    }
+
+    #[Route(
+        path   : '/account/mcp-instances/{id}/stop',
+        name   : 'mcp_instances.presentation.stop_single',
+        methods: ['POST']
+    )]
+    public function stopSingleAction(string $id): Response
+    {
+        $accountCoreInfoDto = $this->getAuthenticatedAccountCoreInfo();
+        // Verify ownership
+        $userInstances    = $this->domainService->getMcpInstanceInfosForAccount($accountCoreInfoDto);
+        $userOwnsInstance = false;
+        foreach ($userInstances as $inst) {
+            if ($inst->getId() === $id) {
+                $userOwnsInstance = true;
+                break;
+            }
+        }
+        if (!$userOwnsInstance) {
+            $this->addFlash('error', 'You can only stop your own instance.');
+
+            return $this->redirectToRoute('mcp_instances.presentation.dashboard');
+        }
+
+        $this->domainService->stopAndRemoveMcpInstanceById($id);
         $this->addFlash('success', 'MCP Instance stopped and removed.');
 
         return $this->redirectToRoute('mcp_instances.presentation.dashboard');
@@ -181,6 +252,6 @@ class InstancesController extends AbstractAccountAwareController
             $this->addFlash('error', 'An error occurred while recreating the container: ' . $e->getMessage());
         }
 
-        return $this->redirectToRoute('mcp_instances.presentation.dashboard');
+        return $this->redirectToRoute('mcp_instances.presentation.detail', ['id' => $instanceId]);
     }
 }

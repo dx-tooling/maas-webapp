@@ -52,6 +52,8 @@ interface McpInstancesDomainServiceInterface
         AccountCoreInfoDto $accountCoreInfoDto
     ): void;
 
+    public function stopAndRemoveMcpInstanceById(string $instanceId): void;
+
     /**
      * Get process status for a specific MCP instance.
      */

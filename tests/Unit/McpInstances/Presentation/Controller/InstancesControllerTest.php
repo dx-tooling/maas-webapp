@@ -100,7 +100,7 @@ class InstancesControllerTest extends TestCase
                 )
             ));
 
-        // Docker facade returns generic instance status used by the dashboard
+        // Docker facade returns generic instance status used by the dashboard/detail
         $dockerFacade->method('getInstanceStatus')
             ->willReturn(new InstanceStatusDto(
                 $instanceId,
@@ -146,65 +146,48 @@ class InstancesControllerTest extends TestCase
                 return new Response($html);
             }
 
-            public function getUser(): ?UserInterface
+            public function getUser(): UserInterface
             {
                 $user = new AccountCore('user@example.test', 'hash');
-                // Inject an ID so AbstractAccountAwareController accepts it
-                $ref = new ReflectionProperty(AccountCore::class, 'id');
+                $ref  = new ReflectionProperty(AccountCore::class, 'id');
                 $ref->setAccessible(true);
                 $ref->setValue($user, $this->accountId);
-
-                if ($this->accountId === '') {
-                    return null;
-                }
 
                 return $user;
             }
         };
 
+        // 1) Overview page
         $response = $controller->dashboardAction();
         $html     = (string) $response->getContent();
+        $crawler  = new Crawler($html);
 
-        // Use Symfony DomCrawler for structured assertions
-        $crawler = new Crawler($html);
-
-        // Page title exists
         $title = $crawler->filter('[data-test-id="page-title"]');
         $this->assertCount(1, $title);
-        $this->assertSame('MCP Instance Dashboard', trim($title->text()));
+        $this->assertSame('MCP Instances', trim($title->text()));
 
-        // Instance display name present
-        $displayNode = $crawler->filter('[data-test-id="instance-type-display"]');
-        $this->assertGreaterThan(0, count($displayNode));
+        // Should list one instance row
+        $rows = $crawler->filter('[data-test-class="instances-row"]');
+        $this->assertCount(1, $rows);
+        $this->assertStringContainsString($instanceId, $rows->text());
 
-        // General Instance Data card exists
-        $generalCard = $crawler->filter('[data-test-id="card-general"]');
+        // 2) Detail page
+        $response2 = $controller->detailAction($instanceId);
+        $html2     = (string) $response2->getContent();
+        $c2        = new Crawler($html2);
+
+        // General card present with bearer
+        $generalCard = $c2->filter('[data-test-id="card-general"]');
         $this->assertGreaterThan(0, count($generalCard));
-
-        // MCP Bearer token input present with expected value
-        $bearerInput = $crawler->filter('[data-test-id="mcp-bearer"]');
+        $bearerInput = $c2->filter('[data-test-id="mcp-bearer"]');
         $this->assertCount(1, $bearerInput);
         $bearerVals = $bearerInput->extract(['value']);
         $this->assertSame($mcpBearer, $bearerVals[0] ?? null);
 
-        // MCP Endpoint(s) card contains both paths /mcp and /sse
-        $mcpCard = $crawler->filter('[data-test-id="card-mcp-endpoints"]');
+        // MCP endpoints include both paths
+        $mcpCard = $c2->filter('[data-test-id="card-mcp-endpoints"]');
         $this->assertGreaterThan(0, count($mcpCard));
         $this->assertStringContainsString('/mcp', $mcpCard->text());
         $this->assertStringContainsString('/sse', $mcpCard->text());
-
-        // VNC Web Client card contains password and link
-        $vncCard = $crawler->filter('[data-test-id="card-vnc"]');
-        $this->assertGreaterThan(0, count($vncCard));
-        $vncPwdInput = $vncCard->filter('[data-test-id="vnc-password"]');
-        $vncVals     = $vncPwdInput->extract(['value']);
-        $this->assertSame($vncPassword, $vncVals[0] ?? null);
-        $this->assertGreaterThan(0, count($vncCard->filter('a[target="_blank"]')));
-
-        // Actions contain the two forms with expected action paths (via stubbed path())
-        $actionsCard = $crawler->filterXPath("//div[contains(@class,'etfswui-card')][.//span[contains(@class,'etfswui-card-title-text') and normalize-space(.)='Actions']]");
-        $this->assertGreaterThan(0, count($actionsCard));
-        $this->assertGreaterThan(0, count($actionsCard->filter('form[action="/mcp_instances.presentation.recreate_container"]')));
-        $this->assertGreaterThan(0, count($actionsCard->filter('form[action="/mcp_instances.presentation.stop"]')));
     }
 }

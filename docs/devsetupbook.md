@@ -18,6 +18,16 @@ How do I get a development environment for this application up and running?
 - Run `bash bin/build-frontend.sh`
 - Run `symfony server:start`
 
+### Running quality checks and tests
+
+Use the dxcli commands via nvm to ensure the correct Node version is active:
+
+- Code quality checks:
+  `nvm use && .dxcli/dxcli.sh quality`
+
+- Full test suite:
+  `nvm use && .dxcli/dxcli.sh test`
+
 ### Optional: Local reverse proxy (Traefik) for end-to-end testing
 
 If you want to simulate the production routing locally (including per-instance subdomains), you can launch Traefik in development mode:

@@ -41,11 +41,12 @@ readonly class McpInstancesDomainService implements McpInstancesDomainServiceInt
         string        $accountCoreId,
         ?InstanceType $instanceType = null
     ): McpInstance {
-        // Check if instance already exists
-        $repo     = $this->entityManager->getRepository(McpInstance::class);
-        $existing = $repo->findOneBy(['accountCoreId' => $accountCoreId]);
-        if ($existing) {
-            throw new LogicException('Account already has an MCP instance.');
+        // Check running instances count for this account against limit
+        $repo  = $this->entityManager->getRepository(McpInstance::class);
+        $count = $repo->count(['accountCoreId' => $accountCoreId]);
+        $max   = \App\McpInstances\Domain\Enum\UsageLimits::MAX_RUNNING_INSTANCES->value;
+        if ($count >= $max) {
+            throw new LogicException('Maximum number of MCP instances reached for this account.');
         }
 
         // Create instance with default screen settings and generated secrets
@@ -194,6 +195,19 @@ readonly class McpInstancesDomainService implements McpInstancesDomainServiceInt
         AccountCoreInfoDto $accountCoreInfoDto
     ): void {
         $this->stopAndRemoveMcpInstance($accountCoreInfoDto->id);
+    }
+
+    public function stopAndRemoveMcpInstanceById(string $instanceId): void
+    {
+        $repo     = $this->entityManager->getRepository(McpInstance::class);
+        $instance = $repo->find($instanceId);
+        if (!$instance) {
+            throw new LogicException('MCP instance not found.');
+        }
+
+        $this->dockerFacade->stopAndRemoveContainer($instance);
+        $this->entityManager->remove($instance);
+        $this->entityManager->flush();
     }
 
     /**

@@ -38,7 +38,10 @@ final class ContainerManagementDomainServiceTest extends TestCase
     {
         $this->logger = $this->createMock(LoggerInterface::class);
         $this->params = $this->createMock(ParameterBagInterface::class);
-        $this->params->method('get')->with('kernel.project_dir')->willReturn(__DIR__ . '/../../../../..');
+        $this->params->method('get')->willReturnMap([
+            ['kernel.project_dir', __DIR__ . '/../../../../..'],
+            ['kernel.environment', 'test'],
+        ]);
 
         $this->router = $this->createMock(RouterInterface::class);
         $this->router->method('generate')->willReturn('https://app.example.com/auth/mcp-bearer-check');
@@ -91,18 +94,14 @@ final class ContainerManagementDomainServiceTest extends TestCase
         // Logger may be called multiple times; no strict parameter expectations here
         $this->logger->expects($this->any())->method('info');
 
-        // Force wrapper path usage without sudo and enable validation-only mode so process exits quickly with 0
-        putenv('MAAS_WRAPPER_NO_SUDO=1');
+        // Enable validation-only mode so the service short-circuits safely in environments without Docker
         putenv('MAAS_WRAPPER_VALIDATE_ONLY=1');
-        putenv('DOCKER_BIN=/bin/docker');
 
         // Execute; since wrapper runs in validation mode, createContainer should return true (docker run exits 0)
         $this->assertTrue($service->createContainer($instance));
 
-        // Cleanup env changes for isolation
-        putenv('MAAS_WRAPPER_NO_SUDO');
+        // Cleanup env
         putenv('MAAS_WRAPPER_VALIDATE_ONLY');
-        putenv('DOCKER_BIN');
     }
 
     public function testStartStopRestartRemoveInvokeWrapper(): void
@@ -131,20 +130,12 @@ final class ContainerManagementDomainServiceTest extends TestCase
         $idProp->setValue($instance, '00000000-0000-0000-0000-000000000def');
         $instance->generateDerivedFields('mcp-as-a-service.com');
 
-        // Env: use wrapper directly and validate-only
-        putenv('MAAS_WRAPPER_NO_SUDO=1');
-        putenv('MAAS_WRAPPER_VALIDATE_ONLY=1');
-        putenv('DOCKER_BIN=/bin/docker');
+        // The ProcessServiceInterface mock returns exit code 0; wrapper or docker invocation details are not required here.
 
         $this->assertTrue($service->startContainer($instance));
         $this->assertTrue($service->stopContainer($instance));
         $this->assertTrue($service->restartContainer($instance));
         $this->assertTrue($service->removeContainer($instance));
-
-        // Cleanup env
-        putenv('MAAS_WRAPPER_NO_SUDO');
-        putenv('MAAS_WRAPPER_VALIDATE_ONLY');
-        putenv('DOCKER_BIN');
     }
 
     public function testGetContainerStateInvokesInspectViaWrapper(): void
@@ -173,16 +164,10 @@ final class ContainerManagementDomainServiceTest extends TestCase
         $idProp->setValue($instance, '00000000-0000-0000-0000-000000000abc');
         $instance->generateDerivedFields('mcp-as-a-service.com');
 
-        putenv('MAAS_WRAPPER_NO_SUDO=1');
-        putenv('MAAS_WRAPPER_VALIDATE_ONLY=1');
-        putenv('DOCKER_BIN=/bin/docker');
+        // No env overrides required; the process mock returns 0 and stdout is empty.
 
         // In validate-only mode, stdout is not the status, so service returns ERROR
         $this->assertSame(ContainerState::ERROR, $service->getContainerState($instance));
-
-        putenv('MAAS_WRAPPER_NO_SUDO');
-        putenv('MAAS_WRAPPER_VALIDATE_ONLY');
-        putenv('DOCKER_BIN');
     }
 
     // Helper to construct a minimal config service with endpoints 'mcp' and 'vnc'

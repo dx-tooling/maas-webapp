@@ -59,7 +59,27 @@ readonly class McpInstancesPresentationService
             }
         }
 
-        $availableTypes = array_values(array_filter(
+        $availableTypes = $this->getAvailableTypes();
+        /** @var array<int,array{value:string,display:string}> $reducedTypes */
+        $reducedTypes = [];
+        foreach ($availableTypes as $t) {
+            $reducedTypes[] = ['value' => (string)$t['value'], 'display' => (string)$t['display']];
+        }
+
+        return new DashboardDataDto(
+            $instanceDto,
+            $processStatus,
+            $genericStatus,
+            $reducedTypes,
+        );
+    }
+
+    /**
+     * @return array<array{value:string,display:string,description:string}>
+     */
+    public function getAvailableTypes(): array
+    {
+        return array_values(array_filter(
             array_map(function (InstanceType $t): array {
                 $cfg = $this->typesConfig->getTypeConfig($t);
 
@@ -71,13 +91,16 @@ readonly class McpInstancesPresentationService
             }, InstanceType::cases()),
             static fn (array $x): bool => $x['value'] !== InstanceType::_LEGACY->value
         ));
+    }
 
-        return new DashboardDataDto(
-            $instanceDto,
-            $processStatus,
-            $genericStatus,
-            $availableTypes,
-        );
+    /**
+     * @return array<McpInstanceInfoDto>
+     */
+    public function getInstancesForAccount(AccountCoreInfoDto $accountCoreInfoDto): array
+    {
+        $instances = $this->domainService->getMcpInstanceInfosForAccount($accountCoreInfoDto);
+
+        return array_map(fn (McpInstance $i): McpInstanceInfoDto => $this->mapMcpInstanceToDto($i), $instances);
     }
 
     /**

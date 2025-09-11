@@ -309,11 +309,6 @@ readonly class ContainerManagementService
         return true;
     }
 
-    public function isContainerRunning(McpInstance $instance): bool
-    {
-        return $this->getContainerState($instance) === ContainerState::RUNNING;
-    }
-
     public function isMcpEndpointUp(McpInstance $instance): bool
     {
         $containerName = $instance->getContainerName();

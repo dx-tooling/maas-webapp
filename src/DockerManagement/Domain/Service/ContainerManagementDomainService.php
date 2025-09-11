@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace App\DockerManagement\Domain\Service;
 
-use App\DockerManagement\Infrastructure\Service\ProcessService;
+use App\DockerManagement\Infrastructure\Dto\RunProcessResultDto;
+use App\DockerManagement\Infrastructure\Service\ProcessServiceInterface;
 use App\McpInstances\Domain\Config\Service\InstanceTypesConfigServiceInterface;
 use App\McpInstances\Domain\Entity\McpInstance;
 use App\McpInstances\Domain\Enum\ContainerState;
@@ -12,7 +13,6 @@ use App\McpInstances\Domain\Enum\InstanceType;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
-use Symfony\Component\Process\Process;
 use Symfony\Component\Routing\RouterInterface;
 
 readonly class ContainerManagementDomainService
@@ -22,7 +22,7 @@ readonly class ContainerManagementDomainService
         private ParameterBagInterface               $params,
         private RouterInterface                     $router,
         private InstanceTypesConfigServiceInterface $instanceTypesConfigService,
-        private ProcessService                      $processService,
+        private ProcessServiceInterface             $processService,
     ) {
     }
 
@@ -40,7 +40,7 @@ readonly class ContainerManagementDomainService
      * Return the command prefix to invoke Docker.
      * If the wrapper exists in the project, prefer it via sudo -n; otherwise call docker directly.
      *
-     * @return string[]
+     * @return list<string>
      */
     private function getDockerInvoker(): array
     {
@@ -75,11 +75,9 @@ readonly class ContainerManagementDomainService
     /**
      * Run a docker command using either the wrapper or docker binary.
      *
-     * @param string[] $args
-     *
-     * @return array{exitCode:int, stdout:string, stderr:string}
+     * @param list<string> $args
      */
-    private function runDocker(array $args): array
+    private function runDocker(array $args): RunProcessResultDto
     {
         $cmd = array_merge($this->getDockerInvoker(), $args);
 
@@ -104,14 +102,7 @@ readonly class ContainerManagementDomainService
             }
         }
 
-        $process = new Process($cmd, null, $env, null, 60);
-        $process->run();
-
-        return [
-            'exitCode' => $process->getExitCode() ?? 1,
-            'stdout'   => $process->getOutput(),
-            'stderr'   => $process->getErrorOutput(),
-        ];
+        return $this->processService->runProcess($cmd, null, $env, null, 60);
     }
 
     public function createContainer(McpInstance $instance): bool
@@ -148,12 +139,12 @@ readonly class ContainerManagementDomainService
 
         // In validation-only mode (used by tests), the wrapper may short-circuit.
         // Treat this as success to verify command construction without requiring Docker.
-        if ($result['exitCode'] === 0 || (string) getenv('MAAS_WRAPPER_VALIDATE_ONLY') === '1') {
+        if ($result->exitCode === 0 || (string) getenv('MAAS_WRAPPER_VALIDATE_ONLY') === '1') {
             $this->logger->info("[ContainerManagementDomainService] Container {$containerName} created successfully");
 
             return true;
         } else {
-            $this->logger->error("[ContainerManagementDomainService] Failed to create container {$containerName}: " . ($result['stderr'] !== '' ? $result['stderr'] : $result['stdout']));
+            $this->logger->error("[ContainerManagementDomainService] Failed to create container {$containerName}: " . ($result->stderr !== '' ? $result->stderr : $result->stdout));
 
             return false;
         }
@@ -170,12 +161,12 @@ readonly class ContainerManagementDomainService
 
         $result = $this->runDocker(['start', $containerName]);
 
-        if ($result['exitCode'] === 0) {
+        if ($result->exitCode === 0) {
             $this->logger->info("[ContainerManagementDomainService] Container {$containerName} started successfully");
 
             return true;
         } else {
-            $this->logger->error("[ContainerManagementDomainService] Failed to start container {$containerName}: " . ($result['stderr'] !== '' ? $result['stderr'] : $result['stdout']));
+            $this->logger->error("[ContainerManagementDomainService] Failed to start container {$containerName}: " . ($result->stderr !== '' ? $result->stderr : $result->stdout));
 
             return false;
         }
@@ -192,12 +183,12 @@ readonly class ContainerManagementDomainService
 
         $result = $this->runDocker(['stop', $containerName]);
 
-        if ($result['exitCode'] === 0) {
+        if ($result->exitCode === 0) {
             $this->logger->info("[ContainerManagementDomainService] Container {$containerName} stopped successfully");
 
             return true;
         } else {
-            $this->logger->error("[ContainerManagementDomainService] Failed to stop container {$containerName}: " . ($result['stderr'] !== '' ? $result['stderr'] : $result['stdout']));
+            $this->logger->error("[ContainerManagementDomainService] Failed to stop container {$containerName}: " . ($result->stderr !== '' ? $result->stderr : $result->stdout));
 
             return false;
         }
@@ -214,12 +205,12 @@ readonly class ContainerManagementDomainService
 
         $result = $this->runDocker(['rm', $containerName]);
 
-        if ($result['exitCode'] === 0) {
+        if ($result->exitCode === 0) {
             $this->logger->info("[ContainerManagementDomainService] Container {$containerName} removed successfully");
 
             return true;
         } else {
-            $this->logger->error("[ContainerManagementDomainService] Failed to remove container {$containerName}: " . ($result['stderr'] !== '' ? $result['stderr'] : $result['stdout']));
+            $this->logger->error("[ContainerManagementDomainService] Failed to remove container {$containerName}: " . ($result->stderr !== '' ? $result->stderr : $result->stdout));
 
             return false;
         }
@@ -236,12 +227,12 @@ readonly class ContainerManagementDomainService
 
         $result = $this->runDocker(['restart', $containerName]);
 
-        if ($result['exitCode'] === 0) {
+        if ($result->exitCode === 0) {
             $this->logger->info("[ContainerManagementDomainService] Container {$containerName} restarted successfully");
 
             return true;
         } else {
-            $this->logger->error("[ContainerManagementDomainService] Failed to restart container {$containerName}: " . ($result['stderr'] !== '' ? $result['stderr'] : $result['stdout']));
+            $this->logger->error("[ContainerManagementDomainService] Failed to restart container {$containerName}: " . ($result->stderr !== '' ? $result->stderr : $result->stdout));
 
             return false;
         }
@@ -255,9 +246,9 @@ readonly class ContainerManagementDomainService
         }
 
         $result = $this->runDocker(['inspect', '--format', '{{.State.Status}}', $containerName]);
-        $status = trim($result['stdout']);
+        $status = trim($result->stdout);
 
-        if ($result['exitCode'] !== 0) {
+        if ($result->exitCode !== 0) {
             return ContainerState::ERROR;
         }
 
@@ -298,10 +289,10 @@ readonly class ContainerManagementDomainService
             $maxStatus  = $endpoint->health->http->acceptStatusLt;
 
             $result = $this->runDocker(['exec', $containerName, 'sh', '-lc', 'curl -s -o /dev/null -w "%{http_code}" http://localhost:' . $port . $healthPath]);
-            if ($result['exitCode'] !== 0) {
+            if ($result->exitCode !== 0) {
                 return false;
             }
-            $code = (int) trim($result['stdout']);
+            $code = (int) trim($result->stdout);
 
             if ($code <= 0 || $code >= $maxStatus) {
                 return false;
@@ -335,10 +326,10 @@ readonly class ContainerManagementDomainService
 
         // Check the health endpoint
         $mcpResult = $this->runDocker(['exec', $containerName, 'sh', '-lc', 'curl -s -o /dev/null -w "%{http_code}" http://localhost:' . $port . $healthPath]);
-        if ($mcpResult['exitCode'] !== 0) {
+        if ($mcpResult->exitCode !== 0) {
             return false;
         }
-        $code = (int) trim($mcpResult['stdout']);
+        $code = (int) trim($mcpResult->stdout);
 
         return $code > 0 && $code < $maxStatus;
     }
@@ -367,10 +358,10 @@ readonly class ContainerManagementDomainService
 
         // Check the health endpoint
         $vncResult = $this->runDocker(['exec', $containerName, 'sh', '-lc', 'curl -s -o /dev/null -w "%{http_code}" http://localhost:' . $port . $healthPath]);
-        if ($vncResult['exitCode'] !== 0) {
+        if ($vncResult->exitCode !== 0) {
             return false;
         }
-        $code = (int) trim($vncResult['stdout']);
+        $code = (int) trim($vncResult->stdout);
 
         return $code > 0 && $code < $maxStatus;
     }
@@ -389,19 +380,17 @@ readonly class ContainerManagementDomainService
         }
 
         $result = $this->runDocker(['exec', $containerName, 'sh', '-lc', 'curl -s -o /dev/null -w "%{http_code}" ' . escapeshellarg($url)]);
-        if ($result['exitCode'] !== 0) {
+        if ($result->exitCode !== 0) {
             return 0;
         }
 
-        return (int) trim($result['stdout']);
+        return (int) trim($result->stdout);
     }
 
     /**
      * Build and execute `docker run` for the instance.
-     *
-     * @return array{exitCode:int, stdout:string, stderr:string}
      */
-    private function buildAndRunDockerRun(McpInstance $instance): array
+    private function buildAndRunDockerRun(McpInstance $instance): RunProcessResultDto
     {
         $containerName = $instance->getContainerName();
         $instanceSlug  = $instance->getInstanceSlug();

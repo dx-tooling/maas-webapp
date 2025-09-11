@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Tests\Unit\DockerManagement\Domain\Service;
 
 use App\DockerManagement\Domain\Service\ContainerManagementDomainService;
+use App\DockerManagement\Infrastructure\Dto\RunProcessResultDto;
+use App\DockerManagement\Infrastructure\Service\ProcessServiceInterface;
 use App\McpInstances\Domain\Config\Dto\EndpointConfig;
 use App\McpInstances\Domain\Config\Dto\InstanceDockerConfig;
 use App\McpInstances\Domain\Config\Dto\InstanceTypeConfig;
@@ -44,8 +46,10 @@ final class ContainerManagementDomainServiceTest extends TestCase
 
     public function testCreateContainerFailsWhenNamesMissing(): void
     {
-        $svc      = $this->createInstanceTypesConfigService();
-        $service  = new ContainerManagementDomainService($this->logger, $this->params, $this->router, $svc);
+        $svc     = $this->createInstanceTypesConfigService();
+        $process = $this->createMock(ProcessServiceInterface::class);
+        $process->method('runProcess')->willReturn(new RunProcessResultDto(0, '', ''));
+        $service  = new ContainerManagementDomainService($this->logger, $this->params, $this->router, $svc, $process);
         $instance = new McpInstance(
             'acc',
             InstanceType::PLAYWRIGHT_V1,
@@ -62,8 +66,10 @@ final class ContainerManagementDomainServiceTest extends TestCase
 
     public function testDockerRunInvocationUsesWrapperInValidateOnlyMode(): void
     {
-        $svc      = $this->createInstanceTypesConfigService();
-        $service  = new ContainerManagementDomainService($this->logger, $this->params, $this->router, $svc);
+        $svc     = $this->createInstanceTypesConfigService();
+        $process = $this->createMock(ProcessServiceInterface::class);
+        $process->method('runProcess')->willReturn(new RunProcessResultDto(0, '', ''));
+        $service  = new ContainerManagementDomainService($this->logger, $this->params, $this->router, $svc, $process);
         $instance = new McpInstance(
             'acc',
             InstanceType::PLAYWRIGHT_V1,
@@ -105,8 +111,10 @@ final class ContainerManagementDomainServiceTest extends TestCase
         $logger = $this->createMock(LoggerInterface::class);
         $logger->expects($this->any())->method('info');
 
-        $svc      = $this->createInstanceTypesConfigService();
-        $service  = new ContainerManagementDomainService($logger, $this->params, $this->router, $svc);
+        $svc     = $this->createInstanceTypesConfigService();
+        $process = $this->createMock(ProcessServiceInterface::class);
+        $process->method('runProcess')->willReturn(new RunProcessResultDto(0, '', ''));
+        $service  = new ContainerManagementDomainService($logger, $this->params, $this->router, $svc, $process);
         $instance = new McpInstance(
             'acc',
             InstanceType::PLAYWRIGHT_V1,
@@ -146,8 +154,10 @@ final class ContainerManagementDomainServiceTest extends TestCase
             ->method('info')
             ->with($this->stringContains('inspect'));
 
-        $svc      = $this->createInstanceTypesConfigService();
-        $service  = new ContainerManagementDomainService($logger, $this->params, $this->router, $svc);
+        $svc     = $this->createInstanceTypesConfigService();
+        $process = $this->createMock(ProcessServiceInterface::class);
+        $process->method('runProcess')->willReturn(new RunProcessResultDto(0, '', ''));
+        $service  = new ContainerManagementDomainService($logger, $this->params, $this->router, $svc, $process);
         $instance = new McpInstance(
             'acc',
             InstanceType::PLAYWRIGHT_V1,

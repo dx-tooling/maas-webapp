@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\McpInstancesConfiguration\Domain\Config\Exception;
+namespace App\McpInstancesConfiguration\Domain\Exception;
 
 use RuntimeException;
 

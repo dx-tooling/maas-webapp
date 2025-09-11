@@ -6,7 +6,7 @@ namespace App\DockerManagement\Domain\Service;
 
 use App\DockerManagement\Infrastructure\Dto\RunProcessResultDto;
 use App\DockerManagement\Infrastructure\Service\ProcessServiceInterface;
-use App\McpInstancesConfiguration\Domain\Config\Service\InstanceTypesConfigServiceInterface;
+use App\McpInstancesConfiguration\Domain\Service\InstanceTypesConfigServiceInterface;
 use App\McpInstancesManagement\Domain\Entity\McpInstance;
 use App\McpInstancesManagement\Domain\Enum\ContainerState;
 use App\McpInstancesManagement\Domain\Enum\InstanceType;

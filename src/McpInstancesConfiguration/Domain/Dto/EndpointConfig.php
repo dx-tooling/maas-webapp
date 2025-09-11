@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\McpInstancesConfiguration\Domain\Config\Dto;
+namespace App\McpInstancesConfiguration\Domain\Dto;
 
 readonly class EndpointConfig
 {

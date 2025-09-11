@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace App\McpInstancesConfiguration\Infrastructure\Config;
+namespace App\McpInstancesConfiguration\Infrastructure;
 
-use App\McpInstancesConfiguration\Domain\Config\Dto\EndpointConfig;
-use App\McpInstancesConfiguration\Domain\Config\Dto\EndpointHealthConfig;
-use App\McpInstancesConfiguration\Domain\Config\Dto\EndpointHealthHttpConfig;
-use App\McpInstancesConfiguration\Domain\Config\Dto\InstanceDockerConfig;
-use App\McpInstancesConfiguration\Domain\Config\Dto\InstanceTypeConfig;
-use App\McpInstancesConfiguration\Domain\Config\Dto\McpInstanceTypesConfig;
-use App\McpInstancesConfiguration\Domain\Config\Exception\InvalidInstanceTypesConfigException;
+use App\McpInstancesConfiguration\Domain\Dto\EndpointConfig;
+use App\McpInstancesConfiguration\Domain\Dto\EndpointHealthConfig;
+use App\McpInstancesConfiguration\Domain\Dto\EndpointHealthHttpConfig;
+use App\McpInstancesConfiguration\Domain\Dto\InstanceDockerConfig;
+use App\McpInstancesConfiguration\Domain\Dto\InstanceTypeConfig;
+use App\McpInstancesConfiguration\Domain\Dto\McpInstanceTypesConfig;
+use App\McpInstancesConfiguration\Domain\Exception\InvalidInstanceTypesConfigException;
 use App\McpInstancesManagement\Domain\Enum\InstanceType;
 use Symfony\Component\Yaml\Yaml;
 use ValueError;

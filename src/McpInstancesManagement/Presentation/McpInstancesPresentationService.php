@@ -7,7 +7,7 @@ namespace App\McpInstancesManagement\Presentation;
 use App\Account\Domain\Entity\AccountCore;
 use App\Account\Facade\Dto\AccountCoreInfoDto;
 use App\DockerManagement\Facade\DockerManagementFacadeInterface;
-use App\McpInstancesConfiguration\Domain\Config\Service\InstanceTypesConfigServiceInterface;
+use App\McpInstancesConfiguration\Domain\Service\InstanceTypesConfigServiceInterface;
 use App\McpInstancesManagement\Domain\Dto\InstanceStatusDto;
 use App\McpInstancesManagement\Domain\Dto\ProcessStatusDto;
 use App\McpInstancesManagement\Domain\Entity\McpInstance;

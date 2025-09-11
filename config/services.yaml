@@ -20,7 +20,7 @@ services:
             - "../src/Entity/"
             - "../src/Kernel.php"
 
-    App\McpInstancesConfiguration\Infrastructure\Config\YamlInstanceTypesConfigProvider:
+    App\McpInstancesConfiguration\Infrastructure\YamlInstanceTypesConfigProvider:
         arguments:
             $configFilePath: "%kernel.project_dir%/config/app/mcp_instance_types.yaml"
 

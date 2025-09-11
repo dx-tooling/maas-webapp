@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\McpInstancesConfiguration\Domain\Config\Service;
+namespace App\McpInstancesConfiguration\Domain\Service;
 
-use App\McpInstancesConfiguration\Domain\Config\Dto\InstanceTypeConfig;
+use App\McpInstancesConfiguration\Domain\Dto\InstanceTypeConfig;
 use App\McpInstancesManagement\Domain\Enum\InstanceType;
 
 interface InstanceTypesConfigServiceInterface

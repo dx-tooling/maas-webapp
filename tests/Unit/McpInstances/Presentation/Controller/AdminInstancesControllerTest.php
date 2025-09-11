@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace App\Tests\Unit\McpInstances\Presentation\Controller;
 
 use App\DockerManagement\Facade\DockerManagementFacadeInterface;
-use App\McpInstancesConfiguration\Domain\Config\Dto\EndpointConfig;
-use App\McpInstancesConfiguration\Domain\Config\Dto\InstanceDockerConfig;
-use App\McpInstancesConfiguration\Domain\Config\Dto\InstanceTypeConfig;
-use App\McpInstancesConfiguration\Domain\Config\Service\InstanceTypesConfigServiceInterface;
+use App\McpInstancesConfiguration\Domain\Dto\EndpointConfig;
+use App\McpInstancesConfiguration\Domain\Dto\InstanceDockerConfig;
+use App\McpInstancesConfiguration\Domain\Dto\InstanceTypeConfig;
+use App\McpInstancesConfiguration\Domain\Service\InstanceTypesConfigServiceInterface;
 use App\McpInstancesManagement\Domain\Enum\InstanceType;
 use App\McpInstancesManagement\Domain\Service\McpInstancesDomainServiceInterface;
 use App\McpInstancesManagement\Presentation\Controller\AdminInstancesController;

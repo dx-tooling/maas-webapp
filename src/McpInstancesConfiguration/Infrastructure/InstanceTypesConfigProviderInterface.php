@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\McpInstancesConfiguration\Infrastructure\Config;
+namespace App\McpInstancesConfiguration\Infrastructure;
 
-use App\McpInstancesConfiguration\Domain\Config\Dto\McpInstanceTypesConfig;
+use App\McpInstancesConfiguration\Domain\Dto\McpInstanceTypesConfig;
 
 interface InstanceTypesConfigProviderInterface
 {

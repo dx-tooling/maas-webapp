@@ -6,7 +6,7 @@ namespace App\DockerManagement\Facade;
 
 use App\DockerManagement\Domain\Service\ContainerManagementDomainService;
 use App\DockerManagement\Facade\Dto\ContainerStatusDto;
-use App\McpInstancesConfiguration\Domain\Config\Service\InstanceTypesConfigServiceInterface;
+use App\McpInstancesConfiguration\Domain\Service\InstanceTypesConfigServiceInterface;
 use App\McpInstancesManagement\Domain\Dto\EndpointStatusDto;
 use App\McpInstancesManagement\Domain\Dto\InstanceStatusDto;
 use App\McpInstancesManagement\Domain\Entity\McpInstance;

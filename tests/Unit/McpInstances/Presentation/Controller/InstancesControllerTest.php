@@ -6,10 +6,10 @@ namespace App\Tests\Unit\McpInstances\Presentation\Controller;
 
 use App\Account\Domain\Entity\AccountCore;
 use App\DockerManagement\Facade\DockerManagementFacadeInterface;
-use App\McpInstancesConfiguration\Domain\Config\Dto\EndpointConfig;
-use App\McpInstancesConfiguration\Domain\Config\Dto\InstanceDockerConfig;
-use App\McpInstancesConfiguration\Domain\Config\Dto\InstanceTypeConfig;
-use App\McpInstancesConfiguration\Domain\Config\Service\InstanceTypesConfigServiceInterface;
+use App\McpInstancesConfiguration\Domain\Dto\EndpointConfig;
+use App\McpInstancesConfiguration\Domain\Dto\InstanceDockerConfig;
+use App\McpInstancesConfiguration\Domain\Dto\InstanceTypeConfig;
+use App\McpInstancesConfiguration\Domain\Service\InstanceTypesConfigServiceInterface;
 use App\McpInstancesManagement\Domain\Dto\EndpointStatusDto;
 use App\McpInstancesManagement\Domain\Dto\InstanceStatusDto;
 use App\McpInstancesManagement\Domain\Dto\ProcessStatusContainerDto;

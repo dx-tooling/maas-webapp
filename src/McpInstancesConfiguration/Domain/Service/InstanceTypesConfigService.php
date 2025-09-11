@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\McpInstancesConfiguration\Domain\Config\Service;
+namespace App\McpInstancesConfiguration\Domain\Service;
 
-use App\McpInstancesConfiguration\Domain\Config\Dto\EndpointConfig;
-use App\McpInstancesConfiguration\Domain\Config\Dto\InstanceTypeConfig;
-use App\McpInstancesConfiguration\Infrastructure\Config\InstanceTypesConfigProviderInterface;
+use App\McpInstancesConfiguration\Domain\Dto\EndpointConfig;
+use App\McpInstancesConfiguration\Domain\Dto\InstanceTypeConfig;
+use App\McpInstancesConfiguration\Infrastructure\InstanceTypesConfigProviderInterface;
 use App\McpInstancesManagement\Domain\Enum\InstanceType;
 use RuntimeException;
 

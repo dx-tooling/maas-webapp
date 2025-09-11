@@ -14,10 +14,10 @@ final class WebUiTestHelper
 {
     public static function createTwigEnvironment(): Environment
     {
-        $templateDir = __DIR__ . '/../../src/McpInstances/Presentation/Resources/templates';
+        $templateDir = __DIR__ . '/../../src/McpInstancesManagement/Presentation/Resources/templates';
 
         $fs = new FilesystemLoader();
-        $fs->addPath($templateDir, 'mcp_instances.presentation');
+        $fs->addPath($templateDir, 'mcp_instances_management.presentation');
 
         $array = new ArrayLoader([
             '@Webui/base_appshell.html.twig' => <<<'TWIG'

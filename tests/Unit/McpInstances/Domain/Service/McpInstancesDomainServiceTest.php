@@ -6,10 +6,10 @@ namespace App\Tests\Unit\McpInstances\Domain\Service;
 
 use App\Account\Facade\Dto\AccountCoreInfoDto;
 use App\DockerManagement\Facade\DockerManagementFacadeInterface;
-use App\McpInstances\Domain\Entity\McpInstance;
-use App\McpInstances\Domain\Enum\ContainerState;
-use App\McpInstances\Domain\Enum\InstanceType;
-use App\McpInstances\Domain\Service\McpInstancesDomainService;
+use App\McpInstancesManagement\Domain\Entity\McpInstance;
+use App\McpInstancesManagement\Domain\Enum\ContainerState;
+use App\McpInstancesManagement\Domain\Enum\InstanceType;
+use App\McpInstancesManagement\Domain\Service\McpInstancesDomainService;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
 use LogicException;

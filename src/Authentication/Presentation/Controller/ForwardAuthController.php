@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Authentication\Presentation\Controller;
 
-use App\McpInstances\Domain\Entity\McpInstance;
+use App\McpInstancesManagement\Domain\Entity\McpInstance;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\Log\LoggerInterface;

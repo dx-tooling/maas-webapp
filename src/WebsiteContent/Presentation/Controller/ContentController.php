@@ -23,6 +23,6 @@ class ContentController extends AbstractController
             return $this->redirectToRoute('account.presentation.sign_in');
         }
 
-        return $this->redirectToRoute('mcp_instances.presentation.dashboard');
+        return $this->redirectToRoute('mcp_instances_management.presentation.dashboard');
     }
 }

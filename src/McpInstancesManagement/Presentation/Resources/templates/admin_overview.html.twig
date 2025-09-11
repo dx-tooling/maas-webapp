@@ -1,0 +1,202 @@
+{% extends '@Webui/base_appshell.html.twig' %}
+
+{% block body %}
+    <div class="max-w-7xl mx-auto px-4">
+        <h1 class="etfswui-pagetitle mb-10 text-left" data-test-id="page-title">MCP Instances Admin Overview</h1>
+
+        <div class="etfswui-card mb-8" data-test-id="card-stats">
+            <div class="etfswui-card-title">
+                <span class="etfswui-card-title-text">Platform Statistics</span>
+            </div>
+            <div class="etfswui-card-content">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <div class="text-center">
+                        <div class="text-3xl font-bold text-primary-600 dark:text-primary-400">{{ instances|length }}</div>
+                        <div class="text-sm text-dark-500 dark:text-dark-400">Total Instances</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-3xl font-bold text-green-600 dark:text-green-400">
+                            {% set healthyCount = 0 %}
+                            {% for data in instances %}
+                                {% if data.isHealthy %}
+                                    {% set healthyCount = healthyCount + 1 %}
+                                {% endif %}
+                            {% endfor %}
+                            {{ healthyCount }}
+                        </div>
+                        <div class="text-sm text-dark-500 dark:text-dark-400">Healthy Instances</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-3xl font-bold text-yellow-600 dark:text-yellow-400">
+                            {% set unhealthyCount = 0 %}
+                            {% for data in instances %}
+                                {% if not data.isHealthy %}
+                                    {% set unhealthyCount = unhealthyCount + 1 %}
+                                {% endif %}
+                            {% endfor %}
+                            {{ unhealthyCount }}
+                        </div>
+                        <div class="text-sm text-dark-500 dark:text-dark-400">Unhealthy Instances</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-3xl font-bold text-blue-600 dark:text-blue-400">
+                            {% set accountIds = [] %}
+                            {% for data in instances %}
+                                {% if data.account.id not in accountIds %}
+                                    {% set accountIds = accountIds|merge([data.account.id]) %}
+                                {% endif %}
+                            {% endfor %}
+                            {{ accountIds|length }}
+                        </div>
+                        <div class="text-sm text-dark-500 dark:text-dark-400">Active Accounts</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="etfswui-card" data-test-id="card-table">
+            <div class="etfswui-card-title">
+                <span class="etfswui-card-title-text">All MCP Instances</span>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="etfswui-table" data-test-id="instances-table">
+                    <thead class="bg-dark-50 dark:bg-dark-700/50">
+                        <tr>
+                            <th scope="col" class="etfswui-table-header">Account</th>
+                            <th scope="col" class="etfswui-table-header">Instance</th>
+                            <th scope="col" class="etfswui-table-header">Status</th>
+                            <th scope="col" class="etfswui-table-header">Health</th>
+                            <th scope="col" class="etfswui-table-header">Created</th>
+                            <th scope="col" class="etfswui-table-header">Screen</th>
+                            <th scope="col" class="etfswui-table-header">Endpoints</th>
+                            <th scope="col" class="etfswui-table-header etfswui-table-header-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-dark-200 dark:divide-dark-700">
+                        {% for data in instances %}
+                            <tr class="etfswui-content-table-row" data-test-class="instances-row">
+                                <td class="etfswui-table-cell">
+                                    <div class="space-y-1">
+                                        <div class="font-medium text-dark-900 dark:text-dark-100">
+                                            {{ data.account.email }}
+                                        </div>
+                                        <div class="text-xs text-dark-500 dark:text-dark-400">
+                                            ID: {{ data.account.id|slice(0, 8) }}...
+                                        </div>
+                                        <div class="flex flex-wrap gap-1">
+                                            {% for role in data.account.roles %}
+                                                <span class="etfswui-badge etfswui-badge-info text-xs">{{ role }}</span>
+                                            {% endfor %}
+                                        </div>
+                                        <div class="text-xs text-dark-400 dark:text-dark-500">
+                                            Registered: {{ data.account.createdAt|date('M j, Y') }}
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="etfswui-table-cell">
+                                    <div class="space-y-1">
+                                        <div class="font-medium text-dark-900 dark:text-dark-100">
+                                            {{ data.instance.instanceSlug }}
+                                        </div>
+                                        <div class="text-xs text-dark-500 dark:text-dark-400">
+                                            ID: {{ data.instance.id|slice(0, 8) }}...
+                                        </div>
+                                        <div class="text-xs text-dark-400 dark:text-dark-500">
+                                            Container: {{ data.instance.containerName }}
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="etfswui-table-cell">
+                                    <div class="flex items-center gap-2">
+                                        {% if data.instance.containerState == 'running' %}
+                                            <span class="etfswui-badge etfswui-badge-success">Running</span>
+                                        {% elseif data.instance.containerState == 'created' %}
+                                            <span class="etfswui-badge etfswui-badge-warning">Created</span>
+                                        {% elseif data.instance.containerState == 'stopped' %}
+                                            <span class="etfswui-badge etfswui-badge-error">Stopped</span>
+                                        {% else %}
+                                            <span class="etfswui-badge etfswui-badge-error">{{ data.instance.containerState|title }}</span>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td class="etfswui-table-cell">
+                                    {% if data.isHealthy %}
+                                        <span class="etfswui-badge etfswui-badge-success">Healthy</span>
+                                    {% else %}
+                                        <span class="etfswui-badge etfswui-badge-error">Unhealthy</span>
+                                    {% endif %}
+                                </td>
+                                <td class="etfswui-table-cell">
+                                    <div class="text-sm text-dark-600 dark:text-dark-300">
+                                        {{ data.instance.createdAt|date('M j, Y') }}
+                                    </div>
+                                    <div class="text-xs text-dark-400 dark:text-dark-500">
+                                        {{ data.instance.createdAt|date('g:i A') }}
+                                    </div>
+                                </td>
+                                <td class="etfswui-table-cell">
+                                    <div class="text-sm text-dark-600 dark:text-dark-300">
+                                        {{ data.instance.screenWidth }}×{{ data.instance.screenHeight }}
+                                    </div>
+                                    <div class="text-xs text-dark-400 dark:text-dark-500">
+                                        {{ data.instance.colorDepth }}bit
+                                    </div>
+                                </td>
+                                <td class="etfswui-table-cell" data-test-class="instances-endpoints">
+                                    <div class="space-y-2">
+                                        {% if data.mcpEndpoint %}
+                                            <div>
+                                                <div class="text-xs font-medium text-dark-500 dark:text-dark-400 mb-1">MCP</div>
+                                                <a href="{{ data.mcpEndpoint }}"
+                                                   target="_blank"
+                                                   class="etfswui-link-default text-xs break-all">
+                                                    {{ data.mcpEndpoint|replace({'https://': ''}) }}
+                                                </a>
+                                            </div>
+                                        {% endif %}
+                                        {% if data.vncEndpoint %}
+                                            <div>
+                                                <div class="text-xs font-medium text-dark-500 dark:text-dark-400 mb-1">VNC</div>
+                                                <a href="{{ data.vncEndpoint }}/vnc.html"
+                                                   target="_blank"
+                                                   class="etfswui-link-default text-xs break-all">
+                                                    {{ data.vncEndpoint|replace({'https://': ''}) }}
+                                                </a>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td class="etfswui-table-cell etfswui-table-cell-right">
+                                    <div class="flex gap-2 items-center justify-end">
+                                        <a href="{{ path('mcp_instances_management.presentation.admin_detail', { id: data.instance.id }) }}"
+                                           class="etfswui-link-as-button-default">View details</a>
+                                        <form method="post" action="{{ path('mcp_instances_management.presentation.admin_recreate', { id: data.instance.id }) }}" onsubmit="return confirm('Recreate container for this instance?');">
+                                            <button type="submit" class="etfswui-button-secondary">Recreate container</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="7" class="etfswui-table-cell text-center text-dark-500 dark:text-dark-400 py-8">
+                                    No MCP instances found.
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="etfswui-alert etfswui-alert-info mx-auto mt-8 px-4 w-full">
+            <div class="etfswui-alert-body">
+                <p class="etfswui-alert-info-text font-normal">
+                    <strong>Admin Overview:</strong> This page provides a comprehensive view of all MCP instances across the platform.
+                    Use this information to monitor platform health, track usage, and identify any issues that need attention.
+                </p>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+

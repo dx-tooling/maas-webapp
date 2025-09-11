@@ -5,7 +5,7 @@ twig:
         "src/Common/Presentation/Resources/templates": "common.presentation"
         "src/WebsiteContent/Presentation/Resources/templates": "website_content.presentation"
         "src/Account/Presentation/Resources/templates": "account.presentation"
-        "src/McpInstances/Presentation/Resources/templates": "mcp_instances.presentation"
+        "src/McpInstancesManagement/Presentation/Resources/templates": "mcp_instances_management.presentation"
 
 when@test:
     twig:

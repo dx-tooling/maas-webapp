@@ -1,0 +1,103 @@
+{% extends '@Webui/base_appshell.html.twig' %}
+
+{% block body %}
+    <div class="max-w-5xl mx-auto px-4">
+        <h1 class="etfswui-pagetitle mb-6 text-left" data-test-id="page-title">MCP Instances</h1>
+
+        {% for message in app.flashes('success') %}
+            <div class="etfswui-alert etfswui-alert-success mb-6">
+                <div class="etfswui-alert-body">
+                    <p class="etfswui-alert-success-text">{{ message }}</p>
+                </div>
+            </div>
+        {% endfor %}
+        {% for message in app.flashes('error') %}
+            <div class="etfswui-alert etfswui-alert-danger mb-6">
+                <div class="etfswui-alert-body">
+                    <p class="etfswui-alert-danger-text">{{ message }}</p>
+                </div>
+            </div>
+        {% endfor %}
+
+        {# Create new instance section #}
+        <div class="etfswui-card mb-8 text-left" data-test-id="card-create">
+            <div class="etfswui-card-title flex items-center justify-between">
+                <span class="etfswui-card-title-text">Create New Instance</span>
+                <span class="etfswui-text-small text-dark-500">{{ instances|length }}/{{ limit }}</span>
+            </div>
+            <div class="etfswui-card-content">
+                {% if instances|length >= limit %}
+                    <div class="etfswui-text-small text-dark-500">You have reached the maximum number of running instances.</div>
+                {% else %}
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {% for t in available_types %}
+                            <form method="post" action="{{ path('mcp_instances_management.presentation.create') }}" class="instance-type-tile-form">
+                                <input type="hidden" name="instanceType" value="{{ t.value }}" />
+                                <button type="submit" class="instance-type-tile etfswui-card hover:shadow-lg transition-all duration-200 cursor-pointer border-2 border-transparent hover:border-primary-200 dark:hover:border-primary-700 w-full text-left h-full"
+                                        data-test-class="create-type-tile">
+                                    <div class="etfswui-card-content flex flex-col gap-2">
+                                        <div class="etfswui-h4">{{ t.display }}</div>
+                                        <div class="etfswui-text-small text-dark-500">{{ t.description }}</div>
+                                        <div class="mt-2 flex justify-end">
+                                            <span class="etfswui-text-small text-primary-600 hover:underline transition-colors duration-150">Create instance →</span>
+                                        </div>
+                                    </div>
+                                </button>
+                            </form>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        {# Instances list #}
+        <div class="etfswui-card mb-12 text-left" data-test-id="card-instances">
+            <div class="etfswui-card-title">
+                <span class="etfswui-card-title-text">Your Running Instances</span>
+            </div>
+            <div class="etfswui-card-content">
+                {% if instances is empty %}
+                    <div class="etfswui-text-small text-dark-500">No instances yet.</div>
+                {% else %}
+                    <div class="divide-y divide-dark-200 dark:divide-dark-700">
+                        {% for i in instances %}
+                            <div class="py-4 flex items-center justify-between" data-test-class="instances-row">
+                                <div class="min-w-0">
+                                    <div class="font-medium truncate">{{ i.instanceTypeDisplayName }} · <span class="text-dark-500">{{ i.id }}</span></div>
+                                    <div class="etfswui-text-small text-dark-500 truncate">{{ i.containerName }}</div>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <a href="{{ path('mcp_instances_management.presentation.detail', {id: i.id}) }}" class="etfswui-link-as-button-secondary" data-test-class="btn-details">Details</a>
+                                    <form method="post" action="{{ path('mcp_instances_management.presentation.restart_processes') }}">
+                                        <input type="hidden" name="instanceId" value="{{ i.id }}" />
+                                        <button type="submit" class="etfswui-button-secondary" data-test-class="btn-restart">Restart</button>
+                                    </form>
+                                    <form method="post" action="{{ path('mcp_instances_management.presentation.recreate_container') }}" onsubmit="return confirm('Recreate this instance?');">
+                                        <input type="hidden" name="instanceId" value="{{ i.id }}" />
+                                        <button type="submit" class="etfswui-button-secondary" data-test-class="btn-recreate">Recreate</button>
+                                    </form>
+                                    <form method="post" action="{{ path('mcp_instances_management.presentation.stop_single', {id: i.id}) }}" onsubmit="return confirm('Stop and remove this instance?');">
+                                        <button type="submit" class="etfswui-button-danger" data-test-class="btn-stop">Stop</button>
+                                    </form>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <style>
+            .instance-type-tile-form { display: contents; }
+            .instance-type-tile { background: none; border: none; padding: 0; margin: 0; font: inherit; color: inherit; text-decoration: none; }
+            .instance-type-tile:focus { outline: 2px solid #3b82f6; outline-offset: 2px; }
+            .instance-type-tile:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+            .instance-type-tile .etfswui-h4 { transition: color 150ms ease-in-out; }
+            .instance-type-tile:hover .etfswui-h4 { color: #2563eb; }
+            .instance-type-tile .etfswui-text-small { transition: color 150ms ease-in-out; }
+            .instance-type-tile:hover .etfswui-text-small { color: #4b5563; }
+        </style>
+    </div>
+{% endblock %}
+
+

@@ -6,10 +6,10 @@ namespace App\DockerManagement\Domain\Service;
 
 use App\DockerManagement\Infrastructure\Dto\RunProcessResultDto;
 use App\DockerManagement\Infrastructure\Service\ProcessServiceInterface;
-use App\McpInstances\Domain\Config\Service\InstanceTypesConfigServiceInterface;
-use App\McpInstances\Domain\Entity\McpInstance;
-use App\McpInstances\Domain\Enum\ContainerState;
-use App\McpInstances\Domain\Enum\InstanceType;
+use App\McpInstancesConfiguration\Domain\Config\Service\InstanceTypesConfigServiceInterface;
+use App\McpInstancesManagement\Domain\Entity\McpInstance;
+use App\McpInstancesManagement\Domain\Enum\ContainerState;
+use App\McpInstancesManagement\Domain\Enum\InstanceType;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;

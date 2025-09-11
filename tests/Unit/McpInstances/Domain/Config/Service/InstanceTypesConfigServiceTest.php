@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\McpInstances\Domain\Config\Service;
 
-use App\McpInstances\Domain\Config\Dto\EndpointConfig;
-use App\McpInstances\Domain\Config\Dto\InstanceDockerConfig;
-use App\McpInstances\Domain\Config\Dto\InstanceTypeConfig;
-use App\McpInstances\Domain\Config\Dto\McpInstanceTypesConfig;
-use App\McpInstances\Domain\Config\Service\InstanceTypesConfigService;
-use App\McpInstances\Domain\Enum\InstanceType;
-use App\McpInstances\Infrastructure\Config\InstanceTypesConfigProviderInterface;
+use App\McpInstancesConfiguration\Domain\Config\Dto\EndpointConfig;
+use App\McpInstancesConfiguration\Domain\Config\Dto\InstanceDockerConfig;
+use App\McpInstancesConfiguration\Domain\Config\Dto\InstanceTypeConfig;
+use App\McpInstancesConfiguration\Domain\Config\Dto\McpInstanceTypesConfig;
+use App\McpInstancesConfiguration\Domain\Config\Service\InstanceTypesConfigService;
+use App\McpInstancesConfiguration\Infrastructure\Config\InstanceTypesConfigProviderInterface;
+use App\McpInstancesManagement\Domain\Enum\InstanceType;
 use PHPUnit\Framework\TestCase;
 
 final class InstanceTypesConfigServiceTest extends TestCase

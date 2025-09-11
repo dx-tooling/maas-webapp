@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\DockerManagement\Facade;
 
 use App\DockerManagement\Facade\Dto\ContainerStatusDto;
-use App\McpInstances\Domain\Dto\InstanceStatusDto;
-use App\McpInstances\Domain\Entity\McpInstance;
+use App\McpInstancesManagement\Domain\Dto\InstanceStatusDto;
+use App\McpInstancesManagement\Domain\Entity\McpInstance;
 
 interface DockerManagementFacadeInterface
 {

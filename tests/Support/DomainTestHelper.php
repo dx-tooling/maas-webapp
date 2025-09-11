@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Tests\Support;
 
-use App\McpInstances\Domain\Entity\McpInstance as DomainMcpInstance;
-use App\McpInstances\Domain\Enum\InstanceType;
+use App\McpInstancesManagement\Domain\Entity\McpInstance as DomainMcpInstance;
+use App\McpInstancesManagement\Domain\Enum\InstanceType;
 use ReflectionProperty;
 
 final class DomainTestHelper

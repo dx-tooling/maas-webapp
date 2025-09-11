@@ -15,7 +15,7 @@ This document describes how this application works.
 - **Domain service**: `App\McpInstances\Domain\Service\McpInstancesDomainService`
   - Creates/restarts/stops instances, persists state, and delegates to the Docker facade for lifecycle.
 - **Docker facade/service**:
-  - `App\DockerManagement\Facade\DockerManagementFacade` + `App\DockerManagement\Infrastructure\Service\ContainerManagementService` manage container lifecycle via a controlled Docker CLI wrapper.
+  - `App\DockerManagement\Facade\DockerManagementFacade` + `App\DockerManagement\Domain\Service\ContainerManagementDomainService` manage container lifecycle via a controlled Docker CLI wrapper.
   - Labels for Traefik are generated at container creation time to expose per-instance subdomains.
 - **Reverse proxy**: Traefik (container)
   - Terminates TLS for all domains/subdomains, routes `app.*` → host nginx:8090 and per-instance subdomains → instance containers.
@@ -33,7 +33,7 @@ This document describes how this application works.
    - Generates `vncPassword` and `mcpBearer` and persists the entity.
    - After flush, derives `instanceSlug`, `containerName`, and subdomains.
 3. Docker lifecycle: `DockerManagementFacade::createAndStartContainer()`
-   - `ContainerManagementService` builds a `docker run` with env vars and Traefik labels; then starts the container.
+   - `ContainerManagementDomainService` builds a `docker run` with env vars and Traefik labels; then starts the container.
 4. Container state is set to `running` upon success.
 
 ### Stop & remove (user-driven)
@@ -70,7 +70,7 @@ This document describes how this application works.
 
 ## Health and status
 
-- `ContainerManagementService` considers the container healthy if MCP (8080) and noVNC (6080) respond inside the container via `docker exec curl`.
+- `ContainerManagementDomainService` considers the container healthy if MCP (8080) and noVNC (6080) respond inside the container via `docker exec curl`.
 - `DockerManagementFacade::getContainerStatus()` returns `ContainerStatusDto` with `mcpEndpoint` and `vncEndpoint` URLs derived from subdomains.
 
 ## Web UI surfaces

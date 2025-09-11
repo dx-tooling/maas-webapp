@@ -43,7 +43,7 @@ netstat -tlnp | grep :443
 From the native Symfony application, test container creation using the domain service (which will call the wrapper under the hood if configured to use `sudo`):
 ```php
 // Via Symfony console or test script
-$dockerService = $container->get(ContainerManagementService::class);
+$dockerService = $container->get(ContainerManagementDomainService::class);
 $instance = // ... create test McpInstance
 $success = $dockerService->createContainer($instance);
 ```

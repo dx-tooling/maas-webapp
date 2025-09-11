@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Tests\Unit\DockerManagement\Infrastructure\Service;
+namespace App\Tests\Unit\DockerManagement\Domain\Service;
 
-use App\DockerManagement\Infrastructure\Service\ContainerManagementService;
+use App\DockerManagement\Domain\Service\ContainerManagementDomainService;
 use App\McpInstances\Domain\Config\Dto\EndpointConfig;
 use App\McpInstances\Domain\Config\Dto\InstanceDockerConfig;
 use App\McpInstances\Domain\Config\Dto\InstanceTypeConfig;
@@ -21,7 +21,7 @@ use ReflectionClass;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\Routing\RouterInterface;
 
-final class ContainerManagementServiceTest extends TestCase
+final class ContainerManagementDomainServiceTest extends TestCase
 {
     /** @var LoggerInterface&MockObject */
     private LoggerInterface $logger;
@@ -45,7 +45,7 @@ final class ContainerManagementServiceTest extends TestCase
     public function testCreateContainerFailsWhenNamesMissing(): void
     {
         $svc      = $this->createInstanceTypesConfigService();
-        $service  = new ContainerManagementService($this->logger, $this->params, $this->router, $svc);
+        $service  = new ContainerManagementDomainService($this->logger, $this->params, $this->router, $svc);
         $instance = new McpInstance(
             'acc',
             InstanceType::PLAYWRIGHT_V1,
@@ -63,7 +63,7 @@ final class ContainerManagementServiceTest extends TestCase
     public function testDockerRunInvocationUsesWrapperInValidateOnlyMode(): void
     {
         $svc      = $this->createInstanceTypesConfigService();
-        $service  = new ContainerManagementService($this->logger, $this->params, $this->router, $svc);
+        $service  = new ContainerManagementDomainService($this->logger, $this->params, $this->router, $svc);
         $instance = new McpInstance(
             'acc',
             InstanceType::PLAYWRIGHT_V1,
@@ -106,7 +106,7 @@ final class ContainerManagementServiceTest extends TestCase
         $logger->expects($this->any())->method('info');
 
         $svc      = $this->createInstanceTypesConfigService();
-        $service  = new ContainerManagementService($logger, $this->params, $this->router, $svc);
+        $service  = new ContainerManagementDomainService($logger, $this->params, $this->router, $svc);
         $instance = new McpInstance(
             'acc',
             InstanceType::PLAYWRIGHT_V1,
@@ -147,7 +147,7 @@ final class ContainerManagementServiceTest extends TestCase
             ->with($this->stringContains('inspect'));
 
         $svc      = $this->createInstanceTypesConfigService();
-        $service  = new ContainerManagementService($logger, $this->params, $this->router, $svc);
+        $service  = new ContainerManagementDomainService($logger, $this->params, $this->router, $svc);
         $instance = new McpInstance(
             'acc',
             InstanceType::PLAYWRIGHT_V1,

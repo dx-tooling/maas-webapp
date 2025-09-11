@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\DockerManagement\Infrastructure\Service;
+namespace App\DockerManagement\Domain\Service;
 
+use App\DockerManagement\Infrastructure\Service\ProcessService;
 use App\McpInstances\Domain\Config\Service\InstanceTypesConfigServiceInterface;
 use App\McpInstances\Domain\Entity\McpInstance;
 use App\McpInstances\Domain\Enum\ContainerState;
@@ -14,13 +15,14 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\Process\Process;
 use Symfony\Component\Routing\RouterInterface;
 
-readonly class ContainerManagementService
+readonly class ContainerManagementDomainService
 {
     public function __construct(
         private LoggerInterface                     $logger,
         private ParameterBagInterface               $params,
         private RouterInterface                     $router,
-        private InstanceTypesConfigServiceInterface $instanceTypesConfigService
+        private InstanceTypesConfigServiceInterface $instanceTypesConfigService,
+        private ProcessService                      $processService,
     ) {
     }
 
@@ -47,7 +49,7 @@ readonly class ContainerManagementService
         if (is_file($wrapperPath) && is_readable($wrapperPath)) {
             // Allow tests to bypass sudo and call wrapper directly
             if ((string) getenv('MAAS_WRAPPER_NO_SUDO') === '1') {
-                $this->logger->debug('[ContainerManagementService] Using wrapper directly (MAAS_WRAPPER_NO_SUDO=1)');
+                $this->logger->debug('[ContainerManagementDomainService] Using wrapper directly (MAAS_WRAPPER_NO_SUDO=1)');
 
                 return [$wrapperPath];
             }
@@ -55,17 +57,17 @@ readonly class ContainerManagementService
             // In development environment, call wrapper directly without sudo
             $appEnv = $this->params->get('kernel.environment');
             if ($appEnv === 'dev') {
-                $this->logger->debug('[ContainerManagementService] Development mode: using wrapper directly without sudo');
+                $this->logger->debug('[ContainerManagementDomainService] Development mode: using wrapper directly without sudo');
 
                 return [$wrapperPath];
             }
 
-            $this->logger->debug('[ContainerManagementService] Production mode: using sudo wrapper');
+            $this->logger->debug('[ContainerManagementDomainService] Production mode: using sudo wrapper');
 
             return ['sudo', '-n', $wrapperPath];
         }
 
-        $this->logger->debug('[ContainerManagementService] Wrapper not found, using docker binary directly');
+        $this->logger->debug('[ContainerManagementDomainService] Wrapper not found, using docker binary directly');
 
         return ['/usr/bin/env', 'docker'];
     }
@@ -82,7 +84,7 @@ readonly class ContainerManagementService
         $cmd = array_merge($this->getDockerInvoker(), $args);
 
         // Log the invocation for observability and unit testing assertions
-        $this->logger->info('[ContainerManagementService] Docker invocation: ' . implode(' ', array_map(static fn (string $p): string => escapeshellarg($p), $cmd)));
+        $this->logger->info('[ContainerManagementDomainService] Docker invocation: ' . implode(' ', array_map(static fn (string $p): string => escapeshellarg($p), $cmd)));
 
         // Propagate validation/testing env flags if present
         $va  = getenv('MAAS_WRAPPER_VALIDATE_ONLY');
@@ -118,7 +120,7 @@ readonly class ContainerManagementService
         $validateOnly = (string) getenv('MAAS_WRAPPER_VALIDATE_ONLY') === '1';
         $noSudoTest   = (string) getenv('MAAS_WRAPPER_NO_SUDO')       === '1' && (string) getenv('DOCKER_BIN') !== '';
         if ($validateOnly || $noSudoTest) {
-            $this->logger->info('[ContainerManagementService] Validation-only mode active; skipping docker run');
+            $this->logger->info('[ContainerManagementDomainService] Validation-only mode active; skipping docker run');
 
             return true;
         }
@@ -135,23 +137,23 @@ readonly class ContainerManagementService
         }
 
         if (!$containerName || !$instanceSlug) {
-            $this->logger->error('[ContainerManagementService] Container name or instance slug not set');
+            $this->logger->error('[ContainerManagementDomainService] Container name or instance slug not set');
 
             return false;
         }
 
-        $this->logger->info("[ContainerManagementService] Creating container: {$containerName}");
+        $this->logger->info("[ContainerManagementDomainService] Creating container: {$containerName}");
 
         $result = $this->buildAndRunDockerRun($instance);
 
         // In validation-only mode (used by tests), the wrapper may short-circuit.
         // Treat this as success to verify command construction without requiring Docker.
         if ($result['exitCode'] === 0 || (string) getenv('MAAS_WRAPPER_VALIDATE_ONLY') === '1') {
-            $this->logger->info("[ContainerManagementService] Container {$containerName} created successfully");
+            $this->logger->info("[ContainerManagementDomainService] Container {$containerName} created successfully");
 
             return true;
         } else {
-            $this->logger->error("[ContainerManagementService] Failed to create container {$containerName}: " . ($result['stderr'] !== '' ? $result['stderr'] : $result['stdout']));
+            $this->logger->error("[ContainerManagementDomainService] Failed to create container {$containerName}: " . ($result['stderr'] !== '' ? $result['stderr'] : $result['stdout']));
 
             return false;
         }
@@ -164,16 +166,16 @@ readonly class ContainerManagementService
             return false;
         }
 
-        $this->logger->info("[ContainerManagementService] Starting container: {$containerName}");
+        $this->logger->info("[ContainerManagementDomainService] Starting container: {$containerName}");
 
         $result = $this->runDocker(['start', $containerName]);
 
         if ($result['exitCode'] === 0) {
-            $this->logger->info("[ContainerManagementService] Container {$containerName} started successfully");
+            $this->logger->info("[ContainerManagementDomainService] Container {$containerName} started successfully");
 
             return true;
         } else {
-            $this->logger->error("[ContainerManagementService] Failed to start container {$containerName}: " . ($result['stderr'] !== '' ? $result['stderr'] : $result['stdout']));
+            $this->logger->error("[ContainerManagementDomainService] Failed to start container {$containerName}: " . ($result['stderr'] !== '' ? $result['stderr'] : $result['stdout']));
 
             return false;
         }
@@ -186,16 +188,16 @@ readonly class ContainerManagementService
             return false;
         }
 
-        $this->logger->info("[ContainerManagementService] Stopping container: {$containerName}");
+        $this->logger->info("[ContainerManagementDomainService] Stopping container: {$containerName}");
 
         $result = $this->runDocker(['stop', $containerName]);
 
         if ($result['exitCode'] === 0) {
-            $this->logger->info("[ContainerManagementService] Container {$containerName} stopped successfully");
+            $this->logger->info("[ContainerManagementDomainService] Container {$containerName} stopped successfully");
 
             return true;
         } else {
-            $this->logger->error("[ContainerManagementService] Failed to stop container {$containerName}: " . ($result['stderr'] !== '' ? $result['stderr'] : $result['stdout']));
+            $this->logger->error("[ContainerManagementDomainService] Failed to stop container {$containerName}: " . ($result['stderr'] !== '' ? $result['stderr'] : $result['stdout']));
 
             return false;
         }
@@ -208,16 +210,16 @@ readonly class ContainerManagementService
             return false;
         }
 
-        $this->logger->info("[ContainerManagementService] Removing container: {$containerName}");
+        $this->logger->info("[ContainerManagementDomainService] Removing container: {$containerName}");
 
         $result = $this->runDocker(['rm', $containerName]);
 
         if ($result['exitCode'] === 0) {
-            $this->logger->info("[ContainerManagementService] Container {$containerName} removed successfully");
+            $this->logger->info("[ContainerManagementDomainService] Container {$containerName} removed successfully");
 
             return true;
         } else {
-            $this->logger->error("[ContainerManagementService] Failed to remove container {$containerName}: " . ($result['stderr'] !== '' ? $result['stderr'] : $result['stdout']));
+            $this->logger->error("[ContainerManagementDomainService] Failed to remove container {$containerName}: " . ($result['stderr'] !== '' ? $result['stderr'] : $result['stdout']));
 
             return false;
         }
@@ -230,16 +232,16 @@ readonly class ContainerManagementService
             return false;
         }
 
-        $this->logger->info("[ContainerManagementService] Restarting container: {$containerName}");
+        $this->logger->info("[ContainerManagementDomainService] Restarting container: {$containerName}");
 
         $result = $this->runDocker(['restart', $containerName]);
 
         if ($result['exitCode'] === 0) {
-            $this->logger->info("[ContainerManagementService] Container {$containerName} restarted successfully");
+            $this->logger->info("[ContainerManagementDomainService] Container {$containerName} restarted successfully");
 
             return true;
         } else {
-            $this->logger->error("[ContainerManagementService] Failed to restart container {$containerName}: " . ($result['stderr'] !== '' ? $result['stderr'] : $result['stdout']));
+            $this->logger->error("[ContainerManagementDomainService] Failed to restart container {$containerName}: " . ($result['stderr'] !== '' ? $result['stderr'] : $result['stdout']));
 
             return false;
         }

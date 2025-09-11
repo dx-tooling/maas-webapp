@@ -6,6 +6,7 @@ namespace App\DockerManagement\Domain\Service;
 
 use App\DockerManagement\Infrastructure\Dto\RunProcessResultDto;
 use App\DockerManagement\Infrastructure\Service\ProcessServiceInterface;
+use App\McpInstancesConfiguration\Domain\Dto\EndpointConfig;
 use App\McpInstancesConfiguration\Domain\Service\InstanceTypesConfigServiceInterface;
 use App\McpInstancesManagement\Domain\Entity\McpInstance;
 use App\McpInstancesManagement\Domain\Enum\ContainerState;
@@ -14,6 +15,7 @@ use Psr\Log\LoggerInterface;
 use RuntimeException;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\Routing\RouterInterface;
+use ValueError;
 
 readonly class ContainerManagementDomainService
 {
@@ -395,6 +397,14 @@ readonly class ContainerManagementDomainService
         $containerName = $instance->getContainerName();
         $instanceSlug  = $instance->getInstanceSlug();
 
+        if (is_null($containerName)) {
+            throw new ValueError('Container name is not set');
+        }
+
+        if (is_null($instanceSlug)) {
+            throw new ValueError('Instance slug is not set');
+        }
+
         $imageName = $this->getImageNameForInstanceType($instance->getInstanceType());
 
         $envVars = [
@@ -406,7 +416,10 @@ readonly class ContainerManagementDomainService
             "VNC_PASSWORD={$instance->getVncPassword()}"
         ];
 
-        $labels = $this->buildTraefikLabels($instance);
+        $labels = $this->buildTraefikLabels(
+            $instance->getInstanceType(),
+            $instanceSlug
+        );
 
         $args = ['run', '-d', '--name', (string) $containerName, '--memory=1g', '--restart=always', '--network=mcp_instances'];
 
@@ -427,21 +440,78 @@ readonly class ContainerManagementDomainService
     }
 
     /**
-     * @return array<string>
+     * @return list<string>
      */
-    private function buildTraefikLabels(McpInstance $instance): array
-    {
-        $instanceSlug = $instance->getInstanceSlug();
-        $rootDomain   = getenv('APP_ROOT_DOMAIN') ?: 'mcp-as-a-service.com';
+    public function buildTraefikLabels(
+        InstanceType $instanceType,
+        string       $instanceSlug
+    ): array {
+        $typeCfg = $this->instanceTypesConfigService->getTypeConfig($instanceType);
+        if ($typeCfg === null) {
+            return [];
+        }
+
+        $rootDomain = getenv('APP_ROOT_DOMAIN') ?: 'mcp-as-a-service.com';
 
         $forwardAuthUrl = $this->router->generate('authentication.presentation.mcp_bearer_check', [], RouterInterface::ABSOLUTE_URL);
 
-        return $this->instanceTypesConfigService->buildTraefikLabels(
-            $instance->getInstanceType(),
-            (string) $instanceSlug,
-            (string) $rootDomain,
-            $forwardAuthUrl
-        );
+        $labels = ['traefik.enable=true'];
+
+        foreach ($typeCfg->endpoints as $endpointId => $ep) {
+            $labels = array_merge(
+                $labels,
+                $this->traefikLabelsForEndpoint(
+                    $endpointId,
+                    $ep,
+                    $instanceSlug,
+                    $rootDomain,
+                    $forwardAuthUrl
+                )
+            );
+        }
+
+        if (!array_is_list($labels)) {
+            throw new RuntimeException('Labels must be a list');
+        }
+
+        return $labels;
+    }
+
+    /**
+     * @return string[]
+     */
+    private function traefikLabelsForEndpoint(
+        string         $endpointId,
+        EndpointConfig $ep,
+        string         $slug,
+        string         $rootDomain,
+        string         $forwardAuthUrl
+    ): array {
+        $host    = $endpointId . '-' . $slug . '.' . $rootDomain;
+        $router  = $endpointId . '-' . $slug;
+        $service = $endpointId . '-' . $slug;
+
+        $labels   = [];
+        $labels[] = 'traefik.http.routers.' . $router . '.rule=Host(`' . $host . '`)';
+        $labels[] = 'traefik.http.routers.' . $router . '.entrypoints=websecure';
+        $labels[] = 'traefik.http.routers.' . $router . '.tls=true';
+        $labels[] = 'traefik.http.routers.' . $router . '.service=' . $service;
+        $labels[] = 'traefik.http.services.' . $service . '.loadbalancer.server.port=' . $ep->port;
+
+        // Context header middleware
+        $labels[] = 'traefik.http.middlewares.ctx-' . $slug . '.headers.customrequestheaders.X-MCP-Instance=' . $slug;
+
+        $middlewares = ['ctx-' . $slug];
+        if ($ep->auth === 'bearer' || $endpointId === 'mcp') {
+            // ForwardAuth middleware
+            $labels[]      = 'traefik.http.middlewares.mcp-' . $slug . '-auth.forwardauth.address=' . $forwardAuthUrl;
+            $labels[]      = 'traefik.http.middlewares.mcp-' . $slug . '-auth.forwardauth.authRequestHeaders=Authorization,X-MCP-Instance';
+            $middlewares[] = 'mcp-' . $slug . '-auth';
+        }
+
+        $labels[] = 'traefik.http.routers.' . $router . '.middlewares=' . implode(',', $middlewares);
+
+        return $labels;
     }
 
     private function getImageNameForInstanceType(InstanceType $instanceType): string

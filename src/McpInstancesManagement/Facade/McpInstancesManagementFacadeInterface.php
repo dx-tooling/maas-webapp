@@ -9,4 +9,6 @@ use App\McpInstancesManagement\Facade\Dto\McpInstanceDto;
 interface McpInstancesManagementFacadeInterface
 {
     public function getMcpInstanceById(string $id): ?McpInstanceDto;
+
+    public function getMcpInstanceBySlug(string $slug): ?McpInstanceDto;
 }

@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace App\Authentication\Presentation\Controller;
 
-use App\McpInstancesManagement\Domain\Entity\McpInstance;
-use Doctrine\ORM\EntityManagerInterface;
+use App\McpInstancesManagement\Facade\McpInstancesManagementFacadeInterface;
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -18,9 +17,9 @@ final class ForwardAuthController extends AbstractController
     private const int CACHE_TTL = 300; // 5 minutes
 
     public function __construct(
-        private readonly EntityManagerInterface $entityManager,
-        private readonly CacheItemPoolInterface $cache,
-        private readonly LoggerInterface        $logger
+        private readonly CacheItemPoolInterface                $cache,
+        private readonly LoggerInterface                       $logger,
+        private readonly McpInstancesManagementFacadeInterface $instancesFacade,
     ) {
     }
 
@@ -92,9 +91,7 @@ final class ForwardAuthController extends AbstractController
             $cachedValue   = $cachedItem->get();
             $expectedToken = is_string($cachedValue) ? $cachedValue : null;
         } else {
-            // Lookup instance by slug
-            $repo     = $this->entityManager->getRepository(McpInstance::class);
-            $instance = $repo->findOneBy(['instanceSlug' => $instanceSlug]);
+            $instance = $this->instancesFacade->getMcpInstanceBySlug($instanceSlug);
 
             if (!$instance) {
                 $this->logger->warning('[ForwardAuth] Instance not found', [
@@ -106,7 +103,7 @@ final class ForwardAuthController extends AbstractController
                 return new Response('', 403, $this->buildDebugHeaders($host, $forwardedHostHeader, $xfUri, $xfMethod, $xfProto, $authHeader, $presentedToken, $instanceSlug, $cacheHit, ['X-FA-Reason' => 'instance-not-found']));
             }
 
-            $expectedToken = $instance->getMcpBearer();
+            $expectedToken = $instance->mcpBearer;
 
             // Cache the token for future requests
             $cachedItem->set($expectedToken);

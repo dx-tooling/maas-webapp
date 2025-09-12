@@ -34,7 +34,7 @@ ADD "https://api.github.com/repos/dx-tooling/maas-mcpserver-linux-cmd-line/commi
 RUN npm init -y \
     && npm install "git://github.com/dx-tooling/maas-mcpserver-linux-cmd-line.git" \
     && cd /home/mcp/node_modules/maas-mcpserver-linux-cmd-line \
-    && (npm ci && npm run build || true)
+    && (npm run build || true)
 
 # Copy supervisor configuration
 USER root

@@ -80,11 +80,10 @@
                 </div>
                 <div class="etfswui-card-content bg-neutral-50 dark:bg-neutral-900 space-y-4">
                     <div class="etfswui-text mb-2">
-                        This allows you to access the MCP session via VNC and watch you AI Agent at work. When prompted for a password, use:
+                        This allows you to access the MCP session via VNC and watch your AI Agent at work.
                     </div>
-                    <input type="text" class="etfswui-form-input w-full max-w-xs mb-4" value="{{ instance.vncPassword }}" readonly onclick="this.select()" aria-label="VNC Password" />
                     <div class="flex gap-2 items-center">
-                        <a href="https://{{ instance.vncSubdomain }}{{ instance.vncExternalPaths.0 }}"
+                        <a href="https://{{ instance.vncSubdomain }}{{ instance.vncExternalPaths.0 }}?password={{ instance.vncPassword|url_encode }}&autoconnect=true"
                            class="etfswui-link-as-button-secondary"
                            target="_blank" rel="noopener noreferrer">
                             Open VNC Web Client

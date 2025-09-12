@@ -12,7 +12,7 @@ use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Routing\RouterInterface;
 use ValueError;
 
-readonly class MainNavigationPresentationService extends AbstractMainNavigationService
+final readonly class MainNavigationPresentationService extends AbstractMainNavigationService
 {
     public function __construct(
         RouterInterface               $router,

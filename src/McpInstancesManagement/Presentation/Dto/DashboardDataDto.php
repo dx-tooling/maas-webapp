@@ -7,7 +7,7 @@ namespace App\McpInstancesManagement\Presentation\Dto;
 use App\McpInstancesManagement\Domain\Dto\InstanceStatusDto;
 use App\McpInstancesManagement\Domain\Dto\ProcessStatusDto;
 
-readonly class DashboardDataDto
+final readonly class DashboardDataDto
 {
     /**
      * @param array<int,array{value:string,display:string}> $availableTypes

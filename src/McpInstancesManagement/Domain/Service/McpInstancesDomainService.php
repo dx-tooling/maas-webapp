@@ -16,7 +16,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use LogicException;
 
-readonly class McpInstancesDomainService implements McpInstancesDomainServiceInterface
+final readonly class McpInstancesDomainService implements McpInstancesDomainServiceInterface
 {
     public function __construct(
         private EntityManagerInterface          $entityManager,

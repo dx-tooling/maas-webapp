@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\McpInstancesManagement\Presentation\Dto;
 
-readonly class AdminOverviewDto
+final readonly class AdminOverviewDto
 {
     public function __construct(
         public McpInstanceInfoDto $instance,

@@ -6,7 +6,7 @@ namespace App\McpInstancesManagement\Presentation\Dto;
 
 use DateTimeImmutable;
 
-readonly class McpInstanceInfoDto
+final readonly class McpInstanceInfoDto
 {
     public function __construct(
         public string            $id,

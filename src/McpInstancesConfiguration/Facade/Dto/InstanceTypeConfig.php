@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\McpInstancesConfiguration\Facade\Dto;
 
-readonly class InstanceTypeConfig
+final readonly class InstanceTypeConfig
 {
     /**
      * @param array<string,EndpointConfig> $endpoints

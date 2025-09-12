@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\McpInstancesManagement\Domain\Dto;
 
-readonly class InstanceStatusDto
+final readonly class InstanceStatusDto
 {
     /**
      * @param array<int,EndpointStatusDto> $endpoints

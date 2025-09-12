@@ -30,7 +30,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Twig\Environment;
 
-class InstancesControllerTest extends TestCase
+final class InstancesControllerTest extends TestCase
 {
     public function testDashboardRendersExpectedHtmlStructureWithInstancePresent(): void
     {

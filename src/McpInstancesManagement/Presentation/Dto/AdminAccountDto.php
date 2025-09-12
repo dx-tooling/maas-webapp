@@ -6,7 +6,7 @@ namespace App\McpInstancesManagement\Presentation\Dto;
 
 use DateTimeImmutable;
 
-readonly class AdminAccountDto
+final readonly class AdminAccountDto
 {
     public function __construct(
         public string            $id,

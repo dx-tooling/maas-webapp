@@ -18,7 +18,7 @@ use Symfony\UX\LiveComponent\DefaultActionTrait;
     name    : 'common|presentation|app_notifications_widget',
     template: '@common.presentation/app_notifications_widget.component.html.twig'
 )]
-class AppNotificationsWidgetComponent extends AbstractController
+final class AppNotificationsWidgetComponent extends AbstractController
 {
     use ComponentToolsTrait;
     use DefaultActionTrait;

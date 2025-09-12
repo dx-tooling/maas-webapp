@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\McpInstancesConfiguration\Facade\Dto;
 
-readonly class InstanceDockerConfig
+final readonly class InstanceDockerConfig
 {
     /**
      * @param array<string,string> $env

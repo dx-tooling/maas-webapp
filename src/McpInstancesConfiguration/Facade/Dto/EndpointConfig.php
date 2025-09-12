@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\McpInstancesConfiguration\Facade\Dto;
 
-readonly class EndpointConfig
+final readonly class EndpointConfig
 {
     /**
      * @param string[] $externalPaths

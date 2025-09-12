@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\McpInstancesConfiguration\Facade\Dto;
 
-readonly class EndpointHealthConfig
+final readonly class EndpointHealthConfig
 {
     public function __construct(
         public ?EndpointHealthHttpConfig $http = null

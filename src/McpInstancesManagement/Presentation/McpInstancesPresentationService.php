@@ -21,7 +21,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use ValueError;
 
-readonly class McpInstancesPresentationService
+final readonly class McpInstancesPresentationService
 {
     public function __construct(
         private McpInstancesDomainServiceInterface $domainService,

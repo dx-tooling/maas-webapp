@@ -17,7 +17,7 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\Routing\RouterInterface;
 use ValueError;
 
-readonly class ContainerManagementDomainService
+final readonly class ContainerManagementDomainService
 {
     public function __construct(
         private LoggerInterface                    $logger,

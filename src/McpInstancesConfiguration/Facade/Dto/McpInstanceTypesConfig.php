@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\McpInstancesConfiguration\Facade\Dto;
 
-readonly class McpInstanceTypesConfig
+final readonly class McpInstanceTypesConfig
 {
     /**
      * @param array<string,InstanceTypeConfig> $types

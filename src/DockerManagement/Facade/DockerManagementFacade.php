@@ -12,7 +12,7 @@ use App\McpInstancesManagement\Domain\Dto\InstanceStatusDto;
 use App\McpInstancesManagement\Domain\Entity\McpInstance;
 use App\McpInstancesManagement\Domain\Enum\ContainerState;
 
-readonly class DockerManagementFacade implements DockerManagementFacadeInterface
+final readonly class DockerManagementFacade implements DockerManagementFacadeInterface
 {
     public function __construct(
         private ContainerManagementDomainService   $domainService,

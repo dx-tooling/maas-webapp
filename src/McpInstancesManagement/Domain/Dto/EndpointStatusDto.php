@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\McpInstancesManagement\Domain\Dto;
 
-readonly class EndpointStatusDto
+final readonly class EndpointStatusDto
 {
     /**
      * @param array<int,string> $externalUrls

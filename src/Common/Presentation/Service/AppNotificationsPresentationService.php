@@ -12,7 +12,7 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\Routing\RouterInterface;
 use Throwable;
 
-readonly class AppNotificationsPresentationService
+final readonly class AppNotificationsPresentationService
 {
     public function __construct(
         private LoggerInterface        $logger,

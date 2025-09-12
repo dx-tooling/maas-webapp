@@ -9,7 +9,7 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 
-class ContentController extends AbstractController
+final class ContentController extends AbstractController
 {
     #[Route(
         path   : '/',

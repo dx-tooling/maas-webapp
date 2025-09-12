@@ -6,7 +6,7 @@ namespace App\McpInstancesConfiguration\Facade\Service;
 
 use App\McpInstancesConfiguration\Facade\Dto\InstanceTypeConfig;
 use App\McpInstancesConfiguration\Infrastructure\InstanceTypesConfigProviderInterface;
-use App\McpInstancesManagement\Domain\Enum\InstanceType;
+use App\McpInstancesManagement\Facade\InstanceType;
 
 final readonly class InstanceTypesConfigFacade implements InstanceTypesConfigFacadeInterface
 {

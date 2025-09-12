@@ -13,6 +13,7 @@ use App\McpInstancesConfiguration\Facade\Service\InstanceTypesConfigFacadeInterf
 use App\McpInstancesManagement\Domain\Entity\McpInstance as DomainMcpInstance;
 use App\McpInstancesManagement\Domain\Enum\InstanceType;
 use App\McpInstancesManagement\Domain\Service\McpInstancesDomainServiceInterface;
+use App\McpInstancesManagement\Facade\McpInstancesManagementFacadeInterface;
 use App\McpInstancesManagement\Presentation\Controller\AdminInstancesController;
 use App\McpInstancesManagement\Presentation\McpInstancesPresentationService;
 use App\Tests\Support\VisibilityTestHelper;
@@ -27,11 +28,12 @@ final class AdminInstancesControllerTest extends TestCase
 {
     public function testOverviewRendersExpectedHtmlStructure(): void
     {
-        $twig          = WebUiTestHelper::createTwigEnvironment('McpInstancesManagement');
-        $domainService = $this->createMock(McpInstancesDomainServiceInterface::class);
-        $accountFacade = $this->createMock(AccountFacadeInterface::class);
-        $dockerFacade  = $this->createMock(DockerManagementFacadeInterface::class);
-        $typesConfig   = $this->createMock(InstanceTypesConfigFacadeInterface::class);
+        $twig            = WebUiTestHelper::createTwigEnvironment('McpInstancesManagement');
+        $domainService   = $this->createMock(McpInstancesDomainServiceInterface::class);
+        $accountFacade   = $this->createMock(AccountFacadeInterface::class);
+        $dockerFacade    = $this->createMock(DockerManagementFacadeInterface::class);
+        $typesConfig     = $this->createMock(InstanceTypesConfigFacadeInterface::class);
+        $instancesFacade = $this->createMock(McpInstancesManagementFacadeInterface::class);
 
         // Overview uses domain to fetch instances; empty list simplifies rendering
         $domainService->method('getAllMcpInstances')->willReturn([]);
@@ -41,6 +43,7 @@ final class AdminInstancesControllerTest extends TestCase
             $accountFacade,
             $dockerFacade,
             $typesConfig,
+            $instancesFacade,
         );
 
         $controller = new class($domainService, $presentation, $twig) extends AdminInstancesController {
@@ -81,11 +84,12 @@ final class AdminInstancesControllerTest extends TestCase
 
     public function testDetailRendersExpectedHtmlStructure(): void
     {
-        $twig          = WebUiTestHelper::createTwigEnvironment('McpInstancesManagement');
-        $domainService = $this->createMock(McpInstancesDomainServiceInterface::class);
-        $accountFacade = $this->createMock(AccountFacadeInterface::class);
-        $dockerFacade  = $this->createMock(DockerManagementFacadeInterface::class);
-        $typesConfig   = $this->createMock(InstanceTypesConfigFacadeInterface::class);
+        $twig            = WebUiTestHelper::createTwigEnvironment('McpInstancesManagement');
+        $domainService   = $this->createMock(McpInstancesDomainServiceInterface::class);
+        $accountFacade   = $this->createMock(AccountFacadeInterface::class);
+        $dockerFacade    = $this->createMock(DockerManagementFacadeInterface::class);
+        $typesConfig     = $this->createMock(InstanceTypesConfigFacadeInterface::class);
+        $instancesFacade = $this->createMock(McpInstancesManagementFacadeInterface::class);
 
         // Prepare domain instance similar to InstancesControllerTest
         $accountId   = 'acc-999';
@@ -106,8 +110,8 @@ final class AdminInstancesControllerTest extends TestCase
         $domainInstance->generateDerivedFields('example.test');
 
         // Provide instance type config so mapping yields vnc external paths
-        $typesConfig->method('getTypeConfig')->willReturnCallback(function (InstanceType $t): ?InstanceTypeConfig {
-            if ($t !== InstanceType::PLAYWRIGHT_V1) {
+        $typesConfig->method('getTypeConfig')->willReturnCallback(function (\App\McpInstancesManagement\Facade\InstanceType $t): ?InstanceTypeConfig {
+            if ($t->value !== 'playwright-v1') {
                 return null;
             }
 
@@ -131,6 +135,7 @@ final class AdminInstancesControllerTest extends TestCase
             $accountFacade,
             $dockerFacade,
             $typesConfig,
+            $instancesFacade,
         );
 
         $controller = new class($domainService, $presentation, $twig) extends AdminInstancesController {

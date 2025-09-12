@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace App\McpInstancesManagement\Presentation\Controller;
 
 use App\Common\Presentation\Controller\AbstractAccountAwareController;
-use App\McpInstancesManagement\Domain\Enum\InstanceType;
 use App\McpInstancesManagement\Domain\Service\McpInstancesDomainServiceInterface;
+use App\McpInstancesManagement\Facade\InstanceType;
 use App\McpInstancesManagement\Presentation\McpInstancesPresentationService;
 use Exception;
 use LogicException;

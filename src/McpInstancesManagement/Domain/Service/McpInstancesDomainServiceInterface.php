@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\McpInstancesManagement\Domain\Service;
 
 use App\Account\Facade\Dto\AccountCoreInfoDto;
-use App\McpInstancesManagement\Domain\Dto\ProcessStatusDto;
 use App\McpInstancesManagement\Domain\Entity\McpInstance;
-use App\McpInstancesManagement\Domain\Enum\InstanceType;
+use App\McpInstancesManagement\Facade\Dto\ProcessStatusDto;
+use App\McpInstancesManagement\Facade\InstanceType;
 use Exception;
 
 interface McpInstancesDomainServiceInterface

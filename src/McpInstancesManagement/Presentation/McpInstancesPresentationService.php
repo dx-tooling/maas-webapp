@@ -8,11 +8,12 @@ use App\Account\Facade\AccountFacadeInterface;
 use App\Account\Facade\Dto\AccountCoreInfoDto;
 use App\DockerManagement\Facade\DockerManagementFacadeInterface;
 use App\McpInstancesConfiguration\Facade\Service\InstanceTypesConfigFacadeInterface;
-use App\McpInstancesManagement\Domain\Dto\InstanceStatusDto;
-use App\McpInstancesManagement\Domain\Dto\ProcessStatusDto;
 use App\McpInstancesManagement\Domain\Entity\McpInstance;
-use App\McpInstancesManagement\Domain\Enum\InstanceType;
 use App\McpInstancesManagement\Domain\Service\McpInstancesDomainServiceInterface;
+use App\McpInstancesManagement\Facade\Dto\InstanceStatusDto;
+use App\McpInstancesManagement\Facade\Dto\ProcessStatusDto;
+use App\McpInstancesManagement\Facade\InstanceType;
+use App\McpInstancesManagement\Facade\McpInstancesManagementFacadeInterface;
 use App\McpInstancesManagement\Presentation\Dto\AdminAccountDto;
 use App\McpInstancesManagement\Presentation\Dto\AdminOverviewDto;
 use App\McpInstancesManagement\Presentation\Dto\DashboardDataDto;
@@ -23,10 +24,11 @@ use ValueError;
 final readonly class McpInstancesPresentationService
 {
     public function __construct(
-        private McpInstancesDomainServiceInterface $domainService,
-        private AccountFacadeInterface             $accountFacade,
-        private DockerManagementFacadeInterface    $dockerFacade,
-        private InstanceTypesConfigFacadeInterface $typesConfig,
+        private McpInstancesDomainServiceInterface    $domainService,
+        private AccountFacadeInterface                $accountFacade,
+        private DockerManagementFacadeInterface       $dockerFacade,
+        private InstanceTypesConfigFacadeInterface    $typesConfig,
+        private McpInstancesManagementFacadeInterface $instancesFacade,
     ) {
     }
 
@@ -120,7 +122,7 @@ final readonly class McpInstancesPresentationService
             return null;
         }
 
-        return $this->dockerFacade->getInstanceStatus($instance);
+        return $this->dockerFacade->getInstanceStatus($this->instancesFacade->toDto($instance));
     }
 
     /**
@@ -148,7 +150,7 @@ final readonly class McpInstancesPresentationService
 
             // Get container status for health check
             try {
-                $containerStatus = $this->dockerFacade->getContainerStatus($instance);
+                $containerStatus = $this->dockerFacade->getContainerStatus($this->instancesFacade->toDto($instance));
                 $isHealthy       = $containerStatus->healthy;
                 $mcpEndpoint     = $containerStatus->mcpEndpoint;
                 $vncEndpoint     = $containerStatus->vncEndpoint;
@@ -201,7 +203,7 @@ final readonly class McpInstancesPresentationService
      */
     private function mapMcpInstanceToDto(McpInstance $instance): McpInstanceInfoDto
     {
-        $typeCfg  = $this->typesConfig->getTypeConfig($instance->getInstanceType());
+        $typeCfg  = $this->typesConfig->getTypeConfig(InstanceType::from($instance->getInstanceType()->value));
         $display  = ($typeCfg !== null) ? $typeCfg->displayName : $instance->getInstanceType()->value;
         $vncPaths = [];
         $mcpPaths = [];

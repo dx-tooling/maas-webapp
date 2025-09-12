@@ -5,38 +5,38 @@ declare(strict_types=1);
 namespace App\DockerManagement\Facade;
 
 use App\DockerManagement\Facade\Dto\ContainerStatusDto;
-use App\McpInstancesManagement\Domain\Dto\InstanceStatusDto;
-use App\McpInstancesManagement\Domain\Entity\McpInstance;
+use App\McpInstancesManagement\Facade\Dto\InstanceStatusDto;
+use App\McpInstancesManagement\Facade\Dto\McpInstanceDto;
 
 interface DockerManagementFacadeInterface
 {
     /**
      * Create and start a Docker container for the given MCP instance.
      */
-    public function createAndStartContainer(McpInstance $instance): bool;
+    public function createAndStartContainer(McpInstanceDto $instance): bool;
 
     /**
      * Stop and remove the Docker container for the given MCP instance.
      */
-    public function stopAndRemoveContainer(McpInstance $instance): bool;
+    public function stopAndRemoveContainer(McpInstanceDto $instance): bool;
 
     /**
      * Restart the Docker container for the given MCP instance.
      */
-    public function restartContainer(McpInstance $instance): bool;
+    public function restartContainer(McpInstanceDto $instance): bool;
 
     /**
      * Check if the container is healthy (endpoints responding).
      */
-    public function isContainerHealthy(McpInstance $instance): bool;
+    public function isContainerHealthy(McpInstanceDto $instance): bool;
 
     /**
      * Get comprehensive status information for the container.
      */
-    public function getContainerStatus(McpInstance $instance): ContainerStatusDto;
+    public function getContainerStatus(McpInstanceDto $instance): ContainerStatusDto;
 
     /**
      * Get generic instance status including dynamic endpoints derived from configuration.
      */
-    public function getInstanceStatus(McpInstance $instance): InstanceStatusDto;
+    public function getInstanceStatus(McpInstanceDto $instance): InstanceStatusDto;
 }

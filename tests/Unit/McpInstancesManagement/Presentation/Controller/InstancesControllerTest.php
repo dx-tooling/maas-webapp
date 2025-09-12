@@ -11,14 +11,15 @@ use App\McpInstancesConfiguration\Facade\Dto\EndpointConfig;
 use App\McpInstancesConfiguration\Facade\Dto\InstanceDockerConfig;
 use App\McpInstancesConfiguration\Facade\Dto\InstanceTypeConfig;
 use App\McpInstancesConfiguration\Facade\Service\InstanceTypesConfigFacadeInterface;
-use App\McpInstancesManagement\Domain\Dto\EndpointStatusDto;
-use App\McpInstancesManagement\Domain\Dto\InstanceStatusDto;
-use App\McpInstancesManagement\Domain\Dto\ProcessStatusContainerDto;
-use App\McpInstancesManagement\Domain\Dto\ProcessStatusDto;
-use App\McpInstancesManagement\Domain\Dto\ServiceStatusDto;
 use App\McpInstancesManagement\Domain\Entity\McpInstance as DomainMcpInstance;
 use App\McpInstancesManagement\Domain\Enum\InstanceType;
 use App\McpInstancesManagement\Domain\Service\McpInstancesDomainServiceInterface;
+use App\McpInstancesManagement\Facade\Dto\EndpointStatusDto;
+use App\McpInstancesManagement\Facade\Dto\InstanceStatusDto;
+use App\McpInstancesManagement\Facade\Dto\ProcessStatusContainerDto;
+use App\McpInstancesManagement\Facade\Dto\ProcessStatusDto;
+use App\McpInstancesManagement\Facade\Dto\ServiceStatusDto;
+use App\McpInstancesManagement\Facade\McpInstancesManagementFacadeInterface;
 use App\McpInstancesManagement\Presentation\Controller\InstancesController;
 use App\McpInstancesManagement\Presentation\McpInstancesPresentationService;
 use App\Tests\Support\VisibilityTestHelper;
@@ -37,10 +38,11 @@ final class InstancesControllerTest extends TestCase
         $twig = WebUiTestHelper::createTwigEnvironment('McpInstancesManagement');
 
         // Mocks for dependencies outside Presentation layer
-        $domainService = $this->createMock(McpInstancesDomainServiceInterface::class);
-        $accountFacade = $this->createMock(AccountFacadeInterface::class);
-        $dockerFacade  = $this->createMock(DockerManagementFacadeInterface::class);
-        $typesConfig   = $this->createMock(InstanceTypesConfigFacadeInterface::class);
+        $domainService   = $this->createMock(McpInstancesDomainServiceInterface::class);
+        $accountFacade   = $this->createMock(AccountFacadeInterface::class);
+        $dockerFacade    = $this->createMock(DockerManagementFacadeInterface::class);
+        $typesConfig     = $this->createMock(InstanceTypesConfigFacadeInterface::class);
+        $instancesFacade = $this->createMock(McpInstancesManagementFacadeInterface::class);
 
         // Prepare a domain entity with stable values
         $accountId   = 'acc-123';
@@ -63,8 +65,8 @@ final class InstancesControllerTest extends TestCase
 
         // Mock type config to provide display name and endpoint paths
         $typesConfig->method('getTypeConfig')
-            ->willReturnCallback(function (InstanceType $t): ?InstanceTypeConfig {
-                if ($t !== InstanceType::PLAYWRIGHT_V1) {
+            ->willReturnCallback(function (\App\McpInstancesManagement\Facade\InstanceType $t): ?InstanceTypeConfig {
+                if ($t->value !== 'playwright-v1') {
                     return null;
                 }
 
@@ -123,7 +125,8 @@ final class InstancesControllerTest extends TestCase
             $domainService,
             $accountFacade,
             $dockerFacade,
-            $typesConfig
+            $typesConfig,
+            $instancesFacade
         );
 
         // Controller that uses our Twig env and returns a fixed authenticated user

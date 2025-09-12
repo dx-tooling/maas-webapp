@@ -14,31 +14,11 @@ final readonly class McpInstancesManagementFacade implements McpInstancesManagem
     {
     }
 
-    public function toDto(McpInstanceEntity $e): McpInstanceDto
-    {
-        return new McpInstanceDto(
-            $e->getId() ?? '',
-            $e->getCreatedAt(),
-            $e->getAccountCoreId(),
-            $e->getInstanceSlug(),
-            $e->getContainerName(),
-            ContainerState::from($e->getContainerState()->value),
-            InstanceType::from($e->getInstanceType()->value),
-            $e->getScreenWidth(),
-            $e->getScreenHeight(),
-            $e->getColorDepth(),
-            $e->getVncPassword(),
-            $e->getMcpBearer(),
-            $e->getMcpSubdomain(),
-            $e->getVncSubdomain(),
-        );
-    }
-
-    public function getById(string $id): ?McpInstanceDto
+    public function getMcpInstanceById(string $id): ?McpInstanceDto
     {
         $repo = $this->entityManager->getRepository(McpInstanceEntity::class);
         $ent  = $repo->find($id);
 
-        return $ent ? $this->toDto($ent) : null;
+        return $ent ? $ent->toDto() : null;
     }
 }

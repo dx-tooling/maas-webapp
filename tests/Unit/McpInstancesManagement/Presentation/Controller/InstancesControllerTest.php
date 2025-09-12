@@ -11,14 +11,14 @@ use App\McpInstancesConfiguration\Facade\Dto\EndpointConfig;
 use App\McpInstancesConfiguration\Facade\Dto\InstanceDockerConfig;
 use App\McpInstancesConfiguration\Facade\Dto\InstanceTypeConfig;
 use App\McpInstancesConfiguration\Facade\Service\InstanceTypesConfigFacadeInterface;
-use App\McpInstancesManagement\Domain\Entity\McpInstance as DomainMcpInstance;
-use App\McpInstancesManagement\Domain\Enum\InstanceType;
+use App\McpInstancesManagement\Domain\Entity\McpInstance;
 use App\McpInstancesManagement\Domain\Service\McpInstancesDomainServiceInterface;
 use App\McpInstancesManagement\Facade\Dto\EndpointStatusDto;
 use App\McpInstancesManagement\Facade\Dto\InstanceStatusDto;
 use App\McpInstancesManagement\Facade\Dto\ProcessStatusContainerDto;
 use App\McpInstancesManagement\Facade\Dto\ProcessStatusDto;
 use App\McpInstancesManagement\Facade\Dto\ServiceStatusDto;
+use App\McpInstancesManagement\Facade\Enum\InstanceType;
 use App\McpInstancesManagement\Facade\McpInstancesManagementFacadeInterface;
 use App\McpInstancesManagement\Presentation\Controller\InstancesController;
 use App\McpInstancesManagement\Presentation\McpInstancesPresentationService;
@@ -50,7 +50,7 @@ final class InstancesControllerTest extends TestCase
         $mcpBearer   = 'test-bearer';
         $vncPassword = 'test-vnc-pass';
 
-        $domainInstance = new DomainMcpInstance(
+        $domainInstance = new McpInstance(
             $accountId,
             InstanceType::PLAYWRIGHT_V1,
             1280,
@@ -65,7 +65,8 @@ final class InstancesControllerTest extends TestCase
 
         // Mock type config to provide display name and endpoint paths
         $typesConfig->method('getTypeConfig')
-            ->willReturnCallback(function (\App\McpInstancesManagement\Facade\InstanceType $t): ?InstanceTypeConfig {
+            ->willReturnCallback(function (
+                InstanceType $t): ?InstanceTypeConfig {
                 if ($t->value !== 'playwright-v1') {
                     return null;
                 }
@@ -125,8 +126,7 @@ final class InstancesControllerTest extends TestCase
             $domainService,
             $accountFacade,
             $dockerFacade,
-            $typesConfig,
-            $instancesFacade
+            $typesConfig
         );
 
         // Controller that uses our Twig env and returns a fixed authenticated user

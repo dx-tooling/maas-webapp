@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\McpInstancesManagement\Facade\Dto;
 
-use App\McpInstancesManagement\Facade\ContainerState;
-use App\McpInstancesManagement\Facade\InstanceType;
+use App\McpInstancesManagement\Facade\Enum\ContainerState;
+use App\McpInstancesManagement\Facade\Enum\InstanceType;
 use DateTimeImmutable;
 
 final readonly class McpInstanceDto

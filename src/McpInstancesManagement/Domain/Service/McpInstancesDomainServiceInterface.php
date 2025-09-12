@@ -7,7 +7,7 @@ namespace App\McpInstancesManagement\Domain\Service;
 use App\Account\Facade\Dto\AccountCoreInfoDto;
 use App\McpInstancesManagement\Domain\Entity\McpInstance;
 use App\McpInstancesManagement\Facade\Dto\ProcessStatusDto;
-use App\McpInstancesManagement\Facade\InstanceType;
+use App\McpInstancesManagement\Facade\Enum\InstanceType;
 use Exception;
 
 interface McpInstancesDomainServiceInterface

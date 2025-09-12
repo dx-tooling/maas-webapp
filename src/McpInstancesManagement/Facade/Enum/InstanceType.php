@@ -2,10 +2,8 @@
 
 declare(strict_types=1);
 
-namespace App\McpInstancesManagement\Domain\Enum;
+namespace App\McpInstancesManagement\Facade\Enum;
 
-// Moved to Facade namespace. Keep for BC and deprecation window.
-/** @deprecated Use App\McpInstancesManagement\Facade\InstanceType */
 enum InstanceType: string
 {
     case _LEGACY           = '_legacy';

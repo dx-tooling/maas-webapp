@@ -14,9 +14,9 @@ use App\McpInstancesConfiguration\Facade\Dto\McpInstanceTypesConfig;
 use App\McpInstancesConfiguration\Facade\Service\InstanceTypesConfigFacade;
 use App\McpInstancesConfiguration\Infrastructure\InstanceTypesConfigProviderInterface;
 use App\McpInstancesManagement\Domain\Entity\McpInstance;
-use App\McpInstancesManagement\Facade\ContainerState;
 use App\McpInstancesManagement\Facade\Dto\McpInstanceDto;
-use App\McpInstancesManagement\Facade\InstanceType;
+use App\McpInstancesManagement\Facade\Enum\ContainerState;
+use App\McpInstancesManagement\Facade\Enum\InstanceType;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -56,7 +56,7 @@ final class ContainerManagementDomainServiceTest extends TestCase
         $unitUnderTest = new ContainerManagementDomainService($this->logger, $this->params, $this->router, $configFacade, $process);
         $entity        = new McpInstance(
             'acc',
-            \App\McpInstancesManagement\Domain\Enum\InstanceType::PLAYWRIGHT_V1,
+            InstanceType::PLAYWRIGHT_V1,
             1280,
             720,
             24,
@@ -78,7 +78,7 @@ final class ContainerManagementDomainServiceTest extends TestCase
         $unitUnderTest = new ContainerManagementDomainService($this->logger, $this->params, $this->router, $configFacade, $process);
         $entity        = new McpInstance(
             'acc',
-            \App\McpInstancesManagement\Domain\Enum\InstanceType::PLAYWRIGHT_V1,
+            InstanceType::PLAYWRIGHT_V1,
             1280,
             720,
             24,
@@ -121,7 +121,7 @@ final class ContainerManagementDomainServiceTest extends TestCase
         $unitUnderTest = new ContainerManagementDomainService($logger, $this->params, $this->router, $configFacade, $process);
         $entity        = new McpInstance(
             'acc',
-            \App\McpInstancesManagement\Domain\Enum\InstanceType::PLAYWRIGHT_V1,
+            InstanceType::PLAYWRIGHT_V1,
             1280,
             720,
             24,
@@ -158,7 +158,7 @@ final class ContainerManagementDomainServiceTest extends TestCase
         $unitUnderTest = new ContainerManagementDomainService($logger, $this->params, $this->router, $configFacade, $process);
         $entity        = new McpInstance(
             'acc',
-            \App\McpInstancesManagement\Domain\Enum\InstanceType::PLAYWRIGHT_V1,
+            InstanceType::PLAYWRIGHT_V1,
             1280,
             720,
             24,

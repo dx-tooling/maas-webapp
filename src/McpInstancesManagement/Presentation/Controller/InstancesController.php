@@ -6,7 +6,7 @@ namespace App\McpInstancesManagement\Presentation\Controller;
 
 use App\Common\Presentation\Controller\AbstractAccountAwareController;
 use App\McpInstancesManagement\Domain\Service\McpInstancesDomainServiceInterface;
-use App\McpInstancesManagement\Facade\InstanceType;
+use App\McpInstancesManagement\Facade\Enum\InstanceType;
 use App\McpInstancesManagement\Presentation\McpInstancesPresentationService;
 use Exception;
 use LogicException;

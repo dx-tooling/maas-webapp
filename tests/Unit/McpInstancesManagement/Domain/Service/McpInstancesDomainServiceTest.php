@@ -7,12 +7,10 @@ namespace App\Tests\Unit\McpInstancesManagement\Domain\Service;
 use App\Account\Facade\Dto\AccountCoreInfoDto;
 use App\DockerManagement\Facade\DockerManagementFacadeInterface;
 use App\McpInstancesManagement\Domain\Entity\McpInstance;
-use App\McpInstancesManagement\Domain\Enum\ContainerState;
-use App\McpInstancesManagement\Domain\Enum\InstanceType;
 use App\McpInstancesManagement\Domain\Service\McpInstancesDomainService;
 use App\McpInstancesManagement\Facade\Dto\McpInstanceDto;
-use App\McpInstancesManagement\Facade\McpInstancesManagementFacadeInterface;
-use DateTimeImmutable;
+use App\McpInstancesManagement\Facade\Enum\ContainerState;
+use App\McpInstancesManagement\Facade\Enum\InstanceType;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
 use LogicException;
@@ -30,22 +28,21 @@ final class McpInstancesDomainServiceTest extends TestCase
     /** @var DockerManagementFacadeInterface&MockObject */
     private DockerManagementFacadeInterface $dockerFacade;
 
-    /** @var McpInstancesManagementFacadeInterface&MockObject */
-    private McpInstancesManagementFacadeInterface $instancesFacade;
-
     private McpInstancesDomainService $unitUnderTest;
 
     protected function setUp(): void
     {
-        $this->em              = $this->createMock(EntityManagerInterface::class);
-        $this->repo            = $this->createMock(EntityRepository::class);
-        $this->dockerFacade    = $this->createMock(DockerManagementFacadeInterface::class);
-        $this->instancesFacade = $this->createMock(McpInstancesManagementFacadeInterface::class);
+        $this->em           = $this->createMock(EntityManagerInterface::class);
+        $this->repo         = $this->createMock(EntityRepository::class);
+        $this->dockerFacade = $this->createMock(DockerManagementFacadeInterface::class);
 
         $this->em->method('getRepository')
                  ->willReturn($this->repo);
 
-        $this->unitUnderTest = new McpInstancesDomainService($this->em, $this->dockerFacade, $this->instancesFacade);
+        $this->unitUnderTest = new McpInstancesDomainService(
+            $this->em,
+            $this->dockerFacade
+        );
     }
 
     public function testCreateMcpInstanceSuccessCreatesContainerAndSetsRunning(): void
@@ -62,26 +59,6 @@ final class McpInstancesDomainServiceTest extends TestCase
                  ->method('persist');
         $this->em->expects($this->atLeastOnce())
                  ->method('flush');
-
-        // instances facade mapping
-        $this->instancesFacade->method('toDto')->willReturnCallback(function (McpInstance $e): McpInstanceDto {
-            return new McpInstanceDto(
-                $e->getId() ?? '',
-                $e->getCreatedAt(),
-                $e->getAccountCoreId(),
-                $e->getInstanceSlug(),
-                $e->getContainerName(),
-                \App\McpInstancesManagement\Facade\ContainerState::from($e->getContainerState()->value),
-                \App\McpInstancesManagement\Facade\InstanceType::from($e->getInstanceType()->value),
-                $e->getScreenWidth(),
-                $e->getScreenHeight(),
-                $e->getColorDepth(),
-                $e->getVncPassword(),
-                $e->getMcpBearer(),
-                $e->getMcpSubdomain(),
-                $e->getVncSubdomain(),
-            );
-        });
 
         // Docker facade returns success
         $this->dockerFacade
@@ -111,13 +88,6 @@ final class McpInstancesDomainServiceTest extends TestCase
                  ->method('remove')
                  ->with($this->isInstanceOf(McpInstance::class));
 
-        $this->instancesFacade->method('toDto')->willReturn(new McpInstanceDto(
-            '', new DateTimeImmutable(), 'acc', null, null,
-            \App\McpInstancesManagement\Facade\ContainerState::CREATED,
-            \App\McpInstancesManagement\Facade\InstanceType::PLAYWRIGHT_V1,
-            1280, 720, 24, 'v', 'b', null, null
-        ));
-
         $this->dockerFacade
             ->expects($this->once())
             ->method('createAndStartContainer')
@@ -146,13 +116,6 @@ final class McpInstancesDomainServiceTest extends TestCase
         $this->repo->method('findOneBy')
                    ->with(['accountCoreId' => $accountId])
                    ->willReturn($existing);
-
-        $this->instancesFacade->method('toDto')->willReturn(new McpInstanceDto(
-            '', new DateTimeImmutable(), $accountId, null, null,
-            \App\McpInstancesManagement\Facade\ContainerState::CREATED,
-            \App\McpInstancesManagement\Facade\InstanceType::PLAYWRIGHT_V1,
-            1280, 720, 24, 'vncpass', 'bearer', null, null
-        ));
 
         $this->dockerFacade
             ->expects($this->once())
@@ -186,13 +149,6 @@ final class McpInstancesDomainServiceTest extends TestCase
                    ->with($instanceId)
                    ->willReturn($existing);
 
-        $this->instancesFacade->method('toDto')->willReturn(new McpInstanceDto(
-            '', new DateTimeImmutable(), 'acc', null, null,
-            \App\McpInstancesManagement\Facade\ContainerState::CREATED,
-            \App\McpInstancesManagement\Facade\InstanceType::PLAYWRIGHT_V1,
-            1280, 720, 24, 'vncpass', 'bearer', null, null
-        ));
-
         $this->dockerFacade
             ->expects($this->once())
             ->method('restartContainer')
@@ -225,13 +181,6 @@ final class McpInstancesDomainServiceTest extends TestCase
                    ->with($instanceId)
                    ->willReturn($existing);
 
-        $this->instancesFacade->method('toDto')->willReturn(new McpInstanceDto(
-            '', new DateTimeImmutable(), 'acc', null, null,
-            \App\McpInstancesManagement\Facade\ContainerState::CREATED,
-            \App\McpInstancesManagement\Facade\InstanceType::PLAYWRIGHT_V1,
-            1280, 720, 24, 'vncpass', 'bearer', null, null
-        ));
-
         $this->dockerFacade
             ->expects($this->once())
             ->method('restartContainer')
@@ -252,8 +201,7 @@ final class McpInstancesDomainServiceTest extends TestCase
         $em          = $this->createMock(EntityManagerInterface::class);
         $repo        = $this->createMock(EntityRepository::class);
         $docker      = $this->createMock(DockerManagementFacadeInterface::class);
-        $instances   = $this->createMock(McpInstancesManagementFacadeInterface::class);
-        $domain      = new McpInstancesDomainService($em, $docker, $instances);
+        $domain      = new McpInstancesDomainService($em, $docker);
         $accountInfo = new AccountCoreInfoDto('acc-id');
 
         $em->method('getRepository')->willReturn($repo);

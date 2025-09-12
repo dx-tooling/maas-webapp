@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\McpInstancesManagement\Facade;
+namespace App\McpInstancesManagement\Facade\Enum;
 
 enum ContainerState: string
 {

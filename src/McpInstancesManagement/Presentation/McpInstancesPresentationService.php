@@ -12,8 +12,7 @@ use App\McpInstancesManagement\Domain\Entity\McpInstance;
 use App\McpInstancesManagement\Domain\Service\McpInstancesDomainServiceInterface;
 use App\McpInstancesManagement\Facade\Dto\InstanceStatusDto;
 use App\McpInstancesManagement\Facade\Dto\ProcessStatusDto;
-use App\McpInstancesManagement\Facade\InstanceType;
-use App\McpInstancesManagement\Facade\McpInstancesManagementFacadeInterface;
+use App\McpInstancesManagement\Facade\Enum\InstanceType;
 use App\McpInstancesManagement\Presentation\Dto\AdminAccountDto;
 use App\McpInstancesManagement\Presentation\Dto\AdminOverviewDto;
 use App\McpInstancesManagement\Presentation\Dto\DashboardDataDto;
@@ -24,11 +23,10 @@ use ValueError;
 final readonly class McpInstancesPresentationService
 {
     public function __construct(
-        private McpInstancesDomainServiceInterface    $domainService,
-        private AccountFacadeInterface                $accountFacade,
-        private DockerManagementFacadeInterface       $dockerFacade,
-        private InstanceTypesConfigFacadeInterface    $typesConfig,
-        private McpInstancesManagementFacadeInterface $instancesFacade,
+        private McpInstancesDomainServiceInterface $domainService,
+        private AccountFacadeInterface             $accountFacade,
+        private DockerManagementFacadeInterface    $dockerFacade,
+        private InstanceTypesConfigFacadeInterface $typesConfig,
     ) {
     }
 
@@ -122,7 +120,7 @@ final readonly class McpInstancesPresentationService
             return null;
         }
 
-        return $this->dockerFacade->getInstanceStatus($this->instancesFacade->toDto($instance));
+        return $this->dockerFacade->getInstanceStatus($instance->toDto());
     }
 
     /**
@@ -150,7 +148,7 @@ final readonly class McpInstancesPresentationService
 
             // Get container status for health check
             try {
-                $containerStatus = $this->dockerFacade->getContainerStatus($this->instancesFacade->toDto($instance));
+                $containerStatus = $this->dockerFacade->getContainerStatus($instance->toDto());
                 $isHealthy       = $containerStatus->healthy;
                 $mcpEndpoint     = $containerStatus->mcpEndpoint;
                 $vncEndpoint     = $containerStatus->vncEndpoint;

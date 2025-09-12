@@ -58,7 +58,18 @@ final class ForwardAuthController extends AbstractController
 
             return new Response('', 401, array_merge(
                 ['WWW-Authenticate' => 'Bearer realm="MCP"'],
-                $this->buildDebugHeaders($host, $forwardedHostHeader, $xfUri, $xfMethod, $xfProto, $authHeader, null, null, false, ['X-FA-Reason' => 'missing-or-invalid-bearer'])
+                $this->buildDebugHeaders(
+                    $host,
+                    $forwardedHostHeader,
+                    $xfUri,
+                    $xfMethod,
+                    $xfProto,
+                    $authHeader,
+                    null,
+                    null,
+                    false,
+                    ['X-FA-Reason' => 'missing-or-invalid-bearer']
+                )
             ));
         }
 
@@ -76,7 +87,22 @@ final class ForwardAuthController extends AbstractController
                     'ip'   => $request->getClientIp()
                 ]);
 
-                return new Response('', 403, $this->buildDebugHeaders($host, $forwardedHostHeader, $xfUri, $xfMethod, $xfProto, $authHeader, $presentedToken, null, false, ['X-FA-Reason' => 'invalid-host-format']));
+                return new Response(
+                    '',
+                    403,
+                    $this->buildDebugHeaders(
+                        $host,
+                        $forwardedHostHeader,
+                        $xfUri,
+                        $xfMethod,
+                        $xfProto,
+                        $authHeader,
+                        $presentedToken,
+                        null,
+                        false,
+                        ['X-FA-Reason' => 'invalid-host-format']
+                    )
+                );
             }
 
             $instanceSlug = $hostMatches[1];

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\McpInstancesManagement\Presentation;
 
-use App\Account\Domain\Entity\AccountCore;
+use App\Account\Facade\AccountFacadeInterface;
 use App\Account\Facade\Dto\AccountCoreInfoDto;
 use App\DockerManagement\Facade\DockerManagementFacadeInterface;
 use App\McpInstancesConfiguration\Facade\Service\InstanceTypesConfigFacadeInterface;
@@ -17,7 +17,6 @@ use App\McpInstancesManagement\Presentation\Dto\AdminAccountDto;
 use App\McpInstancesManagement\Presentation\Dto\AdminOverviewDto;
 use App\McpInstancesManagement\Presentation\Dto\DashboardDataDto;
 use App\McpInstancesManagement\Presentation\Dto\McpInstanceInfoDto;
-use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use ValueError;
 
@@ -25,7 +24,7 @@ final readonly class McpInstancesPresentationService
 {
     public function __construct(
         private McpInstancesDomainServiceInterface $domainService,
-        private EntityManagerInterface             $entityManager,
+        private AccountFacadeInterface             $accountFacade,
         private DockerManagementFacadeInterface    $dockerFacade,
         private InstanceTypesConfigFacadeInterface $typesConfig,
     ) {
@@ -140,11 +139,10 @@ final readonly class McpInstancesPresentationService
 
         $overviewData = [];
         foreach ($instances as $instance) {
-            // Get the account for this instance
-            $accountRepo = $this->entityManager->getRepository(AccountCore::class);
-            $account     = $accountRepo->find($instance->getAccountCoreId());
+            // Get the account info via Account Facade
+            $account = $this->accountFacade->getAccountById($instance->getAccountCoreId());
 
-            if (!$account) {
+            if ($account === null) {
                 continue; // Skip if account not found
             }
 
@@ -163,7 +161,12 @@ final readonly class McpInstancesPresentationService
 
             $overviewData[] = new AdminOverviewDto(
                 $this->mapMcpInstanceToDto($instance),
-                $this->mapAccountToDto($account),
+                new AdminAccountDto(
+                    $account->id,
+                    $account->email,
+                    $account->roles,
+                    $account->createdAt,
+                ),
                 $isHealthy,
                 $mcpEndpoint,
                 $vncEndpoint,
@@ -240,16 +243,5 @@ final readonly class McpInstancesPresentationService
         );
     }
 
-    /**
-     * Map AccountCore domain entity to presentation DTO.
-     */
-    private function mapAccountToDto(AccountCore $account): AdminAccountDto
-    {
-        return new AdminAccountDto(
-            $account->getId() ?? '',
-            $account->getEmail(),
-            $account->getRoles(),
-            $account->getCreatedAt(),
-        );
-    }
+    // Account mapping now happens via AccountFacade DTO
 }

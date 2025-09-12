@@ -1,9 +1,0 @@
-# deptrac.yaml - Cross-Vertical Isolation Rules
-deptrac:
-    paths:
-        - ./src
-    exclude_files:
-        - "#.*test.*#"
-        - "#.*Test.*#"
-        - "#.*tests.*#"
-        - '#src/Kernel\.php#'

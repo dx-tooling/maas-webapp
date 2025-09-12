@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\McpInstancesManagement\Presentation\Controller;
 
+use App\Account\Facade\AccountFacadeInterface;
 use App\DockerManagement\Facade\DockerManagementFacadeInterface;
 use App\McpInstancesConfiguration\Facade\Dto\EndpointConfig;
 use App\McpInstancesConfiguration\Facade\Dto\InstanceDockerConfig;
@@ -16,7 +17,6 @@ use App\McpInstancesManagement\Presentation\Controller\AdminInstancesController;
 use App\McpInstancesManagement\Presentation\McpInstancesPresentationService;
 use App\Tests\Support\VisibilityTestHelper;
 use App\Tests\Support\WebUiTestHelper;
-use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\DomCrawler\Crawler;
@@ -29,7 +29,7 @@ final class AdminInstancesControllerTest extends TestCase
     {
         $twig          = WebUiTestHelper::createTwigEnvironment('McpInstancesManagement');
         $domainService = $this->createMock(McpInstancesDomainServiceInterface::class);
-        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $accountFacade = $this->createMock(AccountFacadeInterface::class);
         $dockerFacade  = $this->createMock(DockerManagementFacadeInterface::class);
         $typesConfig   = $this->createMock(InstanceTypesConfigFacadeInterface::class);
 
@@ -38,7 +38,7 @@ final class AdminInstancesControllerTest extends TestCase
 
         $presentation = new McpInstancesPresentationService(
             $domainService,
-            $entityManager,
+            $accountFacade,
             $dockerFacade,
             $typesConfig,
         );
@@ -83,7 +83,7 @@ final class AdminInstancesControllerTest extends TestCase
     {
         $twig          = WebUiTestHelper::createTwigEnvironment('McpInstancesManagement');
         $domainService = $this->createMock(McpInstancesDomainServiceInterface::class);
-        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $accountFacade = $this->createMock(AccountFacadeInterface::class);
         $dockerFacade  = $this->createMock(DockerManagementFacadeInterface::class);
         $typesConfig   = $this->createMock(InstanceTypesConfigFacadeInterface::class);
 
@@ -128,7 +128,7 @@ final class AdminInstancesControllerTest extends TestCase
 
         $presentation = new McpInstancesPresentationService(
             $domainService,
-            $entityManager,
+            $accountFacade,
             $dockerFacade,
             $typesConfig,
         );

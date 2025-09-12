@@ -7,6 +7,9 @@ parameters:
         - src/
         - tests/
         - migrations/
+    excludePaths:
+        analyse:
+            - tests/Architecture/*
     type_coverage:
         return: 100
         param: 100

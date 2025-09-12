@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\McpInstancesManagement\Presentation\Controller;
 
 use App\Account\Domain\Entity\AccountCore;
+use App\Account\Facade\AccountFacadeInterface;
 use App\DockerManagement\Facade\DockerManagementFacadeInterface;
 use App\McpInstancesConfiguration\Facade\Dto\EndpointConfig;
 use App\McpInstancesConfiguration\Facade\Dto\InstanceDockerConfig;
@@ -22,7 +23,6 @@ use App\McpInstancesManagement\Presentation\Controller\InstancesController;
 use App\McpInstancesManagement\Presentation\McpInstancesPresentationService;
 use App\Tests\Support\VisibilityTestHelper;
 use App\Tests\Support\WebUiTestHelper;
-use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use ReflectionProperty;
 use Symfony\Component\DomCrawler\Crawler;
@@ -38,7 +38,7 @@ final class InstancesControllerTest extends TestCase
 
         // Mocks for dependencies outside Presentation layer
         $domainService = $this->createMock(McpInstancesDomainServiceInterface::class);
-        $entityManager = $this->createMock(EntityManagerInterface::class);
+        $accountFacade = $this->createMock(AccountFacadeInterface::class);
         $dockerFacade  = $this->createMock(DockerManagementFacadeInterface::class);
         $typesConfig   = $this->createMock(InstanceTypesConfigFacadeInterface::class);
 
@@ -121,7 +121,7 @@ final class InstancesControllerTest extends TestCase
 
         $presentation = new McpInstancesPresentationService(
             $domainService,
-            $entityManager,
+            $accountFacade,
             $dockerFacade,
             $typesConfig
         );

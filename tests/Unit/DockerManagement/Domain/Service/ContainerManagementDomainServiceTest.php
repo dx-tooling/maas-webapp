@@ -7,11 +7,11 @@ namespace App\Tests\Unit\DockerManagement\Domain\Service;
 use App\DockerManagement\Domain\Service\ContainerManagementDomainService;
 use App\DockerManagement\Infrastructure\Dto\RunProcessResultDto;
 use App\DockerManagement\Infrastructure\Service\ProcessServiceInterface;
-use App\McpInstancesConfiguration\Domain\Dto\EndpointConfig;
-use App\McpInstancesConfiguration\Domain\Dto\InstanceDockerConfig;
-use App\McpInstancesConfiguration\Domain\Dto\InstanceTypeConfig;
-use App\McpInstancesConfiguration\Domain\Dto\McpInstanceTypesConfig;
-use App\McpInstancesConfiguration\Domain\Service\InstanceTypesConfigService;
+use App\McpInstancesConfiguration\Facade\Dto\EndpointConfig;
+use App\McpInstancesConfiguration\Facade\Dto\InstanceDockerConfig;
+use App\McpInstancesConfiguration\Facade\Dto\InstanceTypeConfig;
+use App\McpInstancesConfiguration\Facade\Dto\McpInstanceTypesConfig;
+use App\McpInstancesConfiguration\Facade\Service\InstanceTypesConfigFacade;
 use App\McpInstancesConfiguration\Infrastructure\InstanceTypesConfigProviderInterface;
 use App\McpInstancesManagement\Domain\Entity\McpInstance;
 use App\McpInstancesManagement\Domain\Enum\ContainerState;
@@ -171,7 +171,7 @@ final class ContainerManagementDomainServiceTest extends TestCase
     }
 
     // Helper to construct a minimal config service with endpoints 'mcp' and 'vnc'
-    private function createInstanceTypesConfigService(): InstanceTypesConfigService
+    private function createInstanceTypesConfigService(): InstanceTypesConfigFacade
     {
         $provider = $this->createMock(InstanceTypesConfigProviderInterface::class);
         $provider->method('getConfig')->willReturn(new McpInstanceTypesConfig([
@@ -186,7 +186,7 @@ final class ContainerManagementDomainServiceTest extends TestCase
             )
         ]));
 
-        return new InstanceTypesConfigService($provider);
+        return new InstanceTypesConfigFacade($provider);
     }
 
     public function testBuildsTraefikLabelsFromEndpoints(): void
@@ -204,7 +204,7 @@ final class ContainerManagementDomainServiceTest extends TestCase
 
         $provider->method('getConfig')->willReturn($types);
 
-        $instanceTypesConfigService = new InstanceTypesConfigService($provider);
+        $instanceTypesConfigService = new InstanceTypesConfigFacade($provider);
 
         $process = $this->createMock(ProcessServiceInterface::class);
 
@@ -222,9 +222,6 @@ final class ContainerManagementDomainServiceTest extends TestCase
         );
 
         $this->assertContains('traefik.enable=true', $labels);
-
-        print_r($labels);
-
         $this->assertTrue($this->hasLabel($labels, 'traefik.http.routers.mcp-abc123.rule=Host(`mcp-abc123.mcp-as-a-service.com`)'));
         $this->assertTrue($this->hasLabel($labels, 'traefik.http.routers.mcp-abc123.entrypoints=websecure'));
         $this->assertTrue($this->hasLabel($labels, 'traefik.http.services.mcp-abc123.loadbalancer.server.port=8080'));

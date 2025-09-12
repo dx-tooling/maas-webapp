@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace App\Tests\Unit\McpInstances\Presentation\Controller;
 
 use App\DockerManagement\Facade\DockerManagementFacadeInterface;
-use App\McpInstancesConfiguration\Domain\Dto\EndpointConfig;
-use App\McpInstancesConfiguration\Domain\Dto\InstanceDockerConfig;
-use App\McpInstancesConfiguration\Domain\Dto\InstanceTypeConfig;
-use App\McpInstancesConfiguration\Domain\Service\InstanceTypesConfigServiceInterface;
+use App\McpInstancesConfiguration\Facade\Dto\EndpointConfig;
+use App\McpInstancesConfiguration\Facade\Dto\InstanceDockerConfig;
+use App\McpInstancesConfiguration\Facade\Dto\InstanceTypeConfig;
+use App\McpInstancesConfiguration\Facade\Service\InstanceTypesConfigFacadeInterface;
 use App\McpInstancesManagement\Domain\Enum\InstanceType;
 use App\McpInstancesManagement\Domain\Service\McpInstancesDomainServiceInterface;
 use App\McpInstancesManagement\Presentation\Controller\AdminInstancesController;
@@ -30,7 +30,7 @@ final class AdminInstancesControllerTest extends TestCase
         $domainService = $this->createMock(McpInstancesDomainServiceInterface::class);
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $dockerFacade  = $this->createMock(DockerManagementFacadeInterface::class);
-        $typesConfig   = $this->createMock(InstanceTypesConfigServiceInterface::class);
+        $typesConfig   = $this->createMock(InstanceTypesConfigFacadeInterface::class);
 
         // Overview uses domain to fetch instances; empty list simplifies rendering
         $domainService->method('getAllMcpInstances')->willReturn([]);
@@ -84,7 +84,7 @@ final class AdminInstancesControllerTest extends TestCase
         $domainService = $this->createMock(McpInstancesDomainServiceInterface::class);
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $dockerFacade  = $this->createMock(DockerManagementFacadeInterface::class);
-        $typesConfig   = $this->createMock(InstanceTypesConfigServiceInterface::class);
+        $typesConfig   = $this->createMock(InstanceTypesConfigFacadeInterface::class);
 
         // Prepare domain instance similar to InstancesControllerTest
         $accountId   = 'acc-999';

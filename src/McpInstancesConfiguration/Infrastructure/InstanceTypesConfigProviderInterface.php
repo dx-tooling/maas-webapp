@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\McpInstancesConfiguration\Infrastructure;
 
-use App\McpInstancesConfiguration\Domain\Dto\McpInstanceTypesConfig;
+use App\McpInstancesConfiguration\Facade\Dto\McpInstanceTypesConfig;
 
 interface InstanceTypesConfigProviderInterface
 {

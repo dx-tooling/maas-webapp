@@ -7,7 +7,7 @@ namespace App\McpInstancesManagement\Presentation;
 use App\Account\Domain\Entity\AccountCore;
 use App\Account\Facade\Dto\AccountCoreInfoDto;
 use App\DockerManagement\Facade\DockerManagementFacadeInterface;
-use App\McpInstancesConfiguration\Domain\Service\InstanceTypesConfigServiceInterface;
+use App\McpInstancesConfiguration\Facade\Service\InstanceTypesConfigFacadeInterface;
 use App\McpInstancesManagement\Domain\Dto\InstanceStatusDto;
 use App\McpInstancesManagement\Domain\Dto\ProcessStatusDto;
 use App\McpInstancesManagement\Domain\Entity\McpInstance;
@@ -24,10 +24,10 @@ use ValueError;
 readonly class McpInstancesPresentationService
 {
     public function __construct(
-        private McpInstancesDomainServiceInterface  $domainService,
-        private EntityManagerInterface              $entityManager,
-        private DockerManagementFacadeInterface     $dockerFacade,
-        private InstanceTypesConfigServiceInterface $typesConfig,
+        private McpInstancesDomainServiceInterface $domainService,
+        private EntityManagerInterface             $entityManager,
+        private DockerManagementFacadeInterface    $dockerFacade,
+        private InstanceTypesConfigFacadeInterface $typesConfig,
     ) {
     }
 

@@ -4,20 +4,20 @@ declare(strict_types=1);
 
 namespace App\McpInstancesConfiguration\Infrastructure;
 
-use App\McpInstancesConfiguration\Domain\Dto\EndpointConfig;
-use App\McpInstancesConfiguration\Domain\Dto\EndpointHealthConfig;
-use App\McpInstancesConfiguration\Domain\Dto\EndpointHealthHttpConfig;
-use App\McpInstancesConfiguration\Domain\Dto\InstanceDockerConfig;
-use App\McpInstancesConfiguration\Domain\Dto\InstanceTypeConfig;
-use App\McpInstancesConfiguration\Domain\Dto\McpInstanceTypesConfig;
-use App\McpInstancesConfiguration\Domain\Exception\InvalidInstanceTypesConfigException;
+use App\McpInstancesConfiguration\Facade\Dto\EndpointConfig;
+use App\McpInstancesConfiguration\Facade\Dto\EndpointHealthConfig;
+use App\McpInstancesConfiguration\Facade\Dto\EndpointHealthHttpConfig;
+use App\McpInstancesConfiguration\Facade\Dto\InstanceDockerConfig;
+use App\McpInstancesConfiguration\Facade\Dto\InstanceTypeConfig;
+use App\McpInstancesConfiguration\Facade\Dto\McpInstanceTypesConfig;
+use App\McpInstancesConfiguration\Facade\Exception\InvalidInstanceTypesConfigException;
 use App\McpInstancesManagement\Domain\Enum\InstanceType;
 use Symfony\Component\Yaml\Yaml;
 use ValueError;
 
-final class YamlInstanceTypesConfigProvider implements InstanceTypesConfigProviderInterface
+final readonly class YamlInstanceTypesConfigProvider implements InstanceTypesConfigProviderInterface
 {
-    public function __construct(private readonly string $configFilePath)
+    public function __construct(private string $configFilePath)
     {
     }
 

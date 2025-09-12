@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace App\McpInstancesConfiguration\Domain\Service;
+namespace App\McpInstancesConfiguration\Facade\Service;
 
-use App\McpInstancesConfiguration\Domain\Dto\InstanceTypeConfig;
+use App\McpInstancesConfiguration\Facade\Dto\InstanceTypeConfig;
 use App\McpInstancesManagement\Domain\Enum\InstanceType;
 
-interface InstanceTypesConfigServiceInterface
+interface InstanceTypesConfigFacadeInterface
 {
     public function getTypeConfig(InstanceType $type): ?InstanceTypeConfig;
 }

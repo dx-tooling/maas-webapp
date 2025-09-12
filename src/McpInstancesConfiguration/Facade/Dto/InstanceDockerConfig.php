@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\McpInstancesConfiguration\Domain\Dto;
+namespace App\McpInstancesConfiguration\Facade\Dto;
 
 readonly class InstanceDockerConfig
 {

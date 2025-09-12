@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\McpInstances\Infrastructure;
 
-use App\McpInstancesConfiguration\Domain\Exception\InvalidInstanceTypesConfigException;
+use App\McpInstancesConfiguration\Facade\Exception\InvalidInstanceTypesConfigException;
 use App\McpInstancesConfiguration\Infrastructure\YamlInstanceTypesConfigProvider;
 use PHPUnit\Framework\TestCase;
 

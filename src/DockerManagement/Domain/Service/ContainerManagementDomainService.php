@@ -6,8 +6,8 @@ namespace App\DockerManagement\Domain\Service;
 
 use App\DockerManagement\Infrastructure\Dto\RunProcessResultDto;
 use App\DockerManagement\Infrastructure\Service\ProcessServiceInterface;
-use App\McpInstancesConfiguration\Domain\Dto\EndpointConfig;
-use App\McpInstancesConfiguration\Domain\Service\InstanceTypesConfigServiceInterface;
+use App\McpInstancesConfiguration\Facade\Dto\EndpointConfig;
+use App\McpInstancesConfiguration\Facade\Service\InstanceTypesConfigFacadeInterface;
 use App\McpInstancesManagement\Domain\Entity\McpInstance;
 use App\McpInstancesManagement\Domain\Enum\ContainerState;
 use App\McpInstancesManagement\Domain\Enum\InstanceType;
@@ -20,11 +20,11 @@ use ValueError;
 readonly class ContainerManagementDomainService
 {
     public function __construct(
-        private LoggerInterface                     $logger,
-        private ParameterBagInterface               $params,
-        private RouterInterface                     $router,
-        private InstanceTypesConfigServiceInterface $instanceTypesConfigService,
-        private ProcessServiceInterface             $processService,
+        private LoggerInterface                    $logger,
+        private ParameterBagInterface              $params,
+        private RouterInterface                    $router,
+        private InstanceTypesConfigFacadeInterface $instanceTypesConfigService,
+        private ProcessServiceInterface            $processService,
     ) {
     }
 

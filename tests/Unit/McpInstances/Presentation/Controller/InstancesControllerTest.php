@@ -6,10 +6,10 @@ namespace App\Tests\Unit\McpInstances\Presentation\Controller;
 
 use App\Account\Domain\Entity\AccountCore;
 use App\DockerManagement\Facade\DockerManagementFacadeInterface;
-use App\McpInstancesConfiguration\Domain\Dto\EndpointConfig;
-use App\McpInstancesConfiguration\Domain\Dto\InstanceDockerConfig;
-use App\McpInstancesConfiguration\Domain\Dto\InstanceTypeConfig;
-use App\McpInstancesConfiguration\Domain\Service\InstanceTypesConfigServiceInterface;
+use App\McpInstancesConfiguration\Facade\Dto\EndpointConfig;
+use App\McpInstancesConfiguration\Facade\Dto\InstanceDockerConfig;
+use App\McpInstancesConfiguration\Facade\Dto\InstanceTypeConfig;
+use App\McpInstancesConfiguration\Facade\Service\InstanceTypesConfigFacadeInterface;
 use App\McpInstancesManagement\Domain\Dto\EndpointStatusDto;
 use App\McpInstancesManagement\Domain\Dto\InstanceStatusDto;
 use App\McpInstancesManagement\Domain\Dto\ProcessStatusContainerDto;
@@ -39,7 +39,7 @@ class InstancesControllerTest extends TestCase
         $domainService = $this->createMock(McpInstancesDomainServiceInterface::class);
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $dockerFacade  = $this->createMock(DockerManagementFacadeInterface::class);
-        $typesConfig   = $this->createMock(InstanceTypesConfigServiceInterface::class);
+        $typesConfig   = $this->createMock(InstanceTypesConfigFacadeInterface::class);
 
         // Prepare a domain entity with stable values
         $accountId   = 'acc-123';

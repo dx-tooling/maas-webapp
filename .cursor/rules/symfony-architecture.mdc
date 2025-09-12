@@ -16,7 +16,7 @@
   - **Api**: Programmatic interfaces (REST, GraphQL, etc.). API controllers, serializers, DTOs. May use own Domain, Infrastructure, or TestHarness. **NO direct access to own Facade** - Facades are external interfaces only.
   - **Infrastructure**: External APIs, filesystem, low-level services. May be referenced by any layer in the same feature. No direct access to other features.
   - **TestHarness**: Test utilities, mocks, simulation tools for both automated testing and developer productivity (e.g., fake data generators). May be referenced by any layer in the same feature. Not for production use.
-- No cross-feature references except via Facade Interfaces. Every feature must provide a Facade Interface for this purpose.
+- No cross-feature references except via Facade Interfaces. Every feature on which code from other features depends must provide a Facade Interface for this purpose.
 - No DB-level foreign keys between tables of different features.
 - Each feature must be testable in isolation, using interface-based mocks for dependencies on other features.
 - **Facades are EXTERNAL interfaces only - components within the same feature must use Domain services directly, not their own Facade.**

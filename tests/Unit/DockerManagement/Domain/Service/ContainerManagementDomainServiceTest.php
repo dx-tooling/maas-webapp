@@ -49,11 +49,11 @@ final class ContainerManagementDomainServiceTest extends TestCase
 
     public function testCreateContainerFailsWhenNamesMissing(): void
     {
-        $svc     = $this->createInstanceTypesConfigService();
-        $process = $this->createMock(ProcessServiceInterface::class);
+        $configFacade = $this->createInstanceTypesConfigService();
+        $process      = $this->createMock(ProcessServiceInterface::class);
         $process->method('runProcess')->willReturn(new RunProcessResultDto(0, '', ''));
-        $service  = new ContainerManagementDomainService($this->logger, $this->params, $this->router, $svc, $process);
-        $instance = new McpInstance(
+        $unitUnderTest = new ContainerManagementDomainService($this->logger, $this->params, $this->router, $configFacade, $process);
+        $instance      = new McpInstance(
             'acc',
             InstanceType::PLAYWRIGHT_V1,
             1280,
@@ -64,16 +64,16 @@ final class ContainerManagementDomainServiceTest extends TestCase
         );
 
         // Intentionally do not set derived fields; createContainer should log and return false
-        $this->assertFalse($service->createContainer($instance));
+        $this->assertFalse($unitUnderTest->createContainer($instance));
     }
 
     public function testDockerRunInvocationUsesWrapperInValidateOnlyMode(): void
     {
-        $svc     = $this->createInstanceTypesConfigService();
-        $process = $this->createMock(ProcessServiceInterface::class);
+        $configFacade = $this->createInstanceTypesConfigService();
+        $process      = $this->createMock(ProcessServiceInterface::class);
         $process->method('runProcess')->willReturn(new RunProcessResultDto(0, '', ''));
-        $service  = new ContainerManagementDomainService($this->logger, $this->params, $this->router, $svc, $process);
-        $instance = new McpInstance(
+        $unitUnderTest = new ContainerManagementDomainService($this->logger, $this->params, $this->router, $configFacade, $process);
+        $instance      = new McpInstance(
             'acc',
             InstanceType::PLAYWRIGHT_V1,
             1280,
@@ -98,7 +98,7 @@ final class ContainerManagementDomainServiceTest extends TestCase
         putenv('MAAS_WRAPPER_VALIDATE_ONLY=1');
 
         // Execute; since wrapper runs in validation mode, createContainer should return true (docker run exits 0)
-        $this->assertTrue($service->createContainer($instance));
+        $this->assertTrue($unitUnderTest->createContainer($instance));
 
         // Cleanup env
         putenv('MAAS_WRAPPER_VALIDATE_ONLY');
@@ -110,11 +110,11 @@ final class ContainerManagementDomainServiceTest extends TestCase
         $logger = $this->createMock(LoggerInterface::class);
         $logger->expects($this->any())->method('info');
 
-        $svc     = $this->createInstanceTypesConfigService();
-        $process = $this->createMock(ProcessServiceInterface::class);
+        $configFacade = $this->createInstanceTypesConfigService();
+        $process      = $this->createMock(ProcessServiceInterface::class);
         $process->method('runProcess')->willReturn(new RunProcessResultDto(0, '', ''));
-        $service  = new ContainerManagementDomainService($logger, $this->params, $this->router, $svc, $process);
-        $instance = new McpInstance(
+        $unitUnderTest = new ContainerManagementDomainService($logger, $this->params, $this->router, $configFacade, $process);
+        $instance      = new McpInstance(
             'acc',
             InstanceType::PLAYWRIGHT_V1,
             1280,
@@ -132,10 +132,10 @@ final class ContainerManagementDomainServiceTest extends TestCase
 
         // The ProcessServiceInterface mock returns exit code 0; wrapper or docker invocation details are not required here.
 
-        $this->assertTrue($service->startContainer($instance));
-        $this->assertTrue($service->stopContainer($instance));
-        $this->assertTrue($service->restartContainer($instance));
-        $this->assertTrue($service->removeContainer($instance));
+        $this->assertTrue($unitUnderTest->startContainer($instance));
+        $this->assertTrue($unitUnderTest->stopContainer($instance));
+        $this->assertTrue($unitUnderTest->restartContainer($instance));
+        $this->assertTrue($unitUnderTest->removeContainer($instance));
     }
 
     public function testGetContainerStateInvokesInspectViaWrapper(): void
@@ -145,11 +145,11 @@ final class ContainerManagementDomainServiceTest extends TestCase
             ->method('info')
             ->with($this->stringContains('inspect'));
 
-        $svc     = $this->createInstanceTypesConfigService();
-        $process = $this->createMock(ProcessServiceInterface::class);
+        $configFacade = $this->createInstanceTypesConfigService();
+        $process      = $this->createMock(ProcessServiceInterface::class);
         $process->method('runProcess')->willReturn(new RunProcessResultDto(0, '', ''));
-        $service  = new ContainerManagementDomainService($logger, $this->params, $this->router, $svc, $process);
-        $instance = new McpInstance(
+        $unitUnderTest = new ContainerManagementDomainService($logger, $this->params, $this->router, $configFacade, $process);
+        $instance      = new McpInstance(
             'acc',
             InstanceType::PLAYWRIGHT_V1,
             1280,
@@ -167,7 +167,7 @@ final class ContainerManagementDomainServiceTest extends TestCase
         // No env overrides required; the process mock returns 0 and stdout is empty.
 
         // In validate-only mode, stdout is not the status, so service returns ERROR
-        $this->assertSame(ContainerState::ERROR, $service->getContainerState($instance));
+        $this->assertSame(ContainerState::ERROR, $unitUnderTest->getContainerState($instance));
     }
 
     // Helper to construct a minimal config service with endpoints 'mcp' and 'vnc'

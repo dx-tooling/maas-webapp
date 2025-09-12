@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Tests\Unit\McpInstances\Domain\Service;
+namespace App\Tests\Unit\McpInstancesManagement\Domain\Service;
 
 use App\Account\Facade\Dto\AccountCoreInfoDto;
 use App\DockerManagement\Facade\DockerManagementFacadeInterface;
@@ -27,7 +27,7 @@ final class McpInstancesDomainServiceTest extends TestCase
     /** @var DockerManagementFacadeInterface&MockObject */
     private DockerManagementFacadeInterface $dockerFacade;
 
-    private McpInstancesDomainService $service;
+    private McpInstancesDomainService $unitUnderTest;
 
     protected function setUp(): void
     {
@@ -38,7 +38,7 @@ final class McpInstancesDomainServiceTest extends TestCase
         $this->em->method('getRepository')
                  ->willReturn($this->repo);
 
-        $this->service = new McpInstancesDomainService($this->em, $this->dockerFacade);
+        $this->unitUnderTest = new McpInstancesDomainService($this->em, $this->dockerFacade);
     }
 
     public function testCreateMcpInstanceSuccessCreatesContainerAndSetsRunning(): void
@@ -63,7 +63,7 @@ final class McpInstancesDomainServiceTest extends TestCase
             ->with($this->isInstanceOf(McpInstance::class))
             ->willReturn(true);
 
-        $instance = $this->service->createMcpInstance($accountId);
+        $instance = $this->unitUnderTest->createMcpInstance($accountId);
         $this->assertSame(ContainerState::RUNNING, $instance->getContainerState());
     }
 
@@ -93,7 +93,7 @@ final class McpInstancesDomainServiceTest extends TestCase
         $this->expectException(LogicException::class);
         $this->expectExceptionMessage('Failed to create Docker container for MCP instance.');
 
-        $this->service->createMcpInstance($accountId);
+        $this->unitUnderTest->createMcpInstance($accountId);
     }
 
     public function testStopAndRemoveCallsDockerAndRemovesEntity(): void
@@ -125,7 +125,7 @@ final class McpInstancesDomainServiceTest extends TestCase
         $this->em->expects($this->atLeastOnce())
                  ->method('flush');
 
-        $this->service->stopAndRemoveMcpInstance($accountId);
+        $this->unitUnderTest->stopAndRemoveMcpInstance($accountId);
     }
 
     public function testRestartMcpInstanceUpdatesStateOnSuccess(): void
@@ -154,7 +154,7 @@ final class McpInstancesDomainServiceTest extends TestCase
         $this->em->expects($this->atLeastOnce())
                  ->method('flush');
 
-        $result = $this->service->restartMcpInstance($instanceId);
+        $result = $this->unitUnderTest->restartMcpInstance($instanceId);
 
         $this->assertTrue($result);
         $this->assertSame(ContainerState::RUNNING, $existing->getContainerState());
@@ -186,7 +186,7 @@ final class McpInstancesDomainServiceTest extends TestCase
         $this->em->expects($this->atLeastOnce())
                  ->method('flush');
 
-        $result = $this->service->restartMcpInstance($instanceId);
+        $result = $this->unitUnderTest->restartMcpInstance($instanceId);
 
         $this->assertFalse($result);
         $this->assertSame(ContainerState::ERROR, $existing->getContainerState());

@@ -2,18 +2,19 @@
 
 declare(strict_types=1);
 
-namespace App\Tests\Unit\McpInstances\Presentation\Controller;
+namespace App\Tests\Unit\McpInstancesManagement\Presentation\Controller;
 
 use App\DockerManagement\Facade\DockerManagementFacadeInterface;
 use App\McpInstancesConfiguration\Facade\Dto\EndpointConfig;
 use App\McpInstancesConfiguration\Facade\Dto\InstanceDockerConfig;
 use App\McpInstancesConfiguration\Facade\Dto\InstanceTypeConfig;
 use App\McpInstancesConfiguration\Facade\Service\InstanceTypesConfigFacadeInterface;
+use App\McpInstancesManagement\Domain\Entity\McpInstance as DomainMcpInstance;
 use App\McpInstancesManagement\Domain\Enum\InstanceType;
 use App\McpInstancesManagement\Domain\Service\McpInstancesDomainServiceInterface;
 use App\McpInstancesManagement\Presentation\Controller\AdminInstancesController;
 use App\McpInstancesManagement\Presentation\McpInstancesPresentationService;
-use App\Tests\Support\DomainTestHelper;
+use App\Tests\Support\VisibilityTestHelper;
 use App\Tests\Support\WebUiTestHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
@@ -26,7 +27,7 @@ final class AdminInstancesControllerTest extends TestCase
 {
     public function testOverviewRendersExpectedHtmlStructure(): void
     {
-        $twig          = WebUiTestHelper::createTwigEnvironment();
+        $twig          = WebUiTestHelper::createTwigEnvironment('McpInstancesManagement');
         $domainService = $this->createMock(McpInstancesDomainServiceInterface::class);
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $dockerFacade  = $this->createMock(DockerManagementFacadeInterface::class);
@@ -80,7 +81,7 @@ final class AdminInstancesControllerTest extends TestCase
 
     public function testDetailRendersExpectedHtmlStructure(): void
     {
-        $twig          = WebUiTestHelper::createTwigEnvironment();
+        $twig          = WebUiTestHelper::createTwigEnvironment('McpInstancesManagement');
         $domainService = $this->createMock(McpInstancesDomainServiceInterface::class);
         $entityManager = $this->createMock(EntityManagerInterface::class);
         $dockerFacade  = $this->createMock(DockerManagementFacadeInterface::class);
@@ -92,7 +93,7 @@ final class AdminInstancesControllerTest extends TestCase
         $vncPassword = 'secret';
         $mcpBearer   = 'bearer-token';
 
-        $domainInstance = DomainTestHelper::newDomainInstance(
+        $domainInstance = new DomainMcpInstance(
             $accountId,
             InstanceType::PLAYWRIGHT_V1,
             1280,
@@ -101,7 +102,7 @@ final class AdminInstancesControllerTest extends TestCase
             $vncPassword,
             $mcpBearer
         );
-        DomainTestHelper::setPrivateProperty($domainInstance, 'id', $instanceId);
+        VisibilityTestHelper::setPrivateProperty($domainInstance, 'id', $instanceId);
         $domainInstance->generateDerivedFields('example.test');
 
         // Provide instance type config so mapping yields vnc external paths

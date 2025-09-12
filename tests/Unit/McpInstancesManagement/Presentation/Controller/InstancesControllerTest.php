@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Tests\Unit\McpInstances\Presentation\Controller;
+namespace App\Tests\Unit\McpInstancesManagement\Presentation\Controller;
 
 use App\Account\Domain\Entity\AccountCore;
 use App\DockerManagement\Facade\DockerManagementFacadeInterface;
@@ -15,11 +15,12 @@ use App\McpInstancesManagement\Domain\Dto\InstanceStatusDto;
 use App\McpInstancesManagement\Domain\Dto\ProcessStatusContainerDto;
 use App\McpInstancesManagement\Domain\Dto\ProcessStatusDto;
 use App\McpInstancesManagement\Domain\Dto\ServiceStatusDto;
+use App\McpInstancesManagement\Domain\Entity\McpInstance as DomainMcpInstance;
 use App\McpInstancesManagement\Domain\Enum\InstanceType;
 use App\McpInstancesManagement\Domain\Service\McpInstancesDomainServiceInterface;
 use App\McpInstancesManagement\Presentation\Controller\InstancesController;
 use App\McpInstancesManagement\Presentation\McpInstancesPresentationService;
-use App\Tests\Support\DomainTestHelper;
+use App\Tests\Support\VisibilityTestHelper;
 use App\Tests\Support\WebUiTestHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
@@ -33,7 +34,7 @@ class InstancesControllerTest extends TestCase
 {
     public function testDashboardRendersExpectedHtmlStructureWithInstancePresent(): void
     {
-        $twig = WebUiTestHelper::createTwigEnvironment();
+        $twig = WebUiTestHelper::createTwigEnvironment('McpInstancesManagement');
 
         // Mocks for dependencies outside Presentation layer
         $domainService = $this->createMock(McpInstancesDomainServiceInterface::class);
@@ -47,7 +48,7 @@ class InstancesControllerTest extends TestCase
         $mcpBearer   = 'test-bearer';
         $vncPassword = 'test-vnc-pass';
 
-        $domainInstance = DomainTestHelper::newDomainInstance(
+        $domainInstance = new DomainMcpInstance(
             $accountId,
             InstanceType::PLAYWRIGHT_V1,
             1280,
@@ -57,7 +58,7 @@ class InstancesControllerTest extends TestCase
             $mcpBearer
         );
         // Set ID and derived fields
-        DomainTestHelper::setPrivateProperty($domainInstance, 'id', $instanceId);
+        VisibilityTestHelper::setPrivateProperty($domainInstance, 'id', $instanceId);
         $domainInstance->generateDerivedFields('example.test');
 
         // Mock type config to provide display name and endpoint paths

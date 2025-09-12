@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Tests\Unit\McpInstances\Infrastructure;
+namespace App\Tests\Unit\McpInstancesConfiguration\Infrastructure;
 
 use App\McpInstancesConfiguration\Facade\Exception\InvalidInstanceTypesConfigException;
 use App\McpInstancesConfiguration\Infrastructure\YamlInstanceTypesConfigProvider;

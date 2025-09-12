@@ -23,10 +23,10 @@ final class AccountDomainServiceTest extends TestCase
         $em->method('getRepository')->willReturn($repo);
         $repo->method('findOneBy')->with(['email' => 'test@example.com'])->willReturn($this->createMock(AccountCore::class));
 
-        $service = new AccountDomainService($em, $hasher);
+        $unitUnderTest = new AccountDomainService($em, $hasher);
 
         $this->expectException(LogicException::class);
-        $service->register('test@example.com', 'secret');
+        $unitUnderTest->register('test@example.com', 'secret');
     }
 
     public function testRegisterPersistsNewAccount(): void
@@ -43,8 +43,8 @@ final class AccountDomainServiceTest extends TestCase
         $em->expects($this->once())->method('persist')->with($this->isInstanceOf(AccountCore::class));
         $em->expects($this->once())->method('flush');
 
-        $service = new AccountDomainService($em, $hasher);
-        $account = $service->register('fresh@example.com', 'secret');
+        $unitUnderTest = new AccountDomainService($em, $hasher);
+        $account       = $unitUnderTest->register('fresh@example.com', 'secret');
 
         $this->assertSame('fresh@example.com', $account->getEmail());
         $this->assertSame('hashed', $account->getPassword());

@@ -12,12 +12,15 @@ use Twig\TwigFunction;
 
 final class WebUiTestHelper
 {
-    public static function createTwigEnvironment(): Environment
-    {
-        $templateDir = __DIR__ . '/../../src/McpInstancesManagement/Presentation/Resources/templates';
+    public static function createTwigEnvironment(
+        string $featureFolderName
+    ): Environment {
+        $featureSnakeCaseName = strtolower((string)preg_replace('/(?<!^)[A-Z]/', '_$0', $featureFolderName));
+        $templateDir          = __DIR__ . "/../../src/$featureFolderName/Presentation/Resources/templates";
 
         $fs = new FilesystemLoader();
-        $fs->addPath($templateDir, 'mcp_instances_management.presentation');
+
+        $fs->addPath($templateDir, "$featureSnakeCaseName.presentation");
 
         $array = new ArrayLoader([
             '@Webui/base_appshell.html.twig' => <<<'TWIG'

@@ -2,7 +2,10 @@
 
 {% block body %}
     <div class="max-w-4xl mx-auto px-4">
-        <h1 class="etfswui-pagetitle mb-10 text-left" data-test-id="page-title">MCP Instance Details</h1>
+        <h1 class="etfswui-pagetitle mb-10 text-left" data-test-id="page-title">
+            MCP Instance Details
+            <span class="etfswui-card-subtitle" data-test-id="page-title">{{ instance.instanceType }}</span>
+        </h1>
 
         {{ component('mcp_instances|presentation|health_overview', { instanceId: instance.id }) }}
 
@@ -17,6 +20,7 @@
                             <div class="etfswui-text font-semibold mb-1">Instance</div>
                             <div class="etfswui-text-small text-dark-600 dark:text-dark-300">ID: {{ instance.id }}</div>
                             <div class="etfswui-text-small text-dark-600 dark:text-dark-300">Container: {{ instance.containerName }}</div>
+                            <div class="etfswui-text-small text-dark-600 dark:text-dark-300">Type: {{ instance.instanceType }}</div>
                         </div>
                         <div>
                             <div class="etfswui-text font-semibold mb-1">MCP Bearer Token</div>
@@ -66,6 +70,21 @@
   -H "Authorization: Bearer {{ instance.mcpBearer }}" \
   {{ mcp_base ~ p }}</code></pre>
                         </div>
+
+
+                        <div class="etfswui-text-small mb-1">Cursor IDE <em>.cursor/mcp.json</em> Example:</div>
+                        <pre class="etfswui-form-input bg-dark-100 dark:bg-dark-900 text-sm p-3 overflow-x-auto select-all">
+<code id="cursor-example">{
+  "mcpServers": {
+    "{{ instance.instanceType }}-remote": {
+        "url": "{{ mcp_base ~ p }}",
+        "headers": {
+            "Authorization": "Bearer {{ instance.mcpBearer }}"
+        }
+    }
+  }
+}</code></pre>
+
                     {% endfor %}
                 {% else %}
                     <div class="etfswui-text-small text-dark-500 dark:text-dark-400">No MCP endpoints configured for this instance type.</div>

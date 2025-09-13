@@ -8,9 +8,9 @@ use App\DockerManagement\Infrastructure\Dto\RunProcessResultDto;
 use App\DockerManagement\Infrastructure\Service\ProcessServiceInterface;
 use App\McpInstancesConfiguration\Facade\Dto\EndpointConfig;
 use App\McpInstancesConfiguration\Facade\Service\InstanceTypesConfigFacadeInterface;
-use App\McpInstancesManagement\Domain\Entity\McpInstance;
-use App\McpInstancesManagement\Domain\Enum\ContainerState;
-use App\McpInstancesManagement\Domain\Enum\InstanceType;
+use App\McpInstancesManagement\Facade\Dto\McpInstanceDto as McpInstance;
+use App\McpInstancesManagement\Facade\Enum\ContainerState;
+use App\McpInstancesManagement\Facade\Enum\InstanceType;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
@@ -118,16 +118,11 @@ final readonly class ContainerManagementDomainService
             return true;
         }
 
-        $containerName = $instance->getContainerName();
-        $instanceSlug  = $instance->getInstanceSlug();
+        $containerName = $instance->containerName;
+        $instanceSlug  = $instance->instanceSlug;
 
         // Defensive: if derived fields are missing but ID exists (common in tests), generate them now
-        if ((!$containerName || !$instanceSlug) && $instance->getId() !== null) {
-            $rootDomain = getenv('APP_ROOT_DOMAIN') ?: 'mcp-as-a-service.com';
-            $instance->generateDerivedFields($rootDomain);
-            $containerName = $instance->getContainerName();
-            $instanceSlug  = $instance->getInstanceSlug();
-        }
+        // Derived fields must be present by the time we manage containers
 
         if (!$containerName || !$instanceSlug) {
             $this->logger->error('[ContainerManagementDomainService] Container name or instance slug not set');
@@ -154,7 +149,7 @@ final readonly class ContainerManagementDomainService
 
     public function startContainer(McpInstance $instance): bool
     {
-        $containerName = $instance->getContainerName();
+        $containerName = $instance->containerName;
         if (!$containerName) {
             return false;
         }
@@ -176,7 +171,7 @@ final readonly class ContainerManagementDomainService
 
     public function stopContainer(McpInstance $instance): bool
     {
-        $containerName = $instance->getContainerName();
+        $containerName = $instance->containerName;
         if (!$containerName) {
             return false;
         }
@@ -198,7 +193,7 @@ final readonly class ContainerManagementDomainService
 
     public function removeContainer(McpInstance $instance): bool
     {
-        $containerName = $instance->getContainerName();
+        $containerName = $instance->containerName;
         if (!$containerName) {
             return false;
         }
@@ -220,7 +215,7 @@ final readonly class ContainerManagementDomainService
 
     public function restartContainer(McpInstance $instance): bool
     {
-        $containerName = $instance->getContainerName();
+        $containerName = $instance->containerName;
         if (!$containerName) {
             return false;
         }
@@ -242,7 +237,7 @@ final readonly class ContainerManagementDomainService
 
     public function getContainerState(McpInstance $instance): ContainerState
     {
-        $containerName = $instance->getContainerName();
+        $containerName = $instance->containerName;
         if (!$containerName) {
             return ContainerState::ERROR;
         }
@@ -264,7 +259,7 @@ final readonly class ContainerManagementDomainService
 
     public function isContainerHealthy(McpInstance $instance): bool
     {
-        $containerName = $instance->getContainerName();
+        $containerName = $instance->containerName;
         if (!$containerName) {
             return false;
         }
@@ -275,7 +270,7 @@ final readonly class ContainerManagementDomainService
         }
 
         // Get all configured endpoints and check their health
-        $typeCfg = $this->instanceTypesConfigService->getTypeConfig($instance->getInstanceType());
+        $typeCfg = $this->instanceTypesConfigService->getTypeConfig($instance->instanceType);
         if ($typeCfg === null) {
             return false;
         }
@@ -306,7 +301,7 @@ final readonly class ContainerManagementDomainService
 
     public function isMcpEndpointUp(McpInstance $instance): bool
     {
-        $containerName = $instance->getContainerName();
+        $containerName = $instance->containerName;
         if (!$containerName) {
             return false;
         }
@@ -316,7 +311,7 @@ final readonly class ContainerManagementDomainService
         }
 
         // Get MCP endpoint configuration
-        $typeCfg = $this->instanceTypesConfigService->getTypeConfig($instance->getInstanceType());
+        $typeCfg = $this->instanceTypesConfigService->getTypeConfig($instance->instanceType);
         if ($typeCfg === null || !array_key_exists('mcp', $typeCfg->endpoints)) {
             return false;
         }
@@ -338,7 +333,7 @@ final readonly class ContainerManagementDomainService
 
     public function isNoVncEndpointUp(McpInstance $instance): bool
     {
-        $containerName = $instance->getContainerName();
+        $containerName = $instance->containerName;
         if (!$containerName) {
             return false;
         }
@@ -348,7 +343,7 @@ final readonly class ContainerManagementDomainService
         }
 
         // Get VNC endpoint configuration
-        $typeCfg = $this->instanceTypesConfigService->getTypeConfig($instance->getInstanceType());
+        $typeCfg = $this->instanceTypesConfigService->getTypeConfig($instance->instanceType);
         if ($typeCfg === null || !array_key_exists('vnc', $typeCfg->endpoints)) {
             return false;
         }
@@ -373,7 +368,7 @@ final readonly class ContainerManagementDomainService
      */
     public function execCurlStatus(McpInstance $instance, string $url): int
     {
-        $containerName = $instance->getContainerName();
+        $containerName = $instance->containerName;
         if (!$containerName) {
             return 0;
         }
@@ -394,8 +389,8 @@ final readonly class ContainerManagementDomainService
      */
     private function buildAndRunDockerRun(McpInstance $instance): RunProcessResultDto
     {
-        $containerName = $instance->getContainerName();
-        $instanceSlug  = $instance->getInstanceSlug();
+        $containerName = $instance->containerName;
+        $instanceSlug  = $instance->instanceSlug;
 
         if (is_null($containerName)) {
             throw new ValueError('Container name is not set');
@@ -405,19 +400,19 @@ final readonly class ContainerManagementDomainService
             throw new ValueError('Instance slug is not set');
         }
 
-        $imageName = $this->getImageNameForInstanceType($instance->getInstanceType());
+        $imageName = $this->getImageNameForInstanceType($instance->instanceType);
 
         $envVars = [
             "INSTANCE_ID={$instanceSlug}",
-            "INSTANCE_TYPE={$instance->getInstanceType()->value}",
-            "SCREEN_WIDTH={$instance->getScreenWidth()}",
-            "SCREEN_HEIGHT={$instance->getScreenHeight()}",
-            "COLOR_DEPTH={$instance->getColorDepth()}",
-            "VNC_PASSWORD={$instance->getVncPassword()}"
+            "INSTANCE_TYPE={$instance->instanceType->value}",
+            "SCREEN_WIDTH={$instance->screenWidth}",
+            "SCREEN_HEIGHT={$instance->screenHeight}",
+            "COLOR_DEPTH={$instance->colorDepth}",
+            "VNC_PASSWORD={$instance->vncPassword}"
         ];
 
         $labels = $this->buildTraefikLabels(
-            $instance->getInstanceType(),
+            $instance->instanceType,
             $instanceSlug
         );
 

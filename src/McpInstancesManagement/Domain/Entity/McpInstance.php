@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace App\McpInstancesManagement\Domain\Entity;
 
-use App\McpInstancesManagement\Domain\Enum\ContainerState;
-use App\McpInstancesManagement\Domain\Enum\InstanceType;
+use App\McpInstancesManagement\Facade\Dto\McpInstanceDto;
+use App\McpInstancesManagement\Facade\Enum\ContainerState;
+use App\McpInstancesManagement\Facade\Enum\InstanceType;
 use DateTimeImmutable;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -210,5 +211,25 @@ class McpInstance
         }
 
         return rtrim(strtr(base64_encode(random_bytes($length)), '+/', '-_'), '=');
+    }
+
+    public function toDto(): McpInstanceDto
+    {
+        return new McpInstanceDto(
+            $this->getId() ?? '',
+            $this->getCreatedAt(),
+            $this->getAccountCoreId(),
+            $this->getInstanceSlug(),
+            $this->getContainerName(),
+            ContainerState::from($this->getContainerState()->value),
+            InstanceType::from($this->getInstanceType()->value),
+            $this->getScreenWidth(),
+            $this->getScreenHeight(),
+            $this->getColorDepth(),
+            $this->getVncPassword(),
+            $this->getMcpBearer(),
+            $this->getMcpSubdomain(),
+            $this->getVncSubdomain(),
+        );
     }
 }

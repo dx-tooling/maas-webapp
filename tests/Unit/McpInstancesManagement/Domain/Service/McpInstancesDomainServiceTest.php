@@ -7,9 +7,10 @@ namespace App\Tests\Unit\McpInstancesManagement\Domain\Service;
 use App\Account\Facade\Dto\AccountCoreInfoDto;
 use App\DockerManagement\Facade\DockerManagementFacadeInterface;
 use App\McpInstancesManagement\Domain\Entity\McpInstance;
-use App\McpInstancesManagement\Domain\Enum\ContainerState;
-use App\McpInstancesManagement\Domain\Enum\InstanceType;
 use App\McpInstancesManagement\Domain\Service\McpInstancesDomainService;
+use App\McpInstancesManagement\Facade\Dto\McpInstanceDto;
+use App\McpInstancesManagement\Facade\Enum\ContainerState;
+use App\McpInstancesManagement\Facade\Enum\InstanceType;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
 use LogicException;
@@ -38,7 +39,10 @@ final class McpInstancesDomainServiceTest extends TestCase
         $this->em->method('getRepository')
                  ->willReturn($this->repo);
 
-        $this->unitUnderTest = new McpInstancesDomainService($this->em, $this->dockerFacade);
+        $this->unitUnderTest = new McpInstancesDomainService(
+            $this->em,
+            $this->dockerFacade
+        );
     }
 
     public function testCreateMcpInstanceSuccessCreatesContainerAndSetsRunning(): void
@@ -60,7 +64,7 @@ final class McpInstancesDomainServiceTest extends TestCase
         $this->dockerFacade
             ->expects($this->once())
             ->method('createAndStartContainer')
-            ->with($this->isInstanceOf(McpInstance::class))
+            ->with($this->isInstanceOf(McpInstanceDto::class))
             ->willReturn(true);
 
         $instance = $this->unitUnderTest->createMcpInstance($accountId);
@@ -87,7 +91,7 @@ final class McpInstancesDomainServiceTest extends TestCase
         $this->dockerFacade
             ->expects($this->once())
             ->method('createAndStartContainer')
-            ->with($this->isInstanceOf(McpInstance::class))
+            ->with($this->isInstanceOf(McpInstanceDto::class))
             ->willReturn(false);
 
         $this->expectException(LogicException::class);
@@ -116,7 +120,7 @@ final class McpInstancesDomainServiceTest extends TestCase
         $this->dockerFacade
             ->expects($this->once())
             ->method('stopAndRemoveContainer')
-            ->with($existing)
+            ->with($this->isInstanceOf(McpInstanceDto::class))
             ->willReturn(true);
 
         $this->em->expects($this->once())
@@ -148,7 +152,7 @@ final class McpInstancesDomainServiceTest extends TestCase
         $this->dockerFacade
             ->expects($this->once())
             ->method('restartContainer')
-            ->with($existing)
+            ->with($this->isInstanceOf(McpInstanceDto::class))
             ->willReturn(true);
 
         $this->em->expects($this->atLeastOnce())
@@ -180,7 +184,7 @@ final class McpInstancesDomainServiceTest extends TestCase
         $this->dockerFacade
             ->expects($this->once())
             ->method('restartContainer')
-            ->with($existing)
+            ->with($this->isInstanceOf(McpInstanceDto::class))
             ->willReturn(false);
 
         $this->em->expects($this->atLeastOnce())

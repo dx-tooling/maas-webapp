@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Authentication\Presentation\Controller;
 
 use App\Authentication\Presentation\Controller\ForwardAuthController;
-use App\McpInstances\Domain\Entity\McpInstance;
+use App\McpInstancesManagement\Domain\Entity\McpInstance;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
 use PHPUnit\Framework\TestCase;

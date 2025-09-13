@@ -1,0 +1,69 @@
+---
+description: Software Test Design Standards (stable selectors via data-test markers)
+globs: ["src/**/*.twig","tests/**/*"]
+alwaysApply: true
+---
+# Software Test Design
+
+<rule>
+name: software_test_design
+description: Prefer stable data-test markers over brittle CSS/structure/text for UI tests.
+filters:
+  - type: event
+    pattern: ".*"  # Apply generally
+actions:
+  - type: suggest
+    message: |
+      Use stable, implementation-agnostic selectors in tests:
+
+      - Add data-test markers in UI code where tests need to target elements:
+        - Prefer data-test-id for unique elements (e.g., page headers, primary cards, buttons)
+        - Prefer data-test-class for repeated/collection items
+      - Write tests to select elements by [data-test-id] or [data-test-class]
+      - Do not couple tests to CSS classes, color, spacing, order, or decorative structure
+      - Avoid text-content assertions for identification unless text is part of the contract
+
+      Naming conventions:
+      - data-test-id values: lower-kebab-case, semantic, stable (e.g., page-title, card-general, mcp-bearer)
+      - data-test-class values: lower-kebab-case for list/table rows or repeated tiles (e.g., instances-row, tile-endpoint)
+
+      Examples (Twig):
+      ```twig
+      <h1 class="etfswui-pagetitle" data-test-id="page-title">MCP Instance Dashboard</h1>
+      <div class="etfswui-card" data-test-id="card-general">...</div>
+      <input data-test-id="mcp-bearer" value="{{ instance.mcpBearer }}" />
+      <tr data-test-class="instances-row">...</tr>
+      ```
+
+      Examples (PHPUnit + DomCrawler):
+      ```php
+      $title = $crawler->filter('[data-test-id="page-title"]');
+      $this->assertCount(1, $title);
+
+      $bearer = $crawler->filter('[data-test-id="mcp-bearer"]');
+      $this->assertCount(1, $bearer);
+      $this->assertSame($expected, $bearer->extract(['value'])[0] ?? null);
+
+      $rows = $crawler->filter('[data-test-class="instances-row"]');
+      $this->assertGreaterThan(0, count($rows));
+      ```
+
+      Do:
+      - Treat data-test markers as part of the public contract of the view
+      - Add/adjust markers when UI structure changes, without breaking visual styles
+      - Keep selectors minimal and focused on behavior/semantics
+
+      Don't:
+      - Assert on Tailwind/utility class names, colors, spacing, or DOM order for identification
+      - Use deeply nested CSS/XPath paths that break on visual refactors
+      - Depend on transient loading placeholders for identification
+
+      Additional Tips:
+      - Prefer assertCount over assertSame with count(), for clarity
+      - Use DomCrawler extract(['value']) for reading input values
+      - Use data-test-id/data-test-class consistently across templates and components
+
+metadata:
+  version: 1.0
+  tags: [testing, robustness, selectors, ui]
+</rule>

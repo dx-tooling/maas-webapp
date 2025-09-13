@@ -1,0 +1,60 @@
+mcp_instance_types:
+    _legacy:
+        display_name: "Legacy Playwright MCP"
+        description: "Original MCP instance with Playwright automation capabilities for web testing and interaction"
+        endpoints:
+            mcp:
+                port: 8080
+                auth: bearer
+                external_paths: ["/mcp", "/sse"]
+                health:
+                    http:
+                        path: "/mcp"
+                        accept_status_lt: 500
+            vnc:
+                port: 6080
+                external_paths: ["/vnc.html"]
+                health:
+                    http:
+                        path: "/"
+                        accept_status_lt: 500
+
+    playwright-v1:
+        display_name: "Playwright MCP v1"
+        description: "A Playwright MCP instance which allows an AI agent to browse the web with a real Google Chrome browser."
+        endpoints:
+            mcp:
+                port: 8080
+                auth: bearer
+                external_paths: ["/mcp", "/sse"]
+                health:
+                    http:
+                        path: "/mcp"
+                        accept_status_lt: 500
+            vnc:
+                port: 6080
+                external_paths: ["/vnc.html"]
+                health:
+                    http:
+                        path: "/"
+                        accept_status_lt: 500
+
+    linux-cmd-line-v1:
+        display_name: "Linux Command Line MCP v1"
+        description: 'This MCP server allows your AI agent to execute any Linux command within a real (but fully sandboxed) Debian "Bookworm" server environment.'
+        endpoints:
+            mcp:
+                port: 8080
+                auth: bearer
+                external_paths: ["/mcp"]
+                health:
+                    http:
+                        path: "/health"
+                        accept_status_lt: 201
+            vnc:
+                port: 6080
+                external_paths: ["/vnc.html"]
+                health:
+                    http:
+                        path: "/"
+                        accept_status_lt: 500

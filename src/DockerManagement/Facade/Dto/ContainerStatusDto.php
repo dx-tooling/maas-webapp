@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\DockerManagement\Facade\Dto;
 
-readonly class ContainerStatusDto
+final readonly class ContainerStatusDto
 {
     public function __construct(
         public string  $containerName,

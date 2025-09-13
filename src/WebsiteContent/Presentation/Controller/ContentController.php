@@ -9,7 +9,7 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 
-class ContentController extends AbstractController
+final class ContentController extends AbstractController
 {
     #[Route(
         path   : '/',
@@ -23,6 +23,6 @@ class ContentController extends AbstractController
             return $this->redirectToRoute('account.presentation.sign_in');
         }
 
-        return $this->redirectToRoute('mcp_instances.presentation.dashboard');
+        return $this->redirectToRoute('mcp_instances_management.presentation.dashboard');
     }
 }

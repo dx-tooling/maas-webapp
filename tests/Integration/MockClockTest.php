@@ -9,7 +9,7 @@ use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Clock\Clock;
 use Symfony\Component\Clock\MockClock;
 
-class MockClockTest extends KernelTestCase
+final class MockClockTest extends KernelTestCase
 {
     public function test(): void
     {

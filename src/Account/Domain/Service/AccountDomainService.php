@@ -9,7 +9,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use LogicException;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
-readonly class AccountDomainService
+final readonly class AccountDomainService
 {
     public function __construct(
         private EntityManagerInterface      $entityManager,

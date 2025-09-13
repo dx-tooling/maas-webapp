@@ -22,5 +22,9 @@ require_once dirname(__DIR__) . '/vendor/autoload_runtime.php';
 date_default_timezone_set(Timezone::UTC->value);
 
 return function (array $context) {
+    if (!is_string($context['APP_ENV'])) {
+        throw new ValueError('The "APP_ENV" environment variable is not set to a valid value.');
+    }
+
     return new Kernel($context['APP_ENV'], (bool) $context['APP_DEBUG']);
 };

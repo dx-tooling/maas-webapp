@@ -21,7 +21,7 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
     description: 'Add a Symfony ROLE to an account based on email',
     aliases    : ['promote-account']
 )]
-class PromoteAccountCommand extends EnhancedCommand
+final class PromoteAccountCommand extends EnhancedCommand
 {
     public function __construct(
         RolloutService         $rolloutService,

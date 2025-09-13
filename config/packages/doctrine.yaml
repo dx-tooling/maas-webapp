@@ -31,11 +31,11 @@ doctrine:
                 dir: "%kernel.project_dir%/src/Account/Domain/Entity"
                 prefix: 'App\Account\Domain\Entity'
 
-            App\McpInstances\Domain\Entity:
+            App\McpInstancesManagement\Domain\Entity:
                 type: attribute
                 is_bundle: false
-                dir: "%kernel.project_dir%/src/McpInstances/Domain/Entity"
-                prefix: 'App\McpInstances\Domain\Entity'
+                dir: "%kernel.project_dir%/src/McpInstancesManagement/Domain/Entity"
+                prefix: 'App\McpInstancesManagement\Domain\Entity'
 
         controller_resolver:
             auto_mapping: false

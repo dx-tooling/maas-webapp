@@ -107,11 +107,17 @@ case "${cmd}" in
       fi
     done
     
-    # Validate image name
-    if [[ -z "$image_name" ]] || [[ "$image_name" == -* ]] || [[ "$image_name" != "maas-mcp-instance" ]]; then
-      echo "Denied: only maas-mcp-instance image is allowed"
+    # Validate image name: allow legacy image and any image starting with prefix "maas-mcp-instance-"
+    if [[ -z "$image_name" ]] || [[ "$image_name" == -* ]]; then
+      echo "Denied: invalid image name"
       exit 1
     fi
+
+    case "$image_name" in
+      maas-mcp-instance) ;;
+      maas-mcp-instance-*) ;;
+      *) echo "Denied: only maas-mcp-instance or images prefixed with maas-mcp-instance- are allowed"; exit 1 ;;
+    esac
     
     do_exec run "$@"
   } ;;

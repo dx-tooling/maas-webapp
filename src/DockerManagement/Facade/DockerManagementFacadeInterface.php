@@ -5,7 +5,8 @@ declare(strict_types=1);
 namespace App\DockerManagement\Facade;
 
 use App\DockerManagement\Facade\Dto\ContainerStatusDto;
-use App\McpInstances\Domain\Entity\McpInstance;
+use App\McpInstancesManagement\Domain\Dto\InstanceStatusDto;
+use App\McpInstancesManagement\Domain\Entity\McpInstance;
 
 interface DockerManagementFacadeInterface
 {
@@ -33,4 +34,9 @@ interface DockerManagementFacadeInterface
      * Get comprehensive status information for the container.
      */
     public function getContainerStatus(McpInstance $instance): ContainerStatusDto;
+
+    /**
+     * Get generic instance status including dynamic endpoints derived from configuration.
+     */
+    public function getInstanceStatus(McpInstance $instance): InstanceStatusDto;
 }

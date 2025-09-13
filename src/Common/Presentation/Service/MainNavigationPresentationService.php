@@ -12,7 +12,7 @@ use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Routing\RouterInterface;
 use ValueError;
 
-readonly class MainNavigationPresentationService extends AbstractMainNavigationService
+final readonly class MainNavigationPresentationService extends AbstractMainNavigationService
 {
     public function __construct(
         RouterInterface               $router,
@@ -66,14 +66,14 @@ readonly class MainNavigationPresentationService extends AbstractMainNavigationS
         if ($this->security->isGranted('ROLE_USER')) {
             $entries[] = $this->generateEntry(
                 'Your MCP Servers',
-                'mcp_instances.presentation.dashboard',
+                'mcp_instances_management.presentation.dashboard',
             );
         }
 
         if ($this->security->isGranted('ROLE_ADMIN')) {
             $entries[] = $this->generateEntry(
                 'All MCP Instances',
-                'mcp_instances.presentation.admin_overview',
+                'mcp_instances_management.presentation.admin_overview',
             );
         }
 

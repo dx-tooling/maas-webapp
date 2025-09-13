@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Authentication\Presentation\Controller;
 
-use App\McpInstances\Domain\Entity\McpInstance;
+use App\McpInstancesManagement\Domain\Entity\McpInstance;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\Log\LoggerInterface;
@@ -13,7 +13,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
-class ForwardAuthController extends AbstractController
+final class ForwardAuthController extends AbstractController
 {
     private const int CACHE_TTL = 300; // 5 minutes
 

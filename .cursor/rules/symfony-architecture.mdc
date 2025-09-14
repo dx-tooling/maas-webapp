@@ -1,25 +1,117 @@
 # Symfony 7.3 Core Architecture & Coding Rules
 
-## General Principles
-- Write concise, technical code with accurate PHP examples.
-- Use object-oriented programming and SOLID principles.
-- Prefer iteration and modularization over duplication.
-- Use descriptive variable and method names, even if long.
-- Favor dependency injection and service containers.
-- Prefer TypeScript over JavaScript, and use TypeScript's type system extensively.
+## Architectural Pattern: Hexagonal (Ports & Adapters) with DDD
 
-## Feature/Layer Structure & Isolation (Hard Rule)
-- Every feature lives in its own top-level namespace under `App\FeatureName`.
-- Allowed layers (per feature):
-  - **Domain**: Pure business logic. May access DB (including raw SQL) for own tables. May reference own Infrastructure and TestHarness. No Presentation/Api references. No cross-feature dependencies (not even DB-level foreign keys).
-  - **Presentation**: UI (web pages, emails, etc.). Controllers, view models, templates. No business logic. May use own Domain, Infrastructure, or TestHarness. **NO direct access to own Facade** - Facades are external interfaces only.
-  - **Api**: Programmatic interfaces (REST, GraphQL, etc.). API controllers, serializers, DTOs. May use own Domain, Infrastructure, or TestHarness. **NO direct access to own Facade** - Facades are external interfaces only.
-  - **Infrastructure**: External APIs, filesystem, low-level services. May be referenced by any layer in the same feature. No direct access to other features.
-  - **TestHarness**: Test utilities, mocks, simulation tools for both automated testing and developer productivity (e.g., fake data generators). May be referenced by any layer in the same feature. Not for production use.
-- No cross-feature references except via Facade Interfaces. Every feature on which code from other features depends must provide a Facade Interface for this purpose.
-- No DB-level foreign keys between tables of different features.
-- Each feature must be testable in isolation, using interface-based mocks for dependencies on other features.
-- **Facades are EXTERNAL interfaces only - components within the same feature must use Domain services directly, not their own Facade.**
+### Core Architecture Principles
+- **Hexagonal Architecture**: Domain at the center, Facades as ports, Infrastructure/Presentation as adapters
+- **Domain-Driven Design (DDD)**: Strategic design with bounded contexts per feature
+- **Dependency Inversion**: All dependencies point inward toward the domain
+- **SOLID Principles**: Strictly enforced throughout the codebase
+- **Type Safety First**: No untyped data, no associative arrays as data structures
+- **Immutability by Default**: Use `readonly` properties and immutable DTOs
+
+## Feature Module Structure (Strict Hexagonal Boundaries)
+
+Every feature MUST follow this exact structure under `App\FeatureName\`:
+
+```
+App\FeatureName\
+├── Domain\           # Inner hexagon - pure business logic
+│   ├── Entity\       # Domain entities (Doctrine mappings)
+│   ├── Service\      # Domain services with business logic
+│   ├── Enum\         # Domain value objects and enums
+│   └── Command\      # CLI commands (if domain-specific)
+├── Facade\           # Port layer - public API boundary
+│   ├── Dto\          # Transfer objects for external communication
+│   ├── Service\      # Facade services implementing interfaces
+│   ├── Exception\    # Public exceptions
+│   └── *Interface.php # Public contracts (ports)
+├── Infrastructure\   # Adapter layer - external integrations
+│   ├── Service\      # External system adapters
+│   ├── Dto\          # Infrastructure-specific DTOs
+│   └── *Interface.php # Port definitions for adapters
+├── Api\              # Adapter layer - RESTful HTTP JSON API (optional)
+│   ├── Controller\   # API controllers (REST endpoints)
+│   ├── Dto\          # API request/response DTOs
+│   ├── Serializer\   # JSON serialization logic
+│   └── Exception\    # API-specific exceptions
+├── Presentation\     # Adapter layer - UI/Web (optional)
+│   ├── Controller\   # Symfony controllers
+│   ├── Components\   # Live components
+│   ├── Dto\          # Presentation-specific DTOs
+│   └── Templates\    # Twig templates
+└── TestHarness\      # Test utilities (not in production)
+```
+
+**Note**: Features may have either `Api`, `Presentation`, or both layers depending on their access patterns.
+
+### Layer Rules (Enforced by Architecture Tests)
+
+1. **Domain Layer**:
+   - Pure business logic, no framework dependencies
+   - Entities use Doctrine attributes but remain framework-agnostic
+   - Domain services implement business rules
+   - May ONLY depend on own Infrastructure interfaces or Facade interfaces of other features
+   - MUST NOT reference Presentation, Api, or other features' internals
+
+2. **Facade Layer** (Port):
+   - Defines the feature's public contract via interfaces
+   - Implements adapters that delegate to domain services
+   - All inter-feature communication MUST go through Facade interfaces
+   - Returns only DTOs, never domain entities
+   - **CRITICAL**: Own feature's components MUST NOT use own Facade
+
+3. **Infrastructure Layer** (Adapter):
+   - Implements ports for external systems (Docker, filesystem, APIs)
+   - Provides interfaces that Domain can depend on
+   - Uses Symfony services for implementation (Process, HttpClient, etc.)
+
+4. **Api Layer** (Adapter - Optional):
+   - RESTful HTTP JSON endpoints for programmatic access
+   - API controllers typically wrap Facade services
+   - May adapt Facade interfaces for HTTP semantics (not strict 1:1)
+   - Uses Domain services directly, NOT through own Facade
+   - Returns API-specific DTOs optimized for JSON serialization
+   - Handles HTTP concerns (status codes, headers, content negotiation)
+
+5. **Presentation Layer** (Adapter - Optional):
+   - Web UI controllers and templates
+   - Uses Domain services directly, NOT through Facade
+   - May create presentation-specific DTOs for complex UI needs
+   - Templates use data-test attributes for stable testing
+
+### Cross-Feature Communication Rules
+
+```php
+// ✅ CORRECT: Feature A using Feature B's Facade interface
+namespace App\FeatureA\Domain\Service;
+
+use App\FeatureB\Facade\FeatureBFacadeInterface;
+use App\FeatureB\Facade\Dto\SomeDto;
+
+class FeatureAService {
+    public function __construct(
+        private FeatureBFacadeInterface $featureB
+    ) {}
+}
+
+// ❌ WRONG: Direct access to another feature's internals
+use App\FeatureB\Domain\Service\SomeService; // FORBIDDEN
+```
+
+### Architecture Test Enforcement
+
+Architecture boundaries are enforced via Pest/PHPUnit tests:
+```php
+arch("{$from} must not use {$to} internals")
+    ->expect("App\\{$from}")
+    ->not->toUse([
+        "App\\{$to}\\Domain",
+        "App\\{$to}\\Infrastructure",
+        "App\\{$to}\\Api",
+        "App\\{$to}\\Presentation",
+    ]);
+```
 
 ## Date and Time (Hard Rule)
 - **Never instantiate `DateTimeImmutable`, `DateTime`, or similar directly.**
@@ -51,34 +143,70 @@
   - Service Dependencies: Inject domain services into presentation layer components
   - External Access: Other features use facades to access your feature's functionality
 
-## Type System & DTOs (Hard Rule)
-- Use the PHP type system extensively. Avoid untyped or mixed values, parameters, return values, etc.
-- **No complex, multi-level associative arrays.**
-  - Arrays are only allowed as:
-    - Non-associative lists of values (e.g., `list<string>`, `list<UserDto>`), all values same type - and not `string[]` or `UserDto[]`.
-    - Simple, one-dimensional key-value pairs, but only in very local contexts (e.g., passing between two methods in the same class, where a DTO would be overkill).
-  - **Associative arrays must never be used as pseudo-objects or data structures that cross class or feature boundaries.**
-  - All structured data passed between classes, layers, or features must use proper DTOs or value objects.
-  - **Classes shall never emit associative arrays, especially not multi-dimensional ones, unless it's in a very local context (e.g. private method in a class).**
-- Example:
-  ```php
-  // ✅ Correct: List of DTOs
-  /** @var UserDto[] $users */
-  $users = [$user1, $user2];
+## Type System & DTO Patterns (Strict Rules)
 
-  // ✅ Correct: Simple local key-value array
-  $options = ['foo' => 'bar', 'baz' => 'qux'];
+### DTO Layer Separation
+Each layer has its own DTO types for specific purposes:
 
-  // ❌ Incorrect: Multi-level associative array as a pseudo-object
-  $data = [
-      'user' => [
-          'name' => 'Alice',
-          'address' => [
-              'city' => 'Berlin'
-          ]
-      ]
-  ]; // Use DTOs instead!
-  ```
+1. **Facade DTOs**: Public API contracts between features
+   - Immutable with `readonly` properties
+   - No behavior, only data
+   - Example: `McpInstanceDto`, `AccountPublicInfoDto`
+
+2. **Infrastructure DTOs**: External system data structures
+   - Example: `RunProcessResultDto`, configuration DTOs
+
+3. **Api DTOs**: HTTP API request/response structures
+   - Optimized for JSON serialization
+   - May include validation attributes
+   - Often adapts Facade DTOs for HTTP semantics
+   - Example: `CreateInstanceRequest`, `InstanceResponse`
+
+4. **Presentation DTOs**: UI-specific view models
+   - May aggregate data from multiple sources
+   - Example: `AdminOverviewDto`, `DashboardDataDto`
+
+### Type Safety Rules
+- **No untyped data**: Every parameter, property, and return value MUST be typed
+- **No mixed types**: Avoid `mixed` except when interfacing with legacy code
+- **Immutable by default**: Use `readonly` for all DTO properties
+- **No complex arrays**: Arrays only for simple lists, never as data structures
+
+```php
+// ✅ CORRECT: Typed, immutable DTO
+final readonly class McpInstanceDto
+{
+    public function __construct(
+        public string $id,
+        public DateTimeImmutable $createdAt,
+        public ContainerState $containerState,
+        /** @var list<string> */
+        public array $endpoints,
+    ) {}
+}
+
+// ❌ WRONG: Associative array as data structure
+return [
+    'instance' => ['id' => $id, 'state' => $state]
+];
+```
+
+### Entity to DTO Conversion Pattern
+Domain entities MUST provide `toDto()` methods for Facade layer:
+
+```php
+class McpInstance
+{
+    public function toDto(): McpInstanceDto
+    {
+        return new McpInstanceDto(
+            $this->getId() ?? '',
+            $this->getCreatedAt(),
+            // ... map all fields
+        );
+    }
+}
+```
 
 ## Cross-Layer Dependencies (Hard Rule)
 - **Elements from layer A can reference and use elements from layer B, as long as they are either interfaces or values (enums, DTOs, but not entities).**
@@ -109,16 +237,113 @@
   }
   ```
 
+## Service Layer Patterns
+
+### Three-Tier Service Architecture
+1. **Domain Services** (`*DomainService`):
+   - Core business logic and rules
+   - Orchestrates entities and repositories
+   - Example: `McpInstancesDomainService`, `AccountDomainService`
+
+2. **Facade Services** (`*Facade`):
+   - Simplified external API for other features
+   - Delegates to domain services
+   - Returns only DTOs
+   - Example: `DockerManagementFacade`, `AccountFacade`
+
+3. **Presentation Services** (`*PresentationService`):
+   - UI-specific orchestration
+   - Aggregates data for views
+   - Handles presentation logic
+   - Example: `McpInstancesPresentationService`
+
+### Repository Pattern
+- Use Doctrine repositories for data access
+- Domain services use repositories, never expose Doctrine directly
+- Complex queries: prefer raw SQL with parameterized queries
+
+```php
+$repo = $this->entityManager->getRepository(McpInstance::class);
+$instance = $repo->findOneBy(['accountCoreId' => $accountId]);
+```
+
+## Value Objects and Enums
+
+### Enum Usage (Type-Safe Constants)
+Use PHP 8.1+ enums for type-safe constants:
+
+```php
+enum ContainerState: string
+{
+    case CREATED = 'created';
+    case RUNNING = 'running';
+    case STOPPED = 'stopped';
+    case ERROR = 'error';
+}
+
+enum UsageLimits: int
+{
+    case MAX_RUNNING_INSTANCES = 5;
+}
+```
+
+### Factory Methods in Entities
+Entities should provide static factory methods for complex creation:
+
+```php
+public static function generateRandomPassword(int $length = 24): string
+{
+    return rtrim(strtr(base64_encode(random_bytes($length)), '+/', '-_'), '=');
+}
+```
+
+## Error Handling Patterns
+
+### Null Object Pattern
+Prefer returning null over throwing exceptions for missing data:
+
+```php
+public function getMcpInstanceById(string $id): ?McpInstanceDto
+{
+    // Returns null if not found, doesn't throw
+}
+```
+
+### Defensive Programming
+Validate inputs and state before operations:
+
+```php
+if (!$containerName || !$instanceSlug) {
+    $this->logger->error('[Service] Required fields missing');
+    return false;
+}
+```
+
+## Security Patterns
+
+### Authentication & Authorization
+- Use constant-time comparison for tokens: `hash_equals()`
+- Role-based access control with Symfony Security
+- Bearer token authentication for API endpoints
+
+### Forward Authentication Pattern
+```php
+// Validate bearer tokens at the edge
+if (!hash_equals($expectedToken, $presentedToken)) {
+    return new Response('', 401);
+}
+```
+
 ## PHP/Symfony Best Practices
 - Use PHP 8.4 features and strict typing: `declare(strict_types=1);`
-- Use PHP Attributes for entities, not Annotations.
-- Never use named arguments when calling functions/methods.
-- Use Symfony’s built-in features and helpers when possible.
-- Implement proper error handling and logging (Symfony’s features, custom exceptions, try-catch for expected exceptions).
-- Use Symfony’s validation for forms/requests.
-- Use Symfony’s event/subscriber system for decoupling where sensible.
-- Use Composer for dependency management.
-- Always consider strings as multibyte UTF-8, use `mb_` functions as needed.
+- Use PHP Attributes for entities, not Annotations
+- Implement `readonly` properties for immutability
+- Use constructor property promotion
+- Never use named arguments when calling functions/methods
+- Use Symfony's built-in features and helpers when possible
+- Implement proper error handling and logging
+- Use Composer for dependency management
+- Always consider strings as multibyte UTF-8, use `mb_` functions as needed
 
 ## Doctrine/Database
 - Never write or modify Doctrine migrations yourself—only create correct entity classes (using PHP Attributes). Ask the developer to have them created and applied when needed.
@@ -126,10 +351,100 @@
 - For simple cases, use Doctrine EntityManager methods (`find()`, `findOneBy()`, etc.).
 - If EM-managed entities are available, prefer using them over raw SQL for simple cases.
 
+## Testing Requirements
+
+For comprehensive testing standards and patterns, see the [Software Test Design Standards](software-test-design.mdc).
+
+### Key Testing Principles
+- **Architecture Tests**: Enforce module boundaries automatically
+- **Test Organization**: Unit, Integration, and Architecture tests in separate directories
+- **UI Testing**: Use stable `data-test-id` and `data-test-class` attributes
+- **Mocking Strategy**: Mock interfaces, not concrete implementations
+- **Test Data Builders**: Use factory patterns for test entities
+
+### Architecture Test Enforcement
+```php
+arch("{$from} must not use {$to} internals")
+    ->expect("App\\{$from}")
+    ->not->toUse([
+        "App\\{$to}\\Domain",
+        "App\\{$to}\\Infrastructure",
+        "App\\{$to}\\Api",
+        "App\\{$to}\\Presentation",
+    ]);
+```
+
+## Environment-Specific Behavior
+
+Services should adapt behavior based on environment:
+
+```php
+$appEnv = $this->params->get('kernel.environment');
+if ($appEnv === 'dev') {
+    // Development-specific behavior (no sudo, etc.)
+    return [$wrapperPath];
+} else {
+    // Production behavior
+    return ['sudo', '-n', $wrapperPath];
+}
+```
+
+For test-specific environment handling, see [Software Test Design Standards](software-test-design.mdc#environment-specific-testing).
+
+
+## Caching Strategies
+
+### Time-based Caching
+Use Symfony cache with TTL for expensive operations:
+```php
+private const int CACHE_TTL = 300; // 5 minutes
+
+$cacheKey = 'mcp_auth_' . md5($instanceSlug);
+$cachedItem = $this->cache->getItem($cacheKey);
+
+if (!$cachedItem->isHit()) {
+    $value = $this->expensiveOperation();
+    $cachedItem->set($value);
+    $cachedItem->expiresAfter(self::CACHE_TTL);
+    $this->cache->save($cachedItem);
+}
+```
+
+## Configuration as Code
+
+### Type-Safe Configuration
+Parse YAML configs into strongly-typed DTOs:
+```php
+class YamlInstanceTypesConfigProvider implements InstanceTypesConfigProviderInterface
+{
+    public function getConfig(): McpInstanceTypesConfig
+    {
+        $parsed = Yaml::parseFile($this->configFilePath);
+        // Validate and convert to DTOs
+        return new McpInstanceTypesConfig($types);
+    }
+}
+```
+
+## Command-Query Separation (CQS)
+
+### Commands (Modify State)
+```php
+public function createMcpInstance(string $accountCoreId): McpInstance
+public function stopAndRemoveMcpInstance(string $accountCoreId): void
+```
+
+### Queries (Return Data)
+```php
+public function getMcpInstanceById(string $id): ?McpInstanceDto
+public function getProcessStatusForInstance(string $instanceId): ProcessStatusDto
+```
+
 ## Code Quality Enforcement (Hard Rule)
-- All code must pass PHPStan at the highest level (level 9), as configured in [`phpstan.dist.neon`](mdc:phpstan.dist.neon).
-- All code must pass all configured quality tools (PHP CS Fixer, ESLint, Prettier, etc.).
-- **No commits or merges to `main` are allowed if there are any open issues reported by these tools.**
+- All code must pass PHPStan at the highest level, as configured in `phpstan.dist.neon`
+- All code must pass all configured quality tools (PHP CS Fixer, ESLint, Prettier, etc.)
+- **No commits or merges to `main` are allowed if there are any open issues reported by these tools**
+- Architecture tests MUST pass to ensure boundary violations are caught
 
 ---
 

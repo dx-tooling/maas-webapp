@@ -1,12 +1,62 @@
 ---
-description: Software Test Design Standards (stable selectors via data-test markers)
-globs: ["src/**/*.twig","tests/**/*"]
+description: Software Test Design Standards - Testing Patterns and Best Practices
+globs: ["tests/**/*", "src/**/*.twig"]
 alwaysApply: true
 ---
-# Software Test Design
+# Software Test Design Standards
+
+This document defines testing patterns, strategies, and best practices for the codebase.
+For architectural patterns and overall system design, see [Symfony Architecture Rules](symfony-architecture.mdc).
+
+## Test Organization Structure
+
+Tests are organized into three distinct categories:
+
+1. **Unit Tests** (`tests/Unit/`):
+   - Test individual classes in isolation
+   - Mock all dependencies
+   - Extend `PHPUnit\Framework\TestCase`
+   - Fast execution, no database or framework
+
+2. **Integration Tests** (`tests/Integration/`):
+   - Test feature integration
+   - Extend `Symfony\Bundle\FrameworkBundle\Test\KernelTestCase`
+   - May use real services and database
+
+3. **Architecture Tests** (`tests/Architecture/`):
+   - Enforce architectural boundaries
+   - Use Pest arch() expectations
+   - Prevent cross-feature dependencies
+   - Run automatically in CI/CD
+
+## Architecture Testing
 
 <rule>
-name: software_test_design
+name: architecture_testing
+description: Test architectural boundaries and constraints
+filters:
+  - type: file_path
+    pattern: "tests/Architecture/**/*.php"
+actions:
+  - type: suggest
+    message: |
+      Architecture tests verify that the hexagonal architecture boundaries are maintained.
+      
+      See [Symfony Architecture Rules](symfony-architecture.mdc#architecture-test-enforcement) for boundary definitions.
+      
+      Example test structure:
+      ```php
+      // tests/Architecture/FeatureBoundariesArchTest.php
+      arch('boundary description')
+          ->expect('namespace')
+          ->not->toUse(['forbidden namespaces']);
+      ```
+</rule>
+
+## UI Testing with Stable Selectors
+
+<rule>
+name: ui_test_selectors
 description: Prefer stable data-test markers over brittle CSS/structure/text for UI tests.
 filters:
   - type: event
@@ -66,4 +116,256 @@ actions:
 metadata:
   version: 1.0
   tags: [testing, robustness, selectors, ui]
+</rule>
+
+## Test Helper Utilities
+
+<rule>
+name: test_helpers
+description: Use standardized test helpers for common testing patterns
+filters:
+  - type: file_path
+    pattern: "tests/**/*.php"
+actions:
+  - type: suggest
+    message: |
+      Use provided test helpers for common patterns:
+
+      ### VisibilityTestHelper
+      Access private properties in tests when needed:
+      ```php
+      use App\Tests\Support\VisibilityTestHelper;
+      
+      VisibilityTestHelper::setPrivateProperty($instance, 'id', $instanceId);
+      ```
+
+      ### WebUiTestHelper
+      Create test Twig environments for controller testing:
+      ```php
+      use App\Tests\Support\WebUiTestHelper;
+      
+      $twig = WebUiTestHelper::createTwigEnvironment('FeatureName');
+      ```
+
+      ### Reflection for Entity Setup
+      Use reflection when setting up test entities:
+      ```php
+      $reflection = new ReflectionClass($entity);
+      $idProperty = $reflection->getProperty('id');
+      $idProperty->setAccessible(true);
+      $idProperty->setValue($entity, 'test-id');
+      ```
+</rule>
+
+## Mocking Strategies
+
+<rule>
+name: mocking_patterns
+description: Consistent mocking patterns for dependencies
+filters:
+  - type: file_path
+    pattern: "tests/Unit/**/*.php"
+actions:
+  - type: suggest
+    message: |
+      Follow these mocking patterns:
+
+      ### Mock Creation
+      ```php
+      $mock = $this->createMock(InterfaceType::class);
+      ```
+
+      ### Return Value Configuration
+      ```php
+      $mock->method('methodName')
+           ->with($expectedParam)
+           ->willReturn($returnValue);
+      ```
+
+      ### Expectation Setting
+      ```php
+      $mock->expects($this->once())
+           ->method('methodName')
+           ->with($this->isInstanceOf(DtoClass::class));
+      ```
+
+      ### Never Mock:
+      - DTOs (create real instances)
+      - Enums (use actual enum values)
+      - Value objects (create real instances)
+
+      ### Always Mock:
+      - External services (Database, API, filesystem)
+      - Other feature's Facade interfaces
+      - Framework services (EntityManager, etc.)
+</rule>
+
+## Environment-Specific Testing
+
+<rule>
+name: environment_testing
+description: Handle environment-specific behavior in tests
+filters:
+  - type: file_path
+    pattern: "tests/**/*.php"
+actions:
+  - type: suggest
+    message: |
+      Use environment variables for test-specific behavior:
+
+      ### Test Mode Detection
+      ```php
+      // In service code
+      if ((string) getenv('MAAS_WRAPPER_VALIDATE_ONLY') === '1') {
+          // Test/validation mode behavior
+          return true;
+      }
+      
+      // In test setup
+      putenv('MAAS_WRAPPER_VALIDATE_ONLY=1');
+      // ... run test
+      putenv('MAAS_WRAPPER_VALIDATE_ONLY'); // cleanup
+      ```
+
+      ### Mock Clock for Time Testing
+      ```php
+      use Symfony\Component\Clock\MockClock;
+      use Symfony\Component\Clock\Clock;
+      
+      $mockClock = new MockClock();
+      Clock::set($mockClock);
+      $mockClock->modify('2001-02-03');
+      ```
+</rule>
+
+## Test Data Builders
+
+<rule>
+name: test_data_builders
+description: Create test data consistently
+filters:
+  - type: file_path
+    pattern: "tests/**/*.php"
+actions:
+  - type: suggest
+    message: |
+      Use builder patterns for test data:
+
+      ### Entity Creation
+      ```php
+      $entity = new McpInstance(
+          'account-id',
+          InstanceType::PLAYWRIGHT_V1,
+          1280, 720, 24,
+          'vnc-password',
+          'bearer-token'
+      );
+      
+      // Set ID via reflection if needed
+      VisibilityTestHelper::setPrivateProperty($entity, 'id', 'test-id');
+      
+      // Generate derived fields
+      $entity->generateDerivedFields('example.com');
+      ```
+
+      ### DTO Creation
+      ```php
+      $dto = new McpInstanceDto(
+          'id',
+          DateAndTimeService::getDateTimeImmutable(),
+          'account-id',
+          'instance-slug',
+          'container-name',
+          ContainerState::RUNNING,
+          InstanceType::PLAYWRIGHT_V1,
+          1280, 720, 24,
+          'vnc-pass',
+          'bearer',
+          'mcp.example.com',
+          'vnc.example.com'
+      );
+      ```
+</rule>
+
+## Assertion Best Practices
+
+<rule>
+name: assertion_patterns
+description: Use appropriate assertion methods
+filters:
+  - type: file_path
+    pattern: "tests/**/*.php"
+actions:
+  - type: suggest
+    message: |
+      Follow these assertion patterns:
+
+      ### Count Assertions
+      ```php
+      // Prefer assertCount for clarity
+      $this->assertCount(1, $elements);
+      // Over
+      $this->assertSame(1, count($elements));
+      ```
+
+      ### Null Checks
+      ```php
+      $this->assertNull($value);
+      $this->assertNotNull($value);
+      ```
+
+      ### Type Checks
+      ```php
+      $this->assertInstanceOf(ExpectedClass::class, $object);
+      ```
+
+      ### String Contains
+      ```php
+      $this->assertStringContainsString('expected', $actual);
+      ```
+
+      ### Array Key Existence
+      ```php
+      $this->assertArrayHasKey('key', $array);
+      ```
+
+      ### Exception Testing
+      ```php
+      $this->expectException(LogicException::class);
+      $this->expectExceptionMessage('Expected message');
+      ```
+</rule>
+
+## Test Naming Conventions
+
+<rule>
+name: test_naming
+description: Consistent test method naming
+filters:
+  - type: file_path
+    pattern: "tests/**/*.php"
+actions:
+  - type: suggest
+    message: |
+      Test method naming patterns:
+
+      ### Unit Tests
+      ```php
+      public function testMethodNameDescribesExpectedBehavior(): void
+      public function testThrowsExceptionWhenInvalidInput(): void
+      public function testReturnsNullWhenNotFound(): void
+      ```
+
+      ### Integration Tests
+      ```php
+      public function testFeatureIntegrationScenario(): void
+      public function testDatabasePersistenceWorks(): void
+      ```
+
+      ### Architecture Tests
+      ```php
+      arch('Feature X must not use Feature Y internals')
+          ->expect('App\\FeatureX')
+          ->not->toUse(['App\\FeatureY\\Domain']);
+      ```
 </rule>

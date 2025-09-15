@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\McpInstancesManagement\Domain\Service;
 
-use App\Account\Facade\Dto\AccountCoreInfoDto;
 use App\DockerManagement\Facade\DockerManagementFacadeInterface;
 use App\McpInstancesManagement\Domain\Entity\McpInstance;
 use App\McpInstancesManagement\Facade\Dto\ProcessStatusContainerDto;
@@ -174,27 +173,27 @@ final readonly class McpInstancesDomainService implements McpInstancesDomainServ
     }
 
     /** @return array<McpInstance> */
-    public function getMcpInstanceInfosForAccount(AccountCoreInfoDto $accountCoreInfoDto): array
+    public function getMcpInstanceInfosForAccount(string $accountId): array
     {
         $repo = $this->entityManager->getRepository(McpInstance::class);
 
-        return $repo->findBy(['accountCoreId' => $accountCoreInfoDto->id]);
+        return $repo->findBy(['accountCoreId' => $accountId]);
     }
 
     /**
      * @throws Exception
      */
     public function createMcpInstanceForAccount(
-        AccountCoreInfoDto $accountCoreInfoDto,
-        ?InstanceType      $instanceType = null
+        string        $accountId,
+        ?InstanceType $instanceType = null
     ): McpInstance {
-        return $this->createMcpInstance($accountCoreInfoDto->id, $instanceType);
+        return $this->createMcpInstance($accountId, $instanceType);
     }
 
     public function stopAndRemoveMcpInstanceForAccount(
-        AccountCoreInfoDto $accountCoreInfoDto
+        string $accountId
     ): void {
-        $this->stopAndRemoveMcpInstance($accountCoreInfoDto->id);
+        $this->stopAndRemoveMcpInstance($accountId);
     }
 
     public function stopAndRemoveMcpInstanceById(string $instanceId): void

@@ -34,10 +34,10 @@ class InstancesController extends AbstractAccountAwareController
     public function dashboardAction(): Response
     {
         // Keep route name and method for backward compatibility, but render overview
-        $accountCoreInfoDto = $this->getAuthenticatedAccountCoreInfo();
-        $instances          = $this->presentationService->getInstancesForAccount($accountCoreInfoDto);
-        $availableTypes     = $this->presentationService->getAvailableTypes();
-        $limit              = \App\McpInstancesManagement\Domain\Enum\UsageLimits::MAX_RUNNING_INSTANCES->value;
+        $accountId      = $this->getAuthenticatedAccountId();
+        $instances      = $this->presentationService->getInstancesForAccount($accountId);
+        $availableTypes = $this->presentationService->getAvailableTypes();
+        $limit          = \App\McpInstancesManagement\Domain\Enum\UsageLimits::MAX_RUNNING_INSTANCES->value;
 
         return $this->render(
             '@mcp_instances_management.presentation/instances_overview.html.twig', [
@@ -58,8 +58,8 @@ class InstancesController extends AbstractAccountAwareController
     )]
     public function createAction(Request $request): Response
     {
-        $accountCoreInfoDto = $this->getAuthenticatedAccountCoreInfo();
-        $typeValue          = (string) $request->request->get('instanceType', '');
+        $accountId = $this->getAuthenticatedAccountId();
+        $typeValue = (string) $request->request->get('instanceType', '');
 
         $instanceType = null;
         if ($typeValue !== '') {
@@ -73,7 +73,7 @@ class InstancesController extends AbstractAccountAwareController
         }
 
         try {
-            $instance = $this->domainService->createMcpInstanceForAccount($accountCoreInfoDto, $instanceType);
+            $instance = $this->domainService->createMcpInstanceForAccount($accountId, $instanceType);
             $this->addFlash('success', 'MCP Instance created.');
 
             return $this->redirectToRoute('mcp_instances_management.presentation.detail', ['id' => $instance->getId()]);
@@ -91,9 +91,9 @@ class InstancesController extends AbstractAccountAwareController
     )]
     public function detailAction(string $id): Response
     {
-        $account     = $this->getAuthenticatedAccountCoreInfo();
+        $accountId   = $this->getAuthenticatedAccountId();
         $instanceDto = $this->presentationService->getMcpInstanceInfoById($id);
-        if ($instanceDto === null || $instanceDto->accountCoreId !== $account->id) {
+        if ($instanceDto === null || $instanceDto->accountCoreId !== $accountId) {
             $this->addFlash('error', 'Instance not found.');
 
             return $this->redirectToRoute('mcp_instances_management.presentation.dashboard');
@@ -127,8 +127,8 @@ class InstancesController extends AbstractAccountAwareController
     )]
     public function stopAction(): Response
     {
-        $accountCoreInfoDto = $this->getAuthenticatedAccountCoreInfo();
-        $this->domainService->stopAndRemoveMcpInstanceForAccount($accountCoreInfoDto);
+        $accountId = $this->getAuthenticatedAccountId();
+        $this->domainService->stopAndRemoveMcpInstanceForAccount($accountId);
         $this->addFlash('success', 'All MCP Instances for your account stopped and removed.');
 
         return $this->redirectToRoute('mcp_instances_management.presentation.dashboard');
@@ -141,9 +141,9 @@ class InstancesController extends AbstractAccountAwareController
     )]
     public function stopSingleAction(string $id): Response
     {
-        $accountCoreInfoDto = $this->getAuthenticatedAccountCoreInfo();
+        $accountId = $this->getAuthenticatedAccountId();
         // Verify ownership
-        $userInstances    = $this->domainService->getMcpInstanceInfosForAccount($accountCoreInfoDto);
+        $userInstances    = $this->domainService->getMcpInstanceInfosForAccount($accountId);
         $userOwnsInstance = false;
         foreach ($userInstances as $inst) {
             if ($inst->getId() === $id) {
@@ -178,8 +178,8 @@ class InstancesController extends AbstractAccountAwareController
         }
 
         // Verify the user owns this instance
-        $accountCoreInfoDto = $this->getAuthenticatedAccountCoreInfo();
-        $userInstances      = $this->domainService->getMcpInstanceInfosForAccount($accountCoreInfoDto);
+        $accountId     = $this->getAuthenticatedAccountId();
+        $userInstances = $this->domainService->getMcpInstanceInfosForAccount($accountId);
 
         $userOwnsInstance = false;
         foreach ($userInstances as $instance) {
@@ -224,8 +224,8 @@ class InstancesController extends AbstractAccountAwareController
         }
 
         // Verify ownership
-        $accountCoreInfoDto = $this->getAuthenticatedAccountCoreInfo();
-        $userInstances      = $this->domainService->getMcpInstanceInfosForAccount($accountCoreInfoDto);
+        $accountId     = $this->getAuthenticatedAccountId();
+        $userInstances = $this->domainService->getMcpInstanceInfosForAccount($accountId);
 
         $userOwnsInstance = false;
         foreach ($userInstances as $instance) {

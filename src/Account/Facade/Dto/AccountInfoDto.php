@@ -6,7 +6,7 @@ namespace App\Account\Facade\Dto;
 
 use DateTimeImmutable;
 
-readonly class AccountPublicInfoDto
+readonly class AccountInfoDto
 {
     public function __construct(
         public string            $id,

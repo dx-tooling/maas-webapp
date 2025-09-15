@@ -151,7 +151,7 @@ Each layer has its own DTO types for specific purposes:
 1. **Facade DTOs**: Public API contracts between features
    - Immutable with `readonly` properties
    - No behavior, only data
-   - Example: `McpInstanceDto`, `AccountPublicInfoDto`
+   - Example: `McpInstanceDto`, `AccountInfoDto`
 
 2. **Infrastructure DTOs**: External system data structures
    - Example: `RunProcessResultDto`, configuration DTOs

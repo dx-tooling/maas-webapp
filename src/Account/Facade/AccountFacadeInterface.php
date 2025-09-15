@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Account\Facade;
 
-use App\Account\Facade\Dto\AccountPublicInfoDto;
+use App\Account\Facade\Dto\AccountInfoDto;
 
 interface AccountFacadeInterface
 {
-    public function getAccountById(string $id): ?AccountPublicInfoDto;
+    public function getAccountInfoById(string $id): ?AccountInfoDto;
 }

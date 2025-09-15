@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\McpInstancesManagement\Presentation;
 
 use App\Account\Facade\AccountFacadeInterface;
-use App\Account\Facade\Dto\AccountCoreInfoDto;
 use App\DockerManagement\Facade\DockerManagementFacadeInterface;
 use App\McpInstancesConfiguration\Facade\Service\InstanceTypesConfigFacadeInterface;
 use App\McpInstancesManagement\Domain\Entity\McpInstance;
@@ -33,9 +32,9 @@ final readonly class McpInstancesPresentationService
     /**
      * Get dashboard data for a specific account.
      */
-    public function getDashboardData(AccountCoreInfoDto $accountCoreInfoDto): DashboardDataDto
+    public function getDashboardData(string $accountId): DashboardDataDto
     {
-        $instances = $this->domainService->getMcpInstanceInfosForAccount($accountCoreInfoDto);
+        $instances = $this->domainService->getMcpInstanceInfosForAccount($accountId);
         $instance  = $instances[0] ?? null;
 
         $instanceDto   = null;
@@ -95,9 +94,9 @@ final readonly class McpInstancesPresentationService
     /**
      * @return array<McpInstanceInfoDto>
      */
-    public function getInstancesForAccount(AccountCoreInfoDto $accountCoreInfoDto): array
+    public function getInstancesForAccount(string $accountId): array
     {
-        $instances = $this->domainService->getMcpInstanceInfosForAccount($accountCoreInfoDto);
+        $instances = $this->domainService->getMcpInstanceInfosForAccount($accountId);
 
         return array_map(fn (McpInstance $i): McpInstanceInfoDto => $this->mapMcpInstanceToDto($i), $instances);
     }
@@ -140,7 +139,7 @@ final readonly class McpInstancesPresentationService
         $overviewData = [];
         foreach ($instances as $instance) {
             // Get the account info via Account Facade
-            $account = $this->accountFacade->getAccountById($instance->getAccountCoreId());
+            $account = $this->accountFacade->getAccountInfoById($instance->getAccountCoreId());
 
             if ($account === null) {
                 continue; // Skip if account not found

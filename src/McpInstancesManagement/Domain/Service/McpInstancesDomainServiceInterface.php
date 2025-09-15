@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\McpInstancesManagement\Domain\Service;
 
-use App\Account\Facade\Dto\AccountCoreInfoDto;
 use App\McpInstancesManagement\Domain\Entity\McpInstance;
 use App\McpInstancesManagement\Facade\Dto\ProcessStatusDto;
 use App\McpInstancesManagement\Facade\Enum\InstanceType;
@@ -38,18 +37,18 @@ interface McpInstancesDomainServiceInterface
     public function getMcpInstanceById(string $id): ?McpInstance;
 
     /** @return array<McpInstance> */
-    public function getMcpInstanceInfosForAccount(AccountCoreInfoDto $accountCoreInfoDto): array;
+    public function getMcpInstanceInfosForAccount(string $accountId): array;
 
     /**
      * @throws Exception
      */
     public function createMcpInstanceForAccount(
-        AccountCoreInfoDto $accountCoreInfoDto,
-        ?InstanceType      $instanceType = null
+        string        $accountId,
+        ?InstanceType $instanceType = null
     ): McpInstance;
 
     public function stopAndRemoveMcpInstanceForAccount(
-        AccountCoreInfoDto $accountCoreInfoDto
+        string $accountId
     ): void;
 
     public function stopAndRemoveMcpInstanceById(string $instanceId): void;

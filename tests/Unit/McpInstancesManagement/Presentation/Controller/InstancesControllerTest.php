@@ -57,7 +57,8 @@ final class InstancesControllerTest extends TestCase
             720,
             24,
             $vncPassword,
-            $mcpBearer
+            $mcpBearer,
+            'test-registry-bearer'
         );
         // Set ID and derived fields
         VisibilityTestHelper::setPrivateProperty($domainInstance, 'id', $instanceId);

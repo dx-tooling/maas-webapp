@@ -49,11 +49,12 @@ final readonly class McpInstancesDomainService implements McpInstancesDomainServ
         }
 
         // Create instance with default screen settings and generated secrets
-        $screenWidth  = 1280;
-        $screenHeight = 720;
-        $colorDepth   = 24;
-        $vncPassword  = McpInstance::generateRandomPassword();
-        $mcpBearer    = McpInstance::generateRandomBearer();
+        $screenWidth    = 1280;
+        $screenHeight   = 720;
+        $colorDepth     = 24;
+        $vncPassword    = McpInstance::generateRandomPassword();
+        $mcpBearer      = McpInstance::generateRandomBearer();
+        $registryBearer = McpInstance::generateRandomBearer(); // Separate token for registry access
 
         $instance = new McpInstance(
             $accountCoreId,
@@ -62,7 +63,8 @@ final readonly class McpInstancesDomainService implements McpInstancesDomainServ
             $screenHeight,
             $colorDepth,
             $vncPassword,
-            $mcpBearer
+            $mcpBearer,
+            $registryBearer
         );
 
         $this->entityManager->persist($instance);

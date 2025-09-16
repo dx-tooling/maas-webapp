@@ -6,9 +6,9 @@
 # using the environment variables provided by the platform.
 #
 # Required environment variables:
-#   - REGISTRY_ENDPOINT: The base URL of the registry API
-#   - REGISTRY_BEARER: The bearer token for authentication
-#   - INSTANCE_UUID: The UUID of this instance
+#   - MAAS_REGISTRY_ENDPOINT: The base URL of the registry API
+#   - MAAS_REGISTRY_BEARER: The bearer token for authentication
+#   - MAAS_INSTANCE_UUID: The UUID of this instance
 
 set -euo pipefail
 
@@ -22,26 +22,26 @@ fi
 KEY="$1"
 
 # Check required environment variables
-if [ -z "${REGISTRY_ENDPOINT:-}" ]; then
-    echo "Error: REGISTRY_ENDPOINT environment variable is not set" >&2
+if [ -z "${MAAS_REGISTRY_ENDPOINT:-}" ]; then
+    echo "Error: MAAS_REGISTRY_ENDPOINT environment variable is not set" >&2
     exit 1
 fi
 
-if [ -z "${REGISTRY_BEARER:-}" ]; then
-    echo "Error: REGISTRY_BEARER environment variable is not set" >&2
+if [ -z "${MAAS_REGISTRY_BEARER:-}" ]; then
+    echo "Error: MAAS_REGISTRY_BEARER environment variable is not set" >&2
     exit 1
 fi
 
-if [ -z "${INSTANCE_UUID:-}" ]; then
-    echo "Error: INSTANCE_UUID environment variable is not set" >&2
+if [ -z "${MAAS_INSTANCE_UUID:-}" ]; then
+    echo "Error: MAAS_INSTANCE_UUID environment variable is not set" >&2
     exit 1
 fi
 
 # Build the full URL
-URL="${REGISTRY_ENDPOINT}/${KEY}"
+URL="${MAAS_REGISTRY_ENDPOINT}/${KEY}"
 
 # Make the request with bearer authentication
-RESPONSE=$(curl -s -w "\n%{http_code}" -H "Authorization: Bearer ${REGISTRY_BEARER}" "${URL}")
+RESPONSE=$(curl -s -w "\n%{http_code}" -H "Authorization: Bearer ${MAAS_REGISTRY_BEARER}" "${URL}")
 HTTP_CODE=$(echo "${RESPONSE}" | tail -n 1)
 BODY=$(echo "${RESPONSE}" | head -n -1)
 

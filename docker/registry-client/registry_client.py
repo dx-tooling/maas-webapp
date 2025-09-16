@@ -34,17 +34,17 @@ def get(key):
         RuntimeError: If environment variables are missing or authentication fails
     """
     # Get environment variables
-    registry_endpoint = os.environ.get('REGISTRY_ENDPOINT')
-    registry_bearer = os.environ.get('REGISTRY_BEARER')
-    instance_uuid = os.environ.get('INSTANCE_UUID')
+    registry_endpoint = os.environ.get('MAAS_REGISTRY_ENDPOINT')
+    registry_bearer = os.environ.get('MAAS_REGISTRY_BEARER')
+    instance_uuid = os.environ.get('MAAS_INSTANCE_UUID')
     
     # Validate environment variables
     if not registry_endpoint:
-        raise RuntimeError('REGISTRY_ENDPOINT environment variable is not set')
+        raise RuntimeError('MAAS_REGISTRY_ENDPOINT environment variable is not set')
     if not registry_bearer:
-        raise RuntimeError('REGISTRY_BEARER environment variable is not set')
+        raise RuntimeError('MAAS_REGISTRY_BEARER environment variable is not set')
     if not instance_uuid:
-        raise RuntimeError('INSTANCE_UUID environment variable is not set')
+        raise RuntimeError('MAAS_INSTANCE_UUID environment variable is not set')
     
     # Build the URL
     url = f"{registry_endpoint}/{key}"
@@ -81,17 +81,17 @@ def get_all():
         RuntimeError: If environment variables are missing or authentication fails
     """
     # Get environment variables
-    registry_endpoint = os.environ.get('REGISTRY_ENDPOINT')
-    registry_bearer = os.environ.get('REGISTRY_BEARER')
-    instance_uuid = os.environ.get('INSTANCE_UUID')
+    registry_endpoint = os.environ.get('MAAS_REGISTRY_ENDPOINT')
+    registry_bearer = os.environ.get('MAAS_REGISTRY_BEARER')
+    instance_uuid = os.environ.get('MAAS_INSTANCE_UUID')
     
     # Validate environment variables
     if not registry_endpoint:
-        raise RuntimeError('REGISTRY_ENDPOINT environment variable is not set')
+        raise RuntimeError('MAAS_REGISTRY_ENDPOINT environment variable is not set')
     if not registry_bearer:
-        raise RuntimeError('REGISTRY_BEARER environment variable is not set')
+        raise RuntimeError('MAAS_REGISTRY_BEARER environment variable is not set')
     if not instance_uuid:
-        raise RuntimeError('INSTANCE_UUID environment variable is not set')
+        raise RuntimeError('MAAS_INSTANCE_UUID environment variable is not set')
     
     # Build the URL (without a key to get all values)
     url = registry_endpoint

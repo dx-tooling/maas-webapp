@@ -26,19 +26,19 @@ const url = require("url");
  */
 async function get(key) {
     // Get environment variables
-    const registryEndpoint = process.env.REGISTRY_ENDPOINT;
-    const registryBearer = process.env.REGISTRY_BEARER;
-    const instanceUuid = process.env.INSTANCE_UUID;
+    const registryEndpoint = process.env.MAAS_REGISTRY_ENDPOINT;
+    const registryBearer = process.env.MAAS_REGISTRY_BEARER;
+    const instanceUuid = process.env.MAAS_INSTANCE_UUID;
 
     // Validate environment variables
     if (!registryEndpoint) {
-        throw new Error("REGISTRY_ENDPOINT environment variable is not set");
+        throw new Error("MAAS_REGISTRY_ENDPOINT environment variable is not set");
     }
     if (!registryBearer) {
-        throw new Error("REGISTRY_BEARER environment variable is not set");
+        throw new Error("MAAS_REGISTRY_BEARER environment variable is not set");
     }
     if (!instanceUuid) {
-        throw new Error("INSTANCE_UUID environment variable is not set");
+        throw new Error("MAAS_INSTANCE_UUID environment variable is not set");
     }
 
     // Build the URL
@@ -99,19 +99,19 @@ async function get(key) {
  */
 async function getAll() {
     // Get environment variables
-    const registryEndpoint = process.env.REGISTRY_ENDPOINT;
-    const registryBearer = process.env.REGISTRY_BEARER;
-    const instanceUuid = process.env.INSTANCE_UUID;
+    const registryEndpoint = process.env.MAAS_REGISTRY_ENDPOINT;
+    const registryBearer = process.env.MAAS_REGISTRY_BEARER;
+    const instanceUuid = process.env.MAAS_INSTANCE_UUID;
 
     // Validate environment variables
     if (!registryEndpoint) {
-        throw new Error("REGISTRY_ENDPOINT environment variable is not set");
+        throw new Error("MAAS_REGISTRY_ENDPOINT environment variable is not set");
     }
     if (!registryBearer) {
-        throw new Error("REGISTRY_BEARER environment variable is not set");
+        throw new Error("MAAS_REGISTRY_BEARER environment variable is not set");
     }
     if (!instanceUuid) {
-        throw new Error("INSTANCE_UUID environment variable is not set");
+        throw new Error("MAAS_INSTANCE_UUID environment variable is not set");
     }
 
     // Build the URL

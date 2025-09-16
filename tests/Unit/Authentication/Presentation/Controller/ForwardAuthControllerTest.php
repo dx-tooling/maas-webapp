@@ -46,6 +46,7 @@ final class ForwardAuthControllerTest extends TestCase
                     24,
                     '',
                     'expected-token',
+                    'registry-bearer',
                     '',
                     ''
                 )

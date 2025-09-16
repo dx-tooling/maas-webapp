@@ -7,13 +7,15 @@ namespace App\McpInstanceDataRegistry\Facade;
 use App\McpInstanceDataRegistry\Domain\Service\RegistryDomainServiceInterface;
 use App\McpInstancesManagement\Facade\McpInstancesManagementFacadeInterface;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\Routing\RouterInterface;
 
 final readonly class McpInstanceDataRegistryFacade implements McpInstanceDataRegistryFacadeInterface
 {
     public function __construct(
         private RegistryDomainServiceInterface        $domainService,
         private McpInstancesManagementFacadeInterface $instancesFacade,
-        private LoggerInterface                       $logger
+        private LoggerInterface                       $logger,
+        private RouterInterface                       $router
     ) {
     }
 
@@ -30,8 +32,8 @@ final readonly class McpInstanceDataRegistryFacade implements McpInstanceDataReg
             return null;
         }
 
-        // Constant-time comparison of bearer tokens
-        if (!hash_equals($instance->mcpBearer, $bearerToken)) {
+        // Constant-time comparison of bearer tokens (using registryBearer, not mcpBearer)
+        if (!hash_equals($instance->registryBearer, $bearerToken)) {
             $this->logger->warning('[RegistryFacade] Invalid bearer token', [
                 'instanceId' => $instanceId
             ]);
@@ -55,5 +57,20 @@ final readonly class McpInstanceDataRegistryFacade implements McpInstanceDataReg
     public function getAllValues(string $instanceId): array
     {
         return $this->domainService->getAllValues($instanceId);
+    }
+
+    public function getRegistryEndpointUrl(string $instanceId): string
+    {
+        // Generate the absolute URL for the registry API
+        return $this->router->generate(
+            'api_instance_registry_get',
+            [
+                'instanceId' => $instanceId,
+                'key'        => 'KEY_PLACEHOLDER'
+            ],
+            RouterInterface::ABSOLUTE_URL
+        );
+        // The URL will have the format: https://app.domain.com/api/instance-registry/{instanceId}/KEY_PLACEHOLDER
+        // The container will replace KEY_PLACEHOLDER with the actual key when making requests
     }
 }

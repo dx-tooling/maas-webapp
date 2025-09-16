@@ -6,6 +6,7 @@ namespace App\DockerManagement\Domain\Service;
 
 use App\DockerManagement\Infrastructure\Dto\RunProcessResultDto;
 use App\DockerManagement\Infrastructure\Service\ProcessServiceInterface;
+use App\McpInstanceDataRegistry\Facade\McpInstanceDataRegistryFacadeInterface;
 use App\McpInstancesConfiguration\Facade\Dto\EndpointConfig;
 use App\McpInstancesConfiguration\Facade\Service\InstanceTypesConfigFacadeInterface;
 use App\McpInstancesManagement\Facade\Dto\McpInstanceDto as McpInstance;
@@ -20,11 +21,12 @@ use ValueError;
 final readonly class ContainerManagementDomainService
 {
     public function __construct(
-        private LoggerInterface                    $logger,
-        private ParameterBagInterface              $params,
-        private RouterInterface                    $router,
-        private InstanceTypesConfigFacadeInterface $instanceTypesConfigService,
-        private ProcessServiceInterface            $processService,
+        private LoggerInterface                        $logger,
+        private ParameterBagInterface                  $params,
+        private RouterInterface                        $router,
+        private InstanceTypesConfigFacadeInterface     $instanceTypesConfigService,
+        private ProcessServiceInterface                $processService,
+        private McpInstanceDataRegistryFacadeInterface $registryFacade,
     ) {
     }
 
@@ -402,16 +404,8 @@ final readonly class ContainerManagementDomainService
 
         $imageName = $this->getImageNameForInstanceType($instance->instanceType);
 
-        // Build the registry endpoint URL
-        // Use the router to generate the absolute URL for the registry API
-        $registryEndpoint = $this->router->generate(
-            'api_instance_registry_get',
-            [
-                'instanceId' => $instance->id ?? '',
-                'key'        => 'KEY_PLACEHOLDER'
-            ],
-            RouterInterface::ABSOLUTE_URL
-        );
+        // Get the registry endpoint URL from the registry facade
+        $registryEndpoint = $this->registryFacade->getRegistryEndpointUrl($instance->id ?? '');
         // Remove the placeholder to get the base URL pattern
         $registryEndpoint = str_replace('/KEY_PLACEHOLDER', '', $registryEndpoint);
 
@@ -422,10 +416,10 @@ final readonly class ContainerManagementDomainService
             "SCREEN_HEIGHT={$instance->screenHeight}",
             "COLOR_DEPTH={$instance->colorDepth}",
             "VNC_PASSWORD={$instance->vncPassword}",
-            // Add registry-related environment variables
-            "REGISTRY_ENDPOINT={$registryEndpoint}",
-            "REGISTRY_BEARER={$instance->mcpBearer}",
-            "INSTANCE_UUID={$instance->id}"
+            // Add registry-related environment variables with MAAS_ prefix
+            "MAAS_REGISTRY_ENDPOINT={$registryEndpoint}",
+            "MAAS_REGISTRY_BEARER={$instance->registryBearer}",
+            "MAAS_INSTANCE_UUID={$instance->id}"
         ];
 
         $labels = $this->buildTraefikLabels(

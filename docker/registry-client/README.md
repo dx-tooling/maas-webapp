@@ -10,9 +10,9 @@ The MCP Instance Data Registry allows running Docker containers to retrieve conf
 
 The following environment variables are automatically provided to each container by the platform:
 
-- `REGISTRY_ENDPOINT`: The base URL of the registry API (e.g., `https://app.mcp-as-a-service.com/api/instance-registry/{instance-id}`)
-- `REGISTRY_BEARER`: The bearer token for authenticating with the registry
-- `INSTANCE_UUID`: The UUID of this instance
+- `MAAS_REGISTRY_ENDPOINT`: The base URL of the registry API (e.g., `https://app.mcp-as-a-service.com/api/instance-registry/{instance-id}`)
+- `MAAS_REGISTRY_BEARER`: The bearer token for authenticating with the registry (separate from MCP bearer)
+- `MAAS_INSTANCE_UUID`: The UUID of this instance
 
 ## Available Clients
 
@@ -163,9 +163,9 @@ To test the registry client locally:
 
 1. Set the required environment variables:
 ```bash
-export REGISTRY_ENDPOINT="https://app.mcp-as-a-service.com/api/instance-registry/test-instance"
-export REGISTRY_BEARER="test-bearer-token"
-export INSTANCE_UUID="test-instance"
+export MAAS_REGISTRY_ENDPOINT="https://app.mcp-as-a-service.com/api/instance-registry/test-instance"
+export MAAS_REGISTRY_BEARER="test-bearer-token"
+export MAAS_INSTANCE_UUID="test-instance"
 ```
 
 2. Run the client:

@@ -7,6 +7,7 @@ namespace App\Tests\Unit\DockerManagement\Domain\Service;
 use App\DockerManagement\Domain\Service\ContainerManagementDomainService;
 use App\DockerManagement\Infrastructure\Dto\RunProcessResultDto;
 use App\DockerManagement\Infrastructure\Service\ProcessServiceInterface;
+use App\McpInstanceDataRegistry\Facade\McpInstanceDataRegistryFacadeInterface;
 use App\McpInstancesConfiguration\Facade\Dto\EndpointConfig;
 use App\McpInstancesConfiguration\Facade\Dto\InstanceDockerConfig;
 use App\McpInstancesConfiguration\Facade\Dto\InstanceTypeConfig;
@@ -35,6 +36,9 @@ final class ContainerManagementDomainServiceTest extends TestCase
     /** @var RouterInterface&MockObject */
     private RouterInterface $router;
 
+    /** @var McpInstanceDataRegistryFacadeInterface&MockObject */
+    private McpInstanceDataRegistryFacadeInterface $registryFacade;
+
     protected function setUp(): void
     {
         $this->logger = $this->createMock(LoggerInterface::class);
@@ -46,6 +50,9 @@ final class ContainerManagementDomainServiceTest extends TestCase
 
         $this->router = $this->createMock(RouterInterface::class);
         $this->router->method('generate')->willReturn('https://app.mcp-as-a-service.com/auth/mcp-bearer-check');
+
+        $this->registryFacade = $this->createMock(McpInstanceDataRegistryFacadeInterface::class);
+        $this->registryFacade->method('getRegistryEndpointUrl')->willReturn('https://app.mcp-as-a-service.com/api/instance-registry/test-instance/KEY_PLACEHOLDER');
     }
 
     public function testCreateContainerFailsWhenNamesMissing(): void
@@ -53,7 +60,7 @@ final class ContainerManagementDomainServiceTest extends TestCase
         $configFacade = $this->createInstanceTypesConfigService();
         $process      = $this->createMock(ProcessServiceInterface::class);
         $process->method('runProcess')->willReturn(new RunProcessResultDto(0, '', ''));
-        $unitUnderTest = new ContainerManagementDomainService($this->logger, $this->params, $this->router, $configFacade, $process);
+        $unitUnderTest = new ContainerManagementDomainService($this->logger, $this->params, $this->router, $configFacade, $process, $this->registryFacade);
         $entity        = new McpInstance(
             'acc',
             InstanceType::PLAYWRIGHT_V1,
@@ -61,7 +68,8 @@ final class ContainerManagementDomainServiceTest extends TestCase
             720,
             24,
             'vnc',
-            'bearer'
+            'bearer',
+            'registry-bearer'
         );
 
         $dto = $this->toDto($entity);
@@ -75,7 +83,7 @@ final class ContainerManagementDomainServiceTest extends TestCase
         $configFacade = $this->createInstanceTypesConfigService();
         $process      = $this->createMock(ProcessServiceInterface::class);
         $process->method('runProcess')->willReturn(new RunProcessResultDto(0, '', ''));
-        $unitUnderTest = new ContainerManagementDomainService($this->logger, $this->params, $this->router, $configFacade, $process);
+        $unitUnderTest = new ContainerManagementDomainService($this->logger, $this->params, $this->router, $configFacade, $process, $this->registryFacade);
         $entity        = new McpInstance(
             'acc',
             InstanceType::PLAYWRIGHT_V1,
@@ -83,7 +91,8 @@ final class ContainerManagementDomainServiceTest extends TestCase
             720,
             24,
             'vncpass',
-            'bearer'
+            'bearer',
+            'registry-bearer'
         );
 
         // Prepare derived fields so that createContainer proceeds
@@ -118,7 +127,7 @@ final class ContainerManagementDomainServiceTest extends TestCase
         $configFacade = $this->createInstanceTypesConfigService();
         $process      = $this->createMock(ProcessServiceInterface::class);
         $process->method('runProcess')->willReturn(new RunProcessResultDto(0, '', ''));
-        $unitUnderTest = new ContainerManagementDomainService($logger, $this->params, $this->router, $configFacade, $process);
+        $unitUnderTest = new ContainerManagementDomainService($logger, $this->params, $this->router, $configFacade, $process, $this->registryFacade);
         $entity        = new McpInstance(
             'acc',
             InstanceType::PLAYWRIGHT_V1,
@@ -126,7 +135,8 @@ final class ContainerManagementDomainServiceTest extends TestCase
             720,
             24,
             'vncpass',
-            'bearer'
+            'bearer',
+            'registry-bearer'
         );
 
         $r      = new ReflectionClass($entity);
@@ -155,7 +165,7 @@ final class ContainerManagementDomainServiceTest extends TestCase
         $configFacade = $this->createInstanceTypesConfigService();
         $process      = $this->createMock(ProcessServiceInterface::class);
         $process->method('runProcess')->willReturn(new RunProcessResultDto(0, '', ''));
-        $unitUnderTest = new ContainerManagementDomainService($logger, $this->params, $this->router, $configFacade, $process);
+        $unitUnderTest = new ContainerManagementDomainService($logger, $this->params, $this->router, $configFacade, $process, $this->registryFacade);
         $entity        = new McpInstance(
             'acc',
             InstanceType::PLAYWRIGHT_V1,
@@ -163,7 +173,8 @@ final class ContainerManagementDomainServiceTest extends TestCase
             720,
             24,
             'vncpass',
-            'bearer'
+            'bearer',
+            'registry-bearer'
         );
         $r      = new ReflectionClass($entity);
         $idProp = $r->getProperty('id');
@@ -220,7 +231,8 @@ final class ContainerManagementDomainServiceTest extends TestCase
             $this->params,
             $this->router,
             $instanceTypesConfigService,
-            $process
+            $process,
+            $this->registryFacade
         );
 
         $labels = $unitUnderTest->buildTraefikLabels(
@@ -256,6 +268,7 @@ final class ContainerManagementDomainServiceTest extends TestCase
             $e->getColorDepth(),
             $e->getVncPassword(),
             $e->getMcpBearer(),
+            $e->getRegistryBearer(),
             $e->getMcpSubdomain(),
             $e->getVncSubdomain(),
         );

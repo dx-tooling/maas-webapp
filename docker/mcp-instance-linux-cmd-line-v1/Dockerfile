@@ -14,6 +14,7 @@ RUN apt-get update && apt-get install -y \
     git \
     wget \
     xterm \
+    jq \
     && rm -rf /var/lib/apt/lists/*
 
 # Install noVNC
@@ -40,6 +41,16 @@ RUN npm init -y \
 USER root
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
+# Copy registry client scripts
+COPY registry-client/registry-get.sh /usr/local/bin/registry-get
+COPY registry-client/test-registry.sh /usr/local/bin/test-registry
+COPY registry-client/registry_client.py /usr/local/lib/python3/registry_client.py
+COPY registry-client/registry-client.js /home/mcp/registry-client.js
+
+# Make scripts executable and set ownership
+RUN chmod +x /usr/local/bin/registry-get /usr/local/bin/test-registry \
+    && chown mcp:mcp /home/mcp/registry-client.js
+
 # Create necessary directories
 RUN mkdir -p /var/log/supervisor \
     && chown -R mcp:mcp /home/mcp
@@ -54,7 +65,10 @@ ENV DISPLAY=:99 \
     NOVNC_PORT=6080 \
     INSTANCE_ID="" \
     INSTANCE_TYPE="linux-cmd-line-v1" \
-    VNC_PASSWORD=""
+    VNC_PASSWORD="" \
+    MAAS_REGISTRY_ENDPOINT="" \
+    MAAS_REGISTRY_BEARER="" \
+    MAAS_INSTANCE_UUID=""
 
 # Expose ports
 EXPOSE 8080 5900 6080

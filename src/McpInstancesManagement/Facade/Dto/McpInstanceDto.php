@@ -23,6 +23,7 @@ final readonly class McpInstanceDto
         public int               $colorDepth,
         public string            $vncPassword,
         public string            $mcpBearer,
+        public string            $registryBearer,
         public ?string           $mcpSubdomain,
         public ?string           $vncSubdomain,
     ) {

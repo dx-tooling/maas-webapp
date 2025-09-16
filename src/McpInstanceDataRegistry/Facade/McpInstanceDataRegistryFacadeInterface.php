@@ -29,4 +29,10 @@ interface McpInstanceDataRegistryFacadeInterface
      * @return array<string, string>
      */
     public function getAllValues(string $instanceId): array;
+
+    /**
+     * Get the base registry endpoint URL for a given instance.
+     * This URL can be used by containers to access the registry API.
+     */
+    public function getRegistryEndpointUrl(string $instanceId): string;
 }

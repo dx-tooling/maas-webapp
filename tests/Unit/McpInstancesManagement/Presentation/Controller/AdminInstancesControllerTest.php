@@ -103,7 +103,8 @@ final class AdminInstancesControllerTest extends TestCase
             720,
             24,
             $vncPassword,
-            $mcpBearer
+            $mcpBearer,
+            'test-registry-bearer'
         );
         VisibilityTestHelper::setPrivateProperty($domainInstance, 'id', $instanceId);
         $domainInstance->generateDerivedFields('example.test');

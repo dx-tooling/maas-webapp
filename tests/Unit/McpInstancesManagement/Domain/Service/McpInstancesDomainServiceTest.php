@@ -109,7 +109,8 @@ final class McpInstancesDomainServiceTest extends TestCase
             720,
             24,
             'vncpass',
-            'bearer'
+            'bearer',
+            'registry-bearer'
         );
 
         $this->repo->method('findOneBy')
@@ -141,7 +142,8 @@ final class McpInstancesDomainServiceTest extends TestCase
             720,
             24,
             'vncpass',
-            'bearer'
+            'bearer',
+            'registry-bearer'
         );
 
         $this->repo->method('find')
@@ -173,7 +175,8 @@ final class McpInstancesDomainServiceTest extends TestCase
             720,
             24,
             'vncpass',
-            'bearer'
+            'bearer',
+            'registry-bearer'
         );
 
         $this->repo->method('find')
@@ -210,7 +213,8 @@ final class McpInstancesDomainServiceTest extends TestCase
             720,
             24,
             'v',
-            'b'
+            'b',
+            'rb'
         );
         $repo->method('findBy')->with(['accountCoreId' => 'acc-id'])->willReturn([$inst]);
 

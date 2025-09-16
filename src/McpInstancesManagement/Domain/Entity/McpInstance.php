@@ -29,16 +29,18 @@ class McpInstance
         int          $screenHeight,
         int          $colorDepth,
         string       $vncPassword,
-        string       $mcpBearer
+        string       $mcpBearer,
+        string       $registryBearer
     ) {
-        $this->accountCoreId = $accountCoreId;
-        $this->instanceType  = $instanceType;
-        $this->screenWidth   = $screenWidth;
-        $this->screenHeight  = $screenHeight;
-        $this->colorDepth    = $colorDepth;
-        $this->vncPassword   = $vncPassword;
-        $this->mcpBearer     = $mcpBearer;
-        $this->createdAt     = DateAndTimeService::getDateTimeImmutable();
+        $this->accountCoreId  = $accountCoreId;
+        $this->instanceType   = $instanceType;
+        $this->screenWidth    = $screenWidth;
+        $this->screenHeight   = $screenHeight;
+        $this->colorDepth     = $colorDepth;
+        $this->vncPassword    = $vncPassword;
+        $this->mcpBearer      = $mcpBearer;
+        $this->registryBearer = $registryBearer;
+        $this->createdAt      = DateAndTimeService::getDateTimeImmutable();
 
         // Generate derived fields after ID is set
         $this->containerState = ContainerState::CREATED;
@@ -99,6 +101,9 @@ class McpInstance
     #[ORM\Column(type: Types::STRING, length: 128, nullable: false)]
     private string $mcpBearer;
 
+    #[ORM\Column(type: Types::STRING, length: 128, nullable: false)]
+    private string $registryBearer;
+
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
     private ?string $mcpSubdomain = null;
 
@@ -154,6 +159,11 @@ class McpInstance
     public function getMcpBearer(): string
     {
         return $this->mcpBearer;
+    }
+
+    public function getRegistryBearer(): string
+    {
+        return $this->registryBearer;
     }
 
     public function getMcpSubdomain(): ?string
@@ -228,6 +238,7 @@ class McpInstance
             $this->getColorDepth(),
             $this->getVncPassword(),
             $this->getMcpBearer(),
+            $this->getRegistryBearer(),
             $this->getMcpSubdomain(),
             $this->getVncSubdomain(),
         );

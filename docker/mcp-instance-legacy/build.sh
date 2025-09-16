@@ -5,8 +5,22 @@ set -e
 
 echo "Building MCP Instance Docker image..."
 
-# Build the image
-docker build -t maas-mcp-instance:latest .
+# Create temporary build directory
+BUILD_DIR=$(mktemp -d)
+trap "rm -rf $BUILD_DIR" EXIT
+
+echo "Preparing build context in $BUILD_DIR"
+
+# Copy Dockerfile and required files to build directory
+cp Dockerfile "$BUILD_DIR/"
+cp supervisord.conf "$BUILD_DIR/"
+
+# Copy registry client files
+cp -r ../registry-client "$BUILD_DIR/"
+
+# Build the image from the temporary directory
+echo "Building Docker image..."
+docker build -t maas-mcp-instance:latest "$BUILD_DIR"
 
 echo "Testing the image..."
 

@@ -38,6 +38,10 @@ source "$PROJECT_ROOT/.dxcli/shared.sh"
 require_command php
 
 echo
+log_info "Running architecture tests..."
+/usr/bin/env php "$PROJECT_ROOT/vendor/bin/pest" --group=architecture
+
+echo
 log_info "Running shell-scripts tests..."
 /usr/bin/env bats "$PROJECT_ROOT/tests/ShellScripts/test-docker-cli-wrapper.bats"
 

@@ -6,12 +6,12 @@ namespace App\McpInstancesManagement\Domain\Service;
 
 use App\Account\Facade\Dto\AccountCoreInfoDto;
 use App\DockerManagement\Facade\DockerManagementFacadeInterface;
-use App\McpInstancesManagement\Domain\Dto\ProcessStatusContainerDto;
-use App\McpInstancesManagement\Domain\Dto\ProcessStatusDto;
-use App\McpInstancesManagement\Domain\Dto\ServiceStatusDto;
 use App\McpInstancesManagement\Domain\Entity\McpInstance;
-use App\McpInstancesManagement\Domain\Enum\ContainerState;
-use App\McpInstancesManagement\Domain\Enum\InstanceType;
+use App\McpInstancesManagement\Facade\Dto\ProcessStatusContainerDto;
+use App\McpInstancesManagement\Facade\Dto\ProcessStatusDto;
+use App\McpInstancesManagement\Facade\Dto\ServiceStatusDto;
+use App\McpInstancesManagement\Facade\Enum\ContainerState;
+use App\McpInstancesManagement\Facade\Enum\InstanceType;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use LogicException;
@@ -58,7 +58,7 @@ final readonly class McpInstancesDomainService implements McpInstancesDomainServ
 
         $instance = new McpInstance(
             $accountCoreId,
-            $instanceType ?? InstanceType::PLAYWRIGHT_V1,
+            $instanceType !== null ? InstanceType::from($instanceType->value) : InstanceType::PLAYWRIGHT_V1,
             $screenWidth,
             $screenHeight,
             $colorDepth,
@@ -75,7 +75,7 @@ final readonly class McpInstancesDomainService implements McpInstancesDomainServ
         $this->entityManager->flush();
 
         // Create and start Docker container
-        if (!$this->dockerFacade->createAndStartContainer($instance)) {
+        if (!$this->dockerFacade->createAndStartContainer($instance->toDto())) {
             // If container creation fails, remove the database entry
             $this->entityManager->remove($instance);
             $this->entityManager->flush();
@@ -98,7 +98,7 @@ final readonly class McpInstancesDomainService implements McpInstancesDomainServ
         }
 
         // Stop and remove Docker container
-        $this->dockerFacade->stopAndRemoveContainer($instance);
+        $this->dockerFacade->stopAndRemoveContainer($instance->toDto());
 
         // Remove database entry
         $this->entityManager->remove($instance);
@@ -113,7 +113,7 @@ final readonly class McpInstancesDomainService implements McpInstancesDomainServ
             return false;
         }
 
-        $success = $this->dockerFacade->restartContainer($instance);
+        $success = $this->dockerFacade->restartContainer($instance->toDto());
 
         if ($success) {
             $instance->setContainerState(ContainerState::RUNNING);
@@ -139,7 +139,7 @@ final readonly class McpInstancesDomainService implements McpInstancesDomainServ
         }
 
         // Stop and remove old container (ignore result; it may not exist)
-        $this->dockerFacade->stopAndRemoveContainer($instance);
+        $this->dockerFacade->stopAndRemoveContainer($instance->toDto());
 
         // Ensure derived fields exist (container name/slug) before recreation
         if ($instance->getContainerName() === null || $instance->getInstanceSlug() === null) {
@@ -149,7 +149,7 @@ final readonly class McpInstancesDomainService implements McpInstancesDomainServ
         }
 
         // Create and start new container using the same instance data
-        $success = $this->dockerFacade->createAndStartContainer($instance);
+        $success = $this->dockerFacade->createAndStartContainer($instance->toDto());
         if ($success) {
             $instance->setContainerState(ContainerState::RUNNING);
         } else {
@@ -205,7 +205,7 @@ final readonly class McpInstancesDomainService implements McpInstancesDomainServ
             throw new LogicException('MCP instance not found.');
         }
 
-        $this->dockerFacade->stopAndRemoveContainer($instance);
+        $this->dockerFacade->stopAndRemoveContainer($instance->toDto());
         $this->entityManager->remove($instance);
         $this->entityManager->flush();
     }
@@ -223,7 +223,7 @@ final readonly class McpInstancesDomainService implements McpInstancesDomainServ
         }
 
         // Get Docker container status with partial endpoint checks
-        $containerStatus = $this->dockerFacade->getContainerStatus($instance);
+        $containerStatus = $this->dockerFacade->getContainerStatus($instance->toDto());
 
         $running     = $containerStatus->state === 'running';
         $xvfbUp      = $running; // container running implies Xvfb supervisor started

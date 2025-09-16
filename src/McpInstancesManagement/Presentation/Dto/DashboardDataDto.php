@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\McpInstancesManagement\Presentation\Dto;
 
-use App\McpInstancesManagement\Domain\Dto\InstanceStatusDto;
-use App\McpInstancesManagement\Domain\Dto\ProcessStatusDto;
+use App\McpInstancesManagement\Facade\Dto\InstanceStatusDto;
+use App\McpInstancesManagement\Facade\Dto\ProcessStatusDto;
 
 final readonly class DashboardDataDto
 {

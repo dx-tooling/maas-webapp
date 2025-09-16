@@ -7,10 +7,10 @@ namespace App\DockerManagement\Facade;
 use App\DockerManagement\Domain\Service\ContainerManagementDomainService;
 use App\DockerManagement\Facade\Dto\ContainerStatusDto;
 use App\McpInstancesConfiguration\Facade\Service\InstanceTypesConfigFacadeInterface;
-use App\McpInstancesManagement\Domain\Dto\EndpointStatusDto;
-use App\McpInstancesManagement\Domain\Dto\InstanceStatusDto;
-use App\McpInstancesManagement\Domain\Entity\McpInstance;
-use App\McpInstancesManagement\Domain\Enum\ContainerState;
+use App\McpInstancesManagement\Facade\Dto\EndpointStatusDto;
+use App\McpInstancesManagement\Facade\Dto\InstanceStatusDto;
+use App\McpInstancesManagement\Facade\Dto\McpInstanceDto;
+use App\McpInstancesManagement\Facade\Enum\ContainerState;
 
 final readonly class DockerManagementFacade implements DockerManagementFacadeInterface
 {
@@ -20,7 +20,7 @@ final readonly class DockerManagementFacade implements DockerManagementFacadeInt
     ) {
     }
 
-    public function createAndStartContainer(McpInstance $instance): bool
+    public function createAndStartContainer(McpInstanceDto $instance): bool
     {
         // Create the container
         if (!$this->domainService->createContainer($instance)) {
@@ -38,7 +38,7 @@ final readonly class DockerManagementFacade implements DockerManagementFacadeInt
         return true;
     }
 
-    public function stopAndRemoveContainer(McpInstance $instance): bool
+    public function stopAndRemoveContainer(McpInstanceDto $instance): bool
     {
         $stopped = $this->domainService->stopContainer($instance);
         $removed = $this->domainService->removeContainer($instance);
@@ -47,17 +47,17 @@ final readonly class DockerManagementFacade implements DockerManagementFacadeInt
         return $stopped || $removed;
     }
 
-    public function restartContainer(McpInstance $instance): bool
+    public function restartContainer(McpInstanceDto $instance): bool
     {
         return $this->domainService->restartContainer($instance);
     }
 
-    public function isContainerHealthy(McpInstance $instance): bool
+    public function isContainerHealthy(McpInstanceDto $instance): bool
     {
         return $this->domainService->isContainerHealthy($instance);
     }
 
-    public function getContainerStatus(McpInstance $instance): ContainerStatusDto
+    public function getContainerStatus(McpInstanceDto $instance): ContainerStatusDto
     {
         $state   = $this->domainService->getContainerState($instance);
         $running = $state === ContainerState::RUNNING;
@@ -66,23 +66,23 @@ final readonly class DockerManagementFacade implements DockerManagementFacadeInt
         $healthy = $running && $mcpUp && $noVncUp;
 
         return new ContainerStatusDto(
-            $instance->getContainerName() ?? '',
+            $instance->containerName ?? '',
             $state->value,
             $healthy,
-            $instance->getMcpSubdomain() ? 'https://' . $instance->getMcpSubdomain() . '/mcp' : null,
-            $instance->getVncSubdomain() ? 'https://' . $instance->getVncSubdomain() : null,
+            $instance->mcpSubdomain ? 'https://' . $instance->mcpSubdomain . '/mcp' : null,
+            $instance->vncSubdomain ? 'https://' . $instance->vncSubdomain : null,
             $mcpUp,
             $noVncUp
         );
     }
 
-    public function getInstanceStatus(McpInstance $instance): InstanceStatusDto
+    public function getInstanceStatus(McpInstanceDto $instance): InstanceStatusDto
     {
         $containerState = $this->domainService->getContainerState($instance);
         $running        = $containerState === ContainerState::RUNNING;
 
         $rootDomain = getenv('APP_ROOT_DOMAIN') ?: 'mcp-as-a-service.com';
-        $typeCfg    = $this->configService->getTypeConfig($instance->getInstanceType());
+        $typeCfg    = $this->configService->getTypeConfig($instance->instanceType);
         $endpoints  = [];
 
         if ($typeCfg !== null) {
@@ -96,7 +96,7 @@ final readonly class DockerManagementFacade implements DockerManagementFacadeInt
                 }
 
                 // Build external URLs from external_paths and host pattern
-                $host         = $endpointId . '-' . ($instance->getInstanceSlug() ?? '') . '.' . $rootDomain;
+                $host         = $endpointId . '-' . ($instance->instanceSlug ?? '') . '.' . $rootDomain;
                 $externalUrls = [];
                 foreach ($epCfg->externalPaths as $p) {
                     $externalUrls[] = 'https://' . $host . $p;
@@ -110,8 +110,8 @@ final readonly class DockerManagementFacade implements DockerManagementFacadeInt
         }
 
         return new InstanceStatusDto(
-            $instance->getId()            ?? '',
-            $instance->getContainerName() ?? '',
+            $instance->id            ?? '',
+            $instance->containerName ?? '',
             $containerState->value,
             $running,
             $endpoints

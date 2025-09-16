@@ -14,8 +14,9 @@ use App\McpInstancesConfiguration\Facade\Dto\McpInstanceTypesConfig;
 use App\McpInstancesConfiguration\Facade\Service\InstanceTypesConfigFacade;
 use App\McpInstancesConfiguration\Infrastructure\InstanceTypesConfigProviderInterface;
 use App\McpInstancesManagement\Domain\Entity\McpInstance;
-use App\McpInstancesManagement\Domain\Enum\ContainerState;
-use App\McpInstancesManagement\Domain\Enum\InstanceType;
+use App\McpInstancesManagement\Facade\Dto\McpInstanceDto;
+use App\McpInstancesManagement\Facade\Enum\ContainerState;
+use App\McpInstancesManagement\Facade\Enum\InstanceType;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -53,7 +54,7 @@ final class ContainerManagementDomainServiceTest extends TestCase
         $process      = $this->createMock(ProcessServiceInterface::class);
         $process->method('runProcess')->willReturn(new RunProcessResultDto(0, '', ''));
         $unitUnderTest = new ContainerManagementDomainService($this->logger, $this->params, $this->router, $configFacade, $process);
-        $instance      = new McpInstance(
+        $entity        = new McpInstance(
             'acc',
             InstanceType::PLAYWRIGHT_V1,
             1280,
@@ -63,8 +64,10 @@ final class ContainerManagementDomainServiceTest extends TestCase
             'bearer'
         );
 
+        $dto = $this->toDto($entity);
+
         // Intentionally do not set derived fields; createContainer should log and return false
-        $this->assertFalse($unitUnderTest->createContainer($instance));
+        $this->assertFalse($unitUnderTest->createContainer($dto));
     }
 
     public function testDockerRunInvocationUsesWrapperInValidateOnlyMode(): void
@@ -73,7 +76,7 @@ final class ContainerManagementDomainServiceTest extends TestCase
         $process      = $this->createMock(ProcessServiceInterface::class);
         $process->method('runProcess')->willReturn(new RunProcessResultDto(0, '', ''));
         $unitUnderTest = new ContainerManagementDomainService($this->logger, $this->params, $this->router, $configFacade, $process);
-        $instance      = new McpInstance(
+        $entity        = new McpInstance(
             'acc',
             InstanceType::PLAYWRIGHT_V1,
             1280,
@@ -85,11 +88,11 @@ final class ContainerManagementDomainServiceTest extends TestCase
 
         // Prepare derived fields so that createContainer proceeds
         // We simulate what generateDerivedFields() does
-        $r      = new ReflectionClass($instance);
+        $r      = new ReflectionClass($entity);
         $idProp = $r->getProperty('id');
         $idProp->setAccessible(true);
-        $idProp->setValue($instance, '00000000-0000-0000-0000-000000000abc');
-        $instance->generateDerivedFields('mcp-as-a-service.com');
+        $idProp->setValue($entity, '00000000-0000-0000-0000-000000000abc');
+        $entity->generateDerivedFields('mcp-as-a-service.com');
 
         // Logger may be called multiple times; no strict parameter expectations here
         $this->logger->expects($this->any())->method('info');
@@ -97,8 +100,10 @@ final class ContainerManagementDomainServiceTest extends TestCase
         // Enable validation-only mode so the service short-circuits safely in environments without Docker
         putenv('MAAS_WRAPPER_VALIDATE_ONLY=1');
 
+        $dto = $this->toDto($entity);
+
         // Execute; since wrapper runs in validation mode, createContainer should return true (docker run exits 0)
-        $this->assertTrue($unitUnderTest->createContainer($instance));
+        $this->assertTrue($unitUnderTest->createContainer($dto));
 
         // Cleanup env
         putenv('MAAS_WRAPPER_VALIDATE_ONLY');
@@ -114,7 +119,7 @@ final class ContainerManagementDomainServiceTest extends TestCase
         $process      = $this->createMock(ProcessServiceInterface::class);
         $process->method('runProcess')->willReturn(new RunProcessResultDto(0, '', ''));
         $unitUnderTest = new ContainerManagementDomainService($logger, $this->params, $this->router, $configFacade, $process);
-        $instance      = new McpInstance(
+        $entity        = new McpInstance(
             'acc',
             InstanceType::PLAYWRIGHT_V1,
             1280,
@@ -124,18 +129,20 @@ final class ContainerManagementDomainServiceTest extends TestCase
             'bearer'
         );
 
-        $r      = new ReflectionClass($instance);
+        $r      = new ReflectionClass($entity);
         $idProp = $r->getProperty('id');
         $idProp->setAccessible(true);
-        $idProp->setValue($instance, '00000000-0000-0000-0000-000000000def');
-        $instance->generateDerivedFields('mcp-as-a-service.com');
+        $idProp->setValue($entity, '00000000-0000-0000-0000-000000000def');
+        $entity->generateDerivedFields('mcp-as-a-service.com');
+
+        $dto = $this->toDto($entity);
 
         // The ProcessServiceInterface mock returns exit code 0; wrapper or docker invocation details are not required here.
 
-        $this->assertTrue($unitUnderTest->startContainer($instance));
-        $this->assertTrue($unitUnderTest->stopContainer($instance));
-        $this->assertTrue($unitUnderTest->restartContainer($instance));
-        $this->assertTrue($unitUnderTest->removeContainer($instance));
+        $this->assertTrue($unitUnderTest->startContainer($dto));
+        $this->assertTrue($unitUnderTest->stopContainer($dto));
+        $this->assertTrue($unitUnderTest->restartContainer($dto));
+        $this->assertTrue($unitUnderTest->removeContainer($dto));
     }
 
     public function testGetContainerStateInvokesInspectViaWrapper(): void
@@ -149,7 +156,7 @@ final class ContainerManagementDomainServiceTest extends TestCase
         $process      = $this->createMock(ProcessServiceInterface::class);
         $process->method('runProcess')->willReturn(new RunProcessResultDto(0, '', ''));
         $unitUnderTest = new ContainerManagementDomainService($logger, $this->params, $this->router, $configFacade, $process);
-        $instance      = new McpInstance(
+        $entity        = new McpInstance(
             'acc',
             InstanceType::PLAYWRIGHT_V1,
             1280,
@@ -158,16 +165,16 @@ final class ContainerManagementDomainServiceTest extends TestCase
             'vncpass',
             'bearer'
         );
-        $r      = new ReflectionClass($instance);
+        $r      = new ReflectionClass($entity);
         $idProp = $r->getProperty('id');
         $idProp->setAccessible(true);
-        $idProp->setValue($instance, '00000000-0000-0000-0000-000000000abc');
-        $instance->generateDerivedFields('mcp-as-a-service.com');
+        $idProp->setValue($entity, '00000000-0000-0000-0000-000000000abc');
+        $entity->generateDerivedFields('mcp-as-a-service.com');
 
         // No env overrides required; the process mock returns 0 and stdout is empty.
 
         // In validate-only mode, stdout is not the status, so service returns ERROR
-        $this->assertSame(ContainerState::ERROR, $unitUnderTest->getContainerState($instance));
+        $this->assertSame(ContainerState::ERROR, $unitUnderTest->getContainerState($this->toDto($entity)));
     }
 
     // Helper to construct a minimal config service with endpoints 'mcp' and 'vnc'
@@ -232,6 +239,26 @@ final class ContainerManagementDomainServiceTest extends TestCase
         $this->assertTrue($this->containsSubstring($labels, 'forwardauth.address=https://app.mcp-as-a-service.com/auth'));
         // context header middleware
         $this->assertTrue($this->containsSubstring($labels, 'X-MCP-Instance=abc123'));
+    }
+
+    private function toDto(McpInstance $e): McpInstanceDto
+    {
+        return new McpInstanceDto(
+            $e->getId() ?? '',
+            $e->getCreatedAt(),
+            $e->getAccountCoreId(),
+            $e->getInstanceSlug(),
+            $e->getContainerName(),
+            ContainerState::from($e->getContainerState()->value),
+            InstanceType::from($e->getInstanceType()->value),
+            $e->getScreenWidth(),
+            $e->getScreenHeight(),
+            $e->getColorDepth(),
+            $e->getVncPassword(),
+            $e->getMcpBearer(),
+            $e->getMcpSubdomain(),
+            $e->getVncSubdomain(),
+        );
     }
 
     /**

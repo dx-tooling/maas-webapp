@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\McpInstancesManagement\Domain\Enum;
+namespace App\McpInstancesManagement\Facade\Enum;
 
 enum InstanceType: string
 {

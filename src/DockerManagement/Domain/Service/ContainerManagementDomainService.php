@@ -402,13 +402,30 @@ final readonly class ContainerManagementDomainService
 
         $imageName = $this->getImageNameForInstanceType($instance->instanceType);
 
+        // Build the registry endpoint URL
+        // Use the router to generate the absolute URL for the registry API
+        $registryEndpoint = $this->router->generate(
+            'api_instance_registry_get',
+            [
+                'instanceId' => $instance->id ?? '',
+                'key'        => 'KEY_PLACEHOLDER'
+            ],
+            RouterInterface::ABSOLUTE_URL
+        );
+        // Remove the placeholder to get the base URL pattern
+        $registryEndpoint = str_replace('/KEY_PLACEHOLDER', '', $registryEndpoint);
+
         $envVars = [
             "INSTANCE_ID={$instanceSlug}",
             "INSTANCE_TYPE={$instance->instanceType->value}",
             "SCREEN_WIDTH={$instance->screenWidth}",
             "SCREEN_HEIGHT={$instance->screenHeight}",
             "COLOR_DEPTH={$instance->colorDepth}",
-            "VNC_PASSWORD={$instance->vncPassword}"
+            "VNC_PASSWORD={$instance->vncPassword}",
+            // Add registry-related environment variables
+            "REGISTRY_ENDPOINT={$registryEndpoint}",
+            "REGISTRY_BEARER={$instance->mcpBearer}",
+            "INSTANCE_UUID={$instance->id}"
         ];
 
         $labels = $this->buildTraefikLabels(

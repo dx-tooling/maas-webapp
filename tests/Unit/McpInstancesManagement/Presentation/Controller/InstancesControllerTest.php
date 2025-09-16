@@ -173,7 +173,9 @@ final class InstancesControllerTest extends TestCase
         // Should list one instance row
         $rows = $crawler->filter('[data-test-class="instances-row"]');
         $this->assertCount(1, $rows);
-        $this->assertStringContainsString($instanceId, $rows->text());
+        // The row should contain the container name (which is derived from the UUID)
+        $this->assertStringContainsString('mcp-instance-', $rows->text());
+        $this->assertStringContainsString('Playwright v1', $rows->text());
 
         // 2) Detail page
         $response2 = $controller->detailAction($instanceId);

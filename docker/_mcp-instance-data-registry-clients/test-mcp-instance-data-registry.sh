@@ -8,22 +8,22 @@ echo ""
 
 # Check environment variables
 echo "Checking environment variables:"
-if [ -n "${MAAS_REGISTRY_ENDPOINT}" ]; then
-    echo "✓ MAAS_REGISTRY_ENDPOINT is set: ${MAAS_REGISTRY_ENDPOINT}"
+if [ -n "${MAAS_MCP_INSTANCE_DATA_REGISTRY_ENDPOINT}" ]; then
+    echo "✓ MAAS_MCP_INSTANCE_DATA_REGISTRY_ENDPOINT is set: ${MAAS_MCP_INSTANCE_DATA_REGISTRY_ENDPOINT}"
 else
-    echo "✗ MAAS_REGISTRY_ENDPOINT is not set"
+    echo "✗ MAAS_MCP_INSTANCE_DATA_REGISTRY_ENDPOINT is not set"
 fi
 
-if [ -n "${MAAS_REGISTRY_BEARER}" ]; then
-    echo "✓ MAAS_REGISTRY_BEARER is set (hidden)"
+if [ -n "${MAAS_MCP_INSTANCE_DATA_REGISTRY_BEARER}" ]; then
+    echo "✓ MAAS_MCP_INSTANCE_DATA_REGISTRY_BEARER is set (hidden)"
 else
-    echo "✗ MAAS_REGISTRY_BEARER is not set"
+    echo "✗ MAAS_MCP_INSTANCE_DATA_REGISTRY_BEARER is not set"
 fi
 
-if [ -n "${MAAS_INSTANCE_UUID}" ]; then
-    echo "✓ MAAS_INSTANCE_UUID is set: ${MAAS_INSTANCE_UUID}"
+if [ -n "${MAAS_MCP_INSTANCE_UUID}" ]; then
+    echo "✓ MAAS_MCP_INSTANCE_UUID is set: ${MAAS_MCP_INSTANCE_UUID}"
 else
-    echo "✗ MAAS_INSTANCE_UUID is not set"
+    echo "✗ MAAS_MCP_INSTANCE_UUID is not set"
 fi
 
 echo ""
@@ -31,7 +31,7 @@ echo ""
 # Check if registry-get command exists
 if command -v registry-get &> /dev/null; then
     echo "✓ registry-get command is available"
-    
+
     # Try to fetch a test key (this might fail if the key doesn't exist, which is fine)
     echo ""
     echo "Attempting to fetch 'test_key' from registry:"

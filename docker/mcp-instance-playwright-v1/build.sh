@@ -16,7 +16,7 @@ cp Dockerfile "$BUILD_DIR/"
 cp supervisord.conf "$BUILD_DIR/"
 
 # Copy registry client files
-cp -r ../registry-client "$BUILD_DIR/"
+cp -r ../_mcp-instance-data-registry-clients "$BUILD_DIR/"
 
 # Build the image from the temporary directory
 echo "Building Docker image..."

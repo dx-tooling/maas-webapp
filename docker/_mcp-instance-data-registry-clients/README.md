@@ -10,22 +10,22 @@ The MCP Instance Data Registry allows running Docker containers to retrieve conf
 
 The following environment variables are automatically provided to each container by the platform:
 
-- `MAAS_REGISTRY_ENDPOINT`: The base URL of the registry API (e.g., `https://app.mcp-as-a-service.com/api/instance-registry/{instance-id}`)
-- `MAAS_REGISTRY_BEARER`: The bearer token for authenticating with the registry (separate from MCP bearer)
-- `MAAS_INSTANCE_UUID`: The UUID of this instance
+- `MAAS_MCP_INSTANCE_DATA_REGISTRY_ENDPOINT`: The base URL of the registry API (e.g., `https://app.mcp-as-a-service.com/api/instance-registry/{instance-id}`)
+- `MAAS_MCP_INSTANCE_DATA_REGISTRY_BEARER`: The bearer token for authenticating with the registry (separate from MCP bearer)
+- `MAAS_MCP_INSTANCE_UUID`: The UUID of this instance
 
 ## Available Clients
 
-### Bash Script (`registry-get.sh`)
+### Bash Script (`mcp-instance-data-registry-get-value.sh`)
 
 Simple bash script for retrieving values from the registry. Requires `curl`.
 
 ```bash
 # Get a single value
-./registry-get.sh database_url
+./mcp-instance-data-registry-get-value.sh database_url
 
 # Use in a script
-DB_URL=$(./registry-get.sh database_url)
+DB_URL=$(./mcp-instance-data-registry-get-value.sh database_url)
 if [ $? -eq 0 ]; then
     echo "Database URL: ${DB_URL}"
 else
@@ -33,7 +33,7 @@ else
 fi
 ```
 
-### Python Module (`registry_client.py`)
+### Python Module (`mcp_instance_data_registry_client.py`)
 
 Python 3 client with no external dependencies.
 
@@ -54,13 +54,13 @@ for key, value in all_values.items():
 Command-line usage:
 ```bash
 # Get a single value
-python registry_client.py database_url
+python mcp_instance_data_registry_client.py database_url
 
 # Get all values
-python registry_client.py --all
+python mcp_instance_data_registry_client.py --all
 ```
 
-### Node.js Module (`registry-client.js`)
+### Node.js Module (`mcp-instance-data-registry-client.js`)
 
 Node.js client using only built-in modules.
 
@@ -81,10 +81,10 @@ console.log(allValues);
 Command-line usage:
 ```bash
 # Get a single value
-node registry-client.js database_url
+node mcp-instance-data-registry-client.js database_url
 
 # Get all values
-node registry-client.js --all
+node mcp-instance-data-registry-client.js --all
 ```
 
 ## Integration in Dockerfiles
@@ -93,14 +93,14 @@ To use these clients in your Docker images, copy the appropriate client into you
 
 ```dockerfile
 # For bash script
-COPY registry-get.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/registry-get.sh
+COPY mcp-instance-data-registry-get-value.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/mcp-instance-data-registry-get-value.sh
 
 # For Python module
-COPY registry_client.py /usr/local/lib/
+COPY mcp_instance_data_registry_client.py /usr/local/lib/
 
 # For Node.js module
-COPY registry-client.js /app/
+COPY mcp-instance-data-registry-client.js /app/
 ```
 
 ## Example Use Cases
@@ -111,8 +111,8 @@ Store configuration that might change between deployments:
 
 ```bash
 # In container startup script
-API_ENDPOINT=$(registry-get.sh api_endpoint)
-API_KEY=$(registry-get.sh api_key)
+API_ENDPOINT=$(mcp-instance-data-registry-get-value.sh api_endpoint)
+API_KEY=$(mcp-instance-data-registry-get-value.sh api_key)
 export API_ENDPOINT API_KEY
 ```
 
@@ -163,14 +163,14 @@ To test the registry client locally:
 
 1. Set the required environment variables:
 ```bash
-export MAAS_REGISTRY_ENDPOINT="https://app.mcp-as-a-service.com/api/instance-registry/test-instance"
-export MAAS_REGISTRY_BEARER="test-bearer-token"
-export MAAS_INSTANCE_UUID="test-instance"
+export MAAS_MCP_INSTANCE_DATA_REGISTRY_ENDPOINT="https://app.mcp-as-a-service.com/api/instance-registry/test-instance"
+export MAAS_MCP_INSTANCE_DATA_REGISTRY_BEARER="test-bearer-token"
+export MAAS_MCP_INSTANCE_UUID="test-instance"
 ```
 
 2. Run the client:
 ```bash
-./registry-get.sh test_key
+./mcp-instance-data-registry-get-value.sh test_key
 ```
 
 Note: You'll need a valid instance and bearer token for actual testing.

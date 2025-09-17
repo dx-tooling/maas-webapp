@@ -42,14 +42,14 @@ USER root
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 # Copy registry client scripts
-COPY registry-client/registry-get.sh /usr/local/bin/registry-get
-COPY registry-client/test-registry.sh /usr/local/bin/test-registry
-COPY registry-client/registry_client.py /usr/local/lib/python3/registry_client.py
-COPY registry-client/registry-client.js /home/mcp/registry-client.js
+COPY _mcp-instance-data-registry-clients/mcp-instance-data-registry-get-value.sh /usr/local/bin/mcp-instance-data-registry-get-value.sh
+COPY _mcp-instance-data-registry-clients/test-mcp-instance-data-registry.sh /usr/local/bin/test-mcp-instance-data-registry.sh
+COPY _mcp-instance-data-registry-clients/mcp_instance_data_registry_client.py /usr/local/lib/python3/mcp_instance_data_registry_client.py
+COPY _mcp-instance-data-registry-clients/mcp-instance-data-registry-client.js /home/mcp/mcp-instance-data-registry-client.js
 
 # Make scripts executable and set ownership
-RUN chmod +x /usr/local/bin/registry-get /usr/local/bin/test-registry \
-    && chown mcp:mcp /home/mcp/registry-client.js
+RUN chmod +x /usr/local/bin/mcp-instance-data-registry-get-value.sh /usr/local/bin/test-mcp-instance-data-registry.sh \
+    && chown mcp:mcp /home/mcp/mcp-instance-data-registry-client.js
 
 # Create necessary directories
 RUN mkdir -p /var/log/supervisor \
@@ -66,9 +66,9 @@ ENV DISPLAY=:99 \
     INSTANCE_ID="" \
     INSTANCE_TYPE="linux-cmd-line-v1" \
     VNC_PASSWORD="" \
-    MAAS_REGISTRY_ENDPOINT="" \
-    MAAS_REGISTRY_BEARER="" \
-    MAAS_INSTANCE_UUID=""
+    MAAS_MCP_INSTANCE_DATA_REGISTRY_ENDPOINT="" \
+    MAAS_MCP_INSTANCE_DATA_REGISTRY_BEARER="" \
+    MAAS_MCP_INSTANCE_UUID=""
 
 # Expose ports
 EXPOSE 8080 5900 6080

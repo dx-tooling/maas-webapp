@@ -11,7 +11,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 
-#[Route('/api/instance-registry')]
+#[Route('/api/instance-data-registry')]
 final class RegistryApiController extends AbstractController
 {
     public function __construct(
@@ -24,7 +24,7 @@ final class RegistryApiController extends AbstractController
      * Get a value from the registry for the authenticated instance.
      * Requires Bearer authentication with the instance's mcpBearer token.
      */
-    #[Route('/{instanceId}/{key}', name: 'api_instance_registry_get', methods: ['GET'])]
+    #[Route('/{instanceId}/{key}', name: 'mcp_instance_data_registry.api.get_value', methods: ['GET'])]
     public function getValue(Request $request, string $instanceId, string $key): JsonResponse
     {
         // Extract bearer token from Authorization header
@@ -72,7 +72,7 @@ final class RegistryApiController extends AbstractController
      * Set a value in the registry (admin endpoint, requires different auth).
      * This could be protected by role-based access in production.
      */
-    #[Route('/{instanceId}/{key}', name: 'api_instance_registry_set', methods: ['PUT', 'POST'])]
+    #[Route('/{instanceId}/{key}', name: 'mcp_instance_data_registry.api.set_value', methods: ['PUT', 'POST'])]
     public function setValue(Request $request, string $instanceId, string $key): JsonResponse
     {
         // TODO: Add proper admin authentication here
@@ -105,7 +105,7 @@ final class RegistryApiController extends AbstractController
     /**
      * Delete a value from the registry (admin endpoint).
      */
-    #[Route('/{instanceId}/{key}', name: 'api_instance_registry_delete', methods: ['DELETE'])]
+    #[Route('/{instanceId}/{key}', name: 'mcp_instance_data_registry.api.delete_value', methods: ['DELETE'])]
     public function deleteValue(string $instanceId, string $key): JsonResponse
     {
         // TODO: Add proper admin authentication here
@@ -130,7 +130,7 @@ final class RegistryApiController extends AbstractController
     /**
      * Get all values for an instance (admin endpoint).
      */
-    #[Route('/{instanceId}', name: 'api_instance_registry_list', methods: ['GET'])]
+    #[Route('/{instanceId}', name: 'mcp_instance_data_registry.api.get_all_values', methods: ['GET'])]
     public function getAllValues(Request $request, string $instanceId): JsonResponse
     {
         // Check if this is an authenticated instance request (with bearer) or admin request

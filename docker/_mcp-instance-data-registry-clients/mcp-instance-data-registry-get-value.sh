@@ -1,14 +1,14 @@
 #!/bin/bash
 # MCP Instance Data Registry Client
-# Usage: registry-get.sh <key>
-# 
+# Usage: mcp-instance-data-registry-get-value.sh <key>
+#
 # This script retrieves a value from the MCP Instance Data Registry
 # using the environment variables provided by the platform.
 #
 # Required environment variables:
-#   - MAAS_REGISTRY_ENDPOINT: The base URL of the registry API
-#   - MAAS_REGISTRY_BEARER: The bearer token for authentication
-#   - MAAS_INSTANCE_UUID: The UUID of this instance
+#   - MAAS_MCP_INSTANCE_DATA_REGISTRY_ENDPOINT: The base URL of the registry API
+#   - MAAS_MCP_INSTANCE_DATA_REGISTRY_BEARER: The bearer token for authentication
+#   - MAAS_MCP_INSTANCE_UUID: The UUID of this instance
 
 set -euo pipefail
 
@@ -22,26 +22,26 @@ fi
 KEY="$1"
 
 # Check required environment variables
-if [ -z "${MAAS_REGISTRY_ENDPOINT:-}" ]; then
-    echo "Error: MAAS_REGISTRY_ENDPOINT environment variable is not set" >&2
+if [ -z "${MAAS_MCP_INSTANCE_DATA_REGISTRY_ENDPOINT:-}" ]; then
+    echo "Error: MAAS_MCP_INSTANCE_DATA_REGISTRY_ENDPOINT environment variable is not set" >&2
     exit 1
 fi
 
-if [ -z "${MAAS_REGISTRY_BEARER:-}" ]; then
-    echo "Error: MAAS_REGISTRY_BEARER environment variable is not set" >&2
+if [ -z "${MAAS_MCP_INSTANCE_DATA_REGISTRY_BEARER:-}" ]; then
+    echo "Error: MAAS_MCP_INSTANCE_DATA_REGISTRY_BEARER environment variable is not set" >&2
     exit 1
 fi
 
-if [ -z "${MAAS_INSTANCE_UUID:-}" ]; then
-    echo "Error: MAAS_INSTANCE_UUID environment variable is not set" >&2
+if [ -z "${MAAS_MCP_INSTANCE_UUID:-}" ]; then
+    echo "Error: MAAS_MCP_INSTANCE_UUID environment variable is not set" >&2
     exit 1
 fi
 
 # Build the full URL
-URL="${MAAS_REGISTRY_ENDPOINT}/${KEY}"
+URL="${MAAS_MCP_INSTANCE_DATA_REGISTRY_ENDPOINT}/${KEY}"
 
 # Make the request with bearer authentication
-RESPONSE=$(curl -s -w "\n%{http_code}" -H "Authorization: Bearer ${MAAS_REGISTRY_BEARER}" "${URL}")
+RESPONSE=$(curl -s -w "\n%{http_code}" -H "Authorization: Bearer ${MAAS_MCP_INSTANCE_DATA_REGISTRY_BEARER}" "${URL}")
 HTTP_CODE=$(echo "${RESPONSE}" | tail -n 1)
 BODY=$(echo "${RESPONSE}" | head -n -1)
 

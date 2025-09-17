@@ -417,9 +417,9 @@ final readonly class ContainerManagementDomainService
             "COLOR_DEPTH={$instance->colorDepth}",
             "VNC_PASSWORD={$instance->vncPassword}",
             // Add registry-related environment variables with MAAS_ prefix
-            "MAAS_REGISTRY_ENDPOINT={$registryEndpoint}",
-            "MAAS_REGISTRY_BEARER={$instance->registryBearer}",
-            "MAAS_INSTANCE_UUID={$instance->id}"
+            "MAAS_MCP_INSTANCE_DATA_REGISTRY_ENDPOINT={$registryEndpoint}",
+            "MAAS_MCP_INSTANCE_DATA_REGISTRY_BEARER={$instance->registryBearer}",
+            "MAAS_MCP_INSTANCE_UUID={$instance->id}"
         ];
 
         $labels = $this->buildTraefikLabels(

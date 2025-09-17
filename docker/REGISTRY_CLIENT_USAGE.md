@@ -10,9 +10,9 @@ Each MCP instance container has access to a secure key-value data registry that 
 
 When a container is launched, the following environment variables are automatically set:
 
-- `MAAS_REGISTRY_ENDPOINT`: The base URL of the registry API for this instance
-- `MAAS_REGISTRY_BEARER`: The authentication token (unique per instance)
-- `MAAS_INSTANCE_UUID`: The UUID of this instance
+- `MAAS_MCP_INSTANCE_DATA_REGISTRY_ENDPOINT`: The base URL of the registry API for this instance
+- `MAAS_MCP_INSTANCE_DATA_REGISTRY_BEARER`: The authentication token (unique per instance)
+- `MAAS_MCP_INSTANCE_UUID`: The UUID of this instance
 
 These variables are automatically passed by the platform when creating containers through the `ContainerManagementDomainService`.
 
@@ -98,9 +98,9 @@ To verify that the registry client is properly configured in your container:
 test-registry
 
 # This will output:
-# ✓ MAAS_REGISTRY_ENDPOINT is set
-# ✓ MAAS_REGISTRY_BEARER is set  
-# ✓ MAAS_INSTANCE_UUID is set
+# ✓ MAAS_MCP_INSTANCE_DATA_REGISTRY_ENDPOINT is set
+# ✓ MAAS_MCP_INSTANCE_DATA_REGISTRY_BEARER is set  
+# ✓ MAAS_MCP_INSTANCE_UUID is set
 # ✓ registry-get command is available
 ```
 
@@ -141,13 +141,13 @@ CACHE_TTL=$(registry-get cache_ttl)
 
 ## Security Notes
 
-1. **Authentication**: Each instance has its own unique bearer token (`MAAS_REGISTRY_BEARER`) that authenticates requests to the registry.
+1. **Authentication**: Each instance has its own unique bearer token (`MAAS_MCP_INSTANCE_DATA_REGISTRY_BEARER`) that authenticates requests to the registry.
 
 2. **Isolation**: Each instance can only access its own data. The registry enforces instance-level isolation.
 
 3. **Transport Security**: All registry requests use HTTPS in production environments.
 
-4. **Token Protection**: Never log or expose the `MAAS_REGISTRY_BEARER` token. It's automatically injected by the platform.
+4. **Token Protection**: Never log or expose the `MAAS_MCP_INSTANCE_DATA_REGISTRY_BEARER` token. It's automatically injected by the platform.
 
 ## Troubleshooting
 
@@ -169,7 +169,7 @@ If a key returns empty or error:
 ### Network Issues
 If you can't reach the registry endpoint:
 1. Check that the container is on the correct network
-2. Verify the `MAAS_REGISTRY_ENDPOINT` URL is accessible
+2. Verify the `MAAS_MCP_INSTANCE_DATA_REGISTRY_ENDPOINT` URL is accessible
 3. Ensure Traefik routing is properly configured
 
 ## Best Practices
@@ -206,4 +206,4 @@ The registry is integrated with the MaaS platform at multiple levels:
 3. **Admin Interface**: Platform administrators can manage registry values through the web UI
 4. **API Access**: Registry values can be managed via the platform API
 
-For more information about the registry architecture, see the main [Registry Client README](registry-client/README.md).
+For more information about the registry architecture, see the main [Registry Client README](_mcp-instance-data-registry-clients/README.md).

@@ -7,6 +7,7 @@ namespace App\McpInstanceDataRegistry\Facade;
 use App\McpInstanceDataRegistry\Domain\Service\RegistryDomainServiceInterface;
 use App\McpInstancesManagement\Facade\McpInstancesManagementFacadeInterface;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
 
 final readonly class McpInstanceDataRegistryFacade implements McpInstanceDataRegistryFacadeInterface
@@ -63,14 +64,14 @@ final readonly class McpInstanceDataRegistryFacade implements McpInstanceDataReg
     {
         // Generate the absolute URL for the registry API
         return $this->router->generate(
-            'api_instance_registry_get',
+            'mcp_instance_data_registry.api.get_value',
             [
                 'instanceId' => $instanceId,
                 'key'        => 'KEY_PLACEHOLDER'
             ],
-            RouterInterface::ABSOLUTE_URL
+            UrlGeneratorInterface::ABSOLUTE_URL
         );
-        // The URL will have the format: https://app.domain.com/api/instance-registry/{instanceId}/KEY_PLACEHOLDER
+        // The URL will have the format: https://app.domain.com/api/instance-data-registry/{instanceId}/KEY_PLACEHOLDER
         // The container will replace KEY_PLACEHOLDER with the actual key when making requests
     }
 }

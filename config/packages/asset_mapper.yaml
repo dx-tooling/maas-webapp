@@ -3,6 +3,7 @@ framework:
         # The paths to make available to the asset mapper.
         paths:
             - assets/
+            - src/McpInstancesManagement/Presentation/Resources/assets/
         missing_import_mode: strict
 
 sensiolabs_typescript:

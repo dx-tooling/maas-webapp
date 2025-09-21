@@ -336,6 +336,72 @@ actions:
       ```
 </rule>
 
+## Client-Side Testing Patterns
+
+<rule>
+name: client_side_testing
+description: Testing patterns for Stimulus controllers and client-side interactions
+filters:
+  - type: file_path
+    pattern: "src/**/assets/controllers/**/*.js"
+  - type: file_path
+    pattern: "tests/**/*Client*.php"
+actions:
+  - type: suggest
+    message: |
+      Client-side testing follows feature isolation principles:
+
+      ### Stimulus Controller Testing
+      ```javascript
+      // Feature-specific controller tests
+      import { Application } from "@hotwired/stimulus"
+      import ControllerName from "./controller_name"
+
+      describe("FeatureName ControllerName", () => {
+          let application, element
+
+          beforeEach(() => {
+              application = Application.start()
+              application.register("feature-controller", ControllerName)
+              
+              element = document.createElement("div")
+              element.setAttribute("data-controller", "feature-controller")
+              document.body.appendChild(element)
+          })
+
+          test("performs expected action", () => {
+              // Test controller behavior
+          })
+      })
+      ```
+
+      ### UI Integration Testing with data-test Attributes
+      ```php
+      // Use stable selectors for client-side interactions
+      $addButton = $crawler->filter('[data-test-id="add-env-var-button"]');
+      $this->assertCount(1, $addButton);
+
+      // Test dynamic content added by Stimulus
+      $envVarRows = $crawler->filter('[data-test-class="env-var-row"]');
+      $this->assertGreaterThan(0, count($envVarRows));
+      ```
+
+      ### Client-Side Testing Rules
+      - Test Stimulus controllers in isolation using JavaScript testing frameworks
+      - Use `data-test-*` attributes for reliable element selection in browser tests
+      - Test client-server interactions through form submissions and AJAX calls
+      - Verify that client-side validation works before server-side validation
+      - Test progressive enhancement (functionality works without JavaScript)
+
+      ### Feature-Specific Test Organization
+      ```
+      src/FeatureName/Presentation/Resources/assets/controllers/
+      ├── controller_name.js
+      └── __tests__/
+          └── controller_name.test.js
+      ```
+</rule>
+
 ## Test Naming Conventions
 
 <rule>
@@ -367,5 +433,14 @@ actions:
       arch('Feature X must not use Feature Y internals')
           ->expect('App\\FeatureX')
           ->not->toUse(['App\\FeatureY\\Domain']);
+      ```
+
+      ### Client-Side Tests
+      ```javascript
+      describe("FeatureName ControllerName", () => {
+          test("performs expected action when triggered", () => {})
+          test("validates input before submission", () => {})
+          test("handles error states gracefully", () => {})
+      })
       ```
 </rule>

@@ -114,7 +114,7 @@ class InstancesController extends AbstractAccountAwareController
             $genericStatus = null;
         }
 
-        return $this->render('@mcp_instances_management.presentation/instances_detail.html.twig', [
+        return $this->render('@mcp_instances_management.presentation/Resources/templates/instances_detail.html.twig', [
             'instance'       => $instanceDto,
             'process_status' => $processStatus,
             'generic_status' => $genericStatus,

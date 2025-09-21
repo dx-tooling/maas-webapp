@@ -50,50 +50,45 @@
             </div>
         </div>
 
-        <div class="etfswui-card mb-8 text-left" data-test-id="card-environment-variables">
+        <div class="etfswui-card mb-8 text-left" data-test-id="card-environment-variables" {{ stimulus_controller('mcp-instances-environment-variables') }}>
             <div class="etfswui-card-title">
                 <span class="etfswui-card-title-text">Environment Variables</span>
             </div>
             <div class="etfswui-card-content bg-neutral-50 dark:bg-neutral-900">
                 <form method="post" action="{{ path('mcp_instances_management.presentation.update_env_vars') }}">
                     <input type="hidden" name="instanceId" value="{{ instance.id }}" />
-                    <div id="env-vars-container">
+                    <div {{ stimulus_target('mcp-instances-environment-variables', 'container') }}>
                         {% for key, value in instance.userEnvironmentVariables %}
-                            <div class="flex gap-2 mb-2 env-var-row">
+                            <div class="flex gap-2 mb-2 env-var-row" data-test-class="env-var-row">
                                 <input type="text" name="env_keys[]" value="{{ key }}" placeholder="KEY" class="etfswui-form-input flex-1" />
                                 <input type="text" name="env_values[]" value="{{ value }}" placeholder="value" class="etfswui-form-input flex-1" />
-                                <button type="button" onclick="this.parentElement.remove()" class="etfswui-button-danger">Remove</button>
+                                <button type="button" {{ stimulus_action('mcp-instances-environment-variables', 'remove') }} class="etfswui-button-danger">Remove</button>
                             </div>
                         {% endfor %}
                         {% if instance.userEnvironmentVariables|length == 0 %}
-                            <div class="flex gap-2 mb-2 env-var-row">
+                            <div class="flex gap-2 mb-2 env-var-row" data-test-class="env-var-row">
                                 <input type="text" name="env_keys[]" placeholder="KEY" class="etfswui-form-input flex-1" />
                                 <input type="text" name="env_values[]" placeholder="value" class="etfswui-form-input flex-1" />
-                                <button type="button" onclick="this.parentElement.remove()" class="etfswui-button-danger">Remove</button>
+                                <button type="button" {{ stimulus_action('mcp-instances-environment-variables', 'remove') }} class="etfswui-button-danger">Remove</button>
                             </div>
                         {% endif %}
                     </div>
-                    <button type="button" onclick="addEnvVar()" class="etfswui-button-secondary mb-4">Add Variable</button>
+                    
+                    <template {{ stimulus_target('mcp-instances-environment-variables', 'template') }}>
+                        <div class="flex gap-2 mb-2 env-var-row" data-test-class="env-var-row">
+                            <input type="text" name="env_keys[]" placeholder="KEY" class="etfswui-form-input flex-1" />
+                            <input type="text" name="env_values[]" placeholder="value" class="etfswui-form-input flex-1" />
+                            <button type="button" {{ stimulus_action('mcp-instances-environment-variables', 'remove') }} class="etfswui-button-danger">Remove</button>
+                        </div>
+                    </template>
+                    
+                    <button type="button" {{ stimulus_action('mcp-instances-environment-variables', 'add') }} class="etfswui-button-secondary mb-4" data-test-id="add-env-var-button">Add Variable</button>
                     <div>
                         <button type="submit" class="etfswui-button-primary">Save Environment Variables</button>
                     </div>
                 </form>
             </div>
         </div>
-
-        <script>
-        function addEnvVar() {
-            const container = document.getElementById('env-vars-container');
-            const row = document.createElement('div');
-            row.className = 'flex gap-2 mb-2 env-var-row';
-            row.innerHTML = `
-                <input type="text" name="env_keys[]" placeholder="KEY" class="etfswui-form-input flex-1" />
-                <input type="text" name="env_values[]" placeholder="value" class="etfswui-form-input flex-1" />
-                <button type="button" onclick="this.parentElement.remove()" class="etfswui-button-danger">Remove</button>
-            `;
-            container.appendChild(row);
-        }
-        </script>
 
         <div class="etfswui-card mb-8 text-left" data-test-id="card-mcp-endpoints">
             <div class="etfswui-card-title">

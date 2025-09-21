@@ -219,4 +219,101 @@ final class McpInstancesDomainServiceTest extends TestCase
         $this->assertCount(1, $infos);
         $this->assertSame($inst->getVncPassword(), $infos[0]->getVncPassword());
     }
+
+    public function testUpdateEnvironmentVariablesSuccessfully(): void
+    {
+        $accountId = 'account-uuid-123';
+        $instanceId = 'instance-uuid-456';
+        $envVars = [
+            'METABASE_URL' => 'https://demo.metabase.com',
+            'METABASE_API_KEY' => 'secret-key-123'
+        ];
+
+        $instance = new McpInstance(
+            $accountId,
+            InstanceType::METABASE_V1,
+            1280,
+            720,
+            24,
+            'vncpass',
+            'bearer'
+        );
+
+        $this->repo->method('findOneBy')
+                   ->with(['id' => $instanceId, 'accountCoreId' => $accountId])
+                   ->willReturn($instance);
+
+        $this->em->expects($this->atLeastOnce())
+                 ->method('flush');
+
+        $result = $this->unitUnderTest->updateEnvironmentVariables($accountId, $instanceId, $envVars);
+
+        $this->assertTrue($result);
+        $this->assertCount(2, $instance->getEnvironmentVariables());
+        
+        $envVarArray = $instance->getUserEnvironmentVariablesAsArray();
+        $this->assertSame('https://demo.metabase.com', $envVarArray['METABASE_URL']);
+        $this->assertSame('secret-key-123', $envVarArray['METABASE_API_KEY']);
+    }
+
+    public function testUpdateEnvironmentVariablesReturnsFalseWhenInstanceNotFound(): void
+    {
+        $accountId = 'account-uuid-123';
+        $instanceId = 'nonexistent-instance';
+        $envVars = ['TEST_KEY' => 'test_value'];
+
+        $this->repo->method('findOneBy')
+                   ->with(['id' => $instanceId, 'accountCoreId' => $accountId])
+                   ->willReturn(null);
+
+        $this->em->expects($this->never())
+                 ->method('flush');
+
+        $result = $this->unitUnderTest->updateEnvironmentVariables($accountId, $instanceId, $envVars);
+
+        $this->assertFalse($result);
+    }
+
+    public function testUpdateEnvironmentVariablesReplacesExistingVariables(): void
+    {
+        $accountId = 'account-uuid-123';
+        $instanceId = 'instance-uuid-456';
+        
+        $instance = new McpInstance(
+            $accountId,
+            InstanceType::METABASE_V1,
+            1280,
+            720,
+            24,
+            'vncpass',
+            'bearer'
+        );
+
+        $instance->setUserEnvironmentVariables([
+            'OLD_KEY' => 'old_value',
+            'METABASE_URL' => 'https://old.metabase.com'
+        ]);
+
+        $newEnvVars = [
+            'METABASE_URL' => 'https://new.metabase.com',
+            'METABASE_API_KEY' => 'new-secret-key'
+        ];
+
+        $this->repo->method('findOneBy')
+                   ->with(['id' => $instanceId, 'accountCoreId' => $accountId])
+                   ->willReturn($instance);
+
+        $this->em->expects($this->atLeastOnce())
+                 ->method('flush');
+
+        $result = $this->unitUnderTest->updateEnvironmentVariables($accountId, $instanceId, $newEnvVars);
+
+        $this->assertTrue($result);
+        $this->assertCount(2, $instance->getEnvironmentVariables());
+        
+        $envVarArray = $instance->getUserEnvironmentVariablesAsArray();
+        $this->assertSame('https://new.metabase.com', $envVarArray['METABASE_URL']);
+        $this->assertSame('new-secret-key', $envVarArray['METABASE_API_KEY']);
+        $this->assertArrayNotHasKey('OLD_KEY', $envVarArray);
+    }
 }

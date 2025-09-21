@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\McpInstancesManagement\Presentation\Controller;
 
 use App\Common\Presentation\Controller\AbstractAccountAwareController;
+use App\McpInstancesManagement\Domain\Entity\McpInstance;
 use App\McpInstancesManagement\Domain\Service\McpInstancesDomainServiceInterface;
 use App\McpInstancesManagement\Facade\Enum\InstanceType;
 use App\McpInstancesManagement\Presentation\McpInstancesPresentationService;
@@ -20,6 +21,9 @@ use ValueError;
 #[IsGranted('ROLE_USER')]
 class InstancesController extends AbstractAccountAwareController
 {
+    /** @var array<McpInstance>|null */
+    private ?array $cachedUserInstances = null;
+
     public function __construct(
         private readonly McpInstancesDomainServiceInterface $domainService,
         private readonly McpInstancesPresentationService    $presentationService,
@@ -143,7 +147,7 @@ class InstancesController extends AbstractAccountAwareController
     {
         $accountId = $this->getAuthenticatedAccountId();
         // Verify ownership
-        $userInstances    = $this->domainService->getMcpInstanceInfosForAccount($accountId);
+        $userInstances    = $this->getUserInstancesForAccount($accountId);
         $userOwnsInstance = false;
         foreach ($userInstances as $inst) {
             if ($inst->getId() === $id) {
@@ -179,7 +183,7 @@ class InstancesController extends AbstractAccountAwareController
 
         // Verify the user owns this instance
         $accountId     = $this->getAuthenticatedAccountId();
-        $userInstances = $this->domainService->getMcpInstanceInfosForAccount($accountId);
+        $userInstances = $this->getUserInstancesForAccount($accountId);
 
         $userOwnsInstance = false;
         foreach ($userInstances as $instance) {
@@ -225,7 +229,7 @@ class InstancesController extends AbstractAccountAwareController
 
         // Verify ownership
         $accountId     = $this->getAuthenticatedAccountId();
-        $userInstances = $this->domainService->getMcpInstanceInfosForAccount($accountId);
+        $userInstances = $this->getUserInstancesForAccount($accountId);
 
         $userOwnsInstance = false;
         foreach ($userInstances as $instance) {
@@ -253,5 +257,17 @@ class InstancesController extends AbstractAccountAwareController
         }
 
         return $this->redirectToRoute('mcp_instances_management.presentation.detail', ['id' => $instanceId]);
+    }
+
+    /**
+     * Get user instances with caching to avoid N+1 queries within the same request.
+     * @return array<McpInstance>
+     */
+    private function getUserInstancesForAccount(string $accountId): array
+    {
+        if ($this->cachedUserInstances === null) {
+            $this->cachedUserInstances = $this->domainService->getMcpInstanceInfosForAccount($accountId);
+        }
+        return $this->cachedUserInstances;
     }
 }

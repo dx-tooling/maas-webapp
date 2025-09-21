@@ -256,4 +256,22 @@ final readonly class McpInstancesDomainService implements McpInstancesDomainServ
             $containerStatusDto,
         );
     }
+
+    /**
+     * @param array<string,string> $environmentVariables
+     */
+    public function updateEnvironmentVariables(string $accountCoreId, string $instanceId, array $environmentVariables): bool
+    {
+        $repo     = $this->entityManager->getRepository(McpInstance::class);
+        $instance = $repo->findOneBy(['id' => $instanceId, 'accountCoreId' => $accountCoreId]);
+
+        if ($instance === null) {
+            return false;
+        }
+
+        $instance->setUserEnvironmentVariables($environmentVariables);
+        $this->entityManager->flush();
+
+        return true;
+    }
 }

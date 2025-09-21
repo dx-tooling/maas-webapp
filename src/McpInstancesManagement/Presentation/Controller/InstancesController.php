@@ -12,6 +12,7 @@ use Exception;
 use LogicException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Throwable;
@@ -250,6 +251,55 @@ class InstancesController extends AbstractAccountAwareController
             }
         } catch (Throwable $e) {
             $this->addFlash('error', 'An error occurred while recreating the container: ' . $e->getMessage());
+        }
+
+        return $this->redirectToRoute('mcp_instances_management.presentation.detail', ['id' => $instanceId]);
+    }
+
+    #[Route('/account/mcp-instances/update-env-vars', name: 'mcp_instances_management.presentation.update_env_vars', methods: ['POST'])]
+    public function updateEnvironmentVariables(Request $request): Response
+    {
+        $instanceId = $request->request->get('instanceId');
+        if (!is_string($instanceId) || $instanceId === '') {
+            throw new BadRequestHttpException('Invalid instance ID');
+        }
+
+        $accountId = $this->getAuthenticatedAccountId();
+
+        $keys   = $request->request->all('env_keys');
+        $values = $request->request->all('env_values');
+
+        if (!is_array($keys) || !is_array($values)) {
+            throw new BadRequestHttpException('Invalid environment variables data');
+        }
+
+        if (count($keys) !== count($values)) {
+            throw new BadRequestHttpException('Keys and values count mismatch');
+        }
+
+        $envVars = [];
+        for ($i = 0; $i < count($keys); ++$i) {
+            $key   = trim((string) $keys[$i]);
+            $value = trim((string) $values[$i]);
+
+            if ($key === '') {
+                continue;
+            }
+
+            if (!preg_match('/^[A-Z_][A-Z0-9_]*$/', $key)) {
+                $this->addFlash('error', "Invalid environment variable key: {$key}. Keys must contain only uppercase letters, numbers, and underscores, and start with a letter or underscore.");
+
+                return $this->redirectToRoute('mcp_instances_management.presentation.detail', ['id' => $instanceId]);
+            }
+
+            $envVars[$key] = $value;
+        }
+
+        $success = $this->domainService->updateEnvironmentVariables($accountId, $instanceId, $envVars);
+        if (!$success) {
+            $this->addFlash('error', 'Failed to update environment variables');
+        } else {
+            $this->addFlash('success', 'Environment variables updated successfully');
         }
 
         return $this->redirectToRoute('mcp_instances_management.presentation.detail', ['id' => $instanceId]);

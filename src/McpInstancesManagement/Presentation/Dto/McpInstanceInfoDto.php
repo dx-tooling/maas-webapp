@@ -8,6 +8,9 @@ use DateTimeImmutable;
 
 final readonly class McpInstanceInfoDto
 {
+    /**
+     * @param array<string,string> $userEnvironmentVariables
+     */
     public function __construct(
         public string            $id,
         public DateTimeImmutable $createdAt,
@@ -28,6 +31,7 @@ final readonly class McpInstanceInfoDto
         public array             $vncExternalPaths = [],
         /** @var list<string> */
         public array             $mcpExternalPaths = [],
+        public array             $userEnvironmentVariables = [],
     ) {
     }
 }

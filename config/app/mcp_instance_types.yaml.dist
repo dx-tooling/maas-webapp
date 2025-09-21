@@ -75,4 +75,20 @@ mcp_instance_types:
                         path: "/"
                         accept_status_lt: 500
 
+    # Metabase MCP server type
+    metabase-v1:
+        display_name: "Metabase MCP v1"
+        description: "Connect to Metabase databases and run queries via MCP"
+        docker:
+            # image: "maas-mcp-instance-metabase-v1"  # optional override; default derives from type
+        endpoints:
+            mcp:
+                port: 8080
+                auth: bearer
+                external_paths: ["/mcp", "/sse"]
+                health:
+                    http:
+                        path: "/mcp"
+                        accept_status_lt: 500
+
 

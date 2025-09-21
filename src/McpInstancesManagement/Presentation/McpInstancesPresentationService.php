@@ -239,6 +239,7 @@ final readonly class McpInstancesPresentationService
             $instance->getVncSubdomain(),
             $vncPaths,
             $mcpPaths,
+            $instance->getUserEnvironmentVariablesAsArray(),
         );
     }
 

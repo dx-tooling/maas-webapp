@@ -57,4 +57,9 @@ interface McpInstancesDomainServiceInterface
      * Get process status for a specific MCP instance.
      */
     public function getProcessStatusForInstance(string $instanceId): ProcessStatusDto;
+
+    /**
+     * @param array<string,string> $environmentVariables
+     */
+    public function updateEnvironmentVariables(string $accountCoreId, string $instanceId, array $environmentVariables): bool;
 }

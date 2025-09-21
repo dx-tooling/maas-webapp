@@ -18,8 +18,6 @@ use ReflectionProperty;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\Session\Flash\FlashBagInterface;
-use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Twig\Environment;
@@ -33,13 +31,13 @@ final class InstancesControllerEnvironmentVariablesTest extends TestCase
 
     protected function setUp(): void
     {
-        $twig = WebUiTestHelper::createTwigEnvironment('McpInstancesManagement');
+        $twig      = WebUiTestHelper::createTwigEnvironment('McpInstancesManagement');
         $accountId = 'test-account-id';
 
         $this->domainService = $this->createMock(McpInstancesDomainServiceInterface::class);
-        $accountFacade = $this->createMock(AccountFacadeInterface::class);
-        $dockerFacade = $this->createMock(DockerManagementFacadeInterface::class);
-        $typesConfig = $this->createMock(InstanceTypesConfigFacadeInterface::class);
+        $accountFacade       = $this->createMock(AccountFacadeInterface::class);
+        $dockerFacade        = $this->createMock(DockerManagementFacadeInterface::class);
+        $typesConfig         = $this->createMock(InstanceTypesConfigFacadeInterface::class);
 
         $presentationService = new McpInstancesPresentationService(
             $this->domainService,
@@ -51,9 +49,9 @@ final class InstancesControllerEnvironmentVariablesTest extends TestCase
         $this->unitUnderTest = new class($this->domainService, $presentationService, $twig, $accountId) extends InstancesController {
             public function __construct(
                 McpInstancesDomainServiceInterface $domain,
-                McpInstancesPresentationService $presentation,
-                private Environment $twig,
-                private string $accountId
+                McpInstancesPresentationService    $presentation,
+                private Environment                $twig,
+                private string                     $accountId
             ) {
                 parent::__construct($domain, $presentation);
             }
@@ -61,15 +59,17 @@ final class InstancesControllerEnvironmentVariablesTest extends TestCase
             protected function render(string $view, array $parameters = [], ?Response $response = null): Response
             {
                 $html = $this->twig->render($view, $parameters);
+
                 return new Response($html);
             }
 
             public function getUser(): UserInterface
             {
                 $user = new AccountCore('test@example.com', 'hash');
-                $ref = new ReflectionProperty(AccountCore::class, 'id');
+                $ref  = new ReflectionProperty(AccountCore::class, 'id');
                 $ref->setAccessible(true);
                 $ref->setValue($user, $this->accountId);
+
                 return $user;
             }
 
@@ -83,6 +83,7 @@ final class InstancesControllerEnvironmentVariablesTest extends TestCase
                 if (!empty($parameters)) {
                     $url .= '?' . http_build_query($parameters);
                 }
+
                 return new RedirectResponse($url, $status);
             }
         };
@@ -91,7 +92,7 @@ final class InstancesControllerEnvironmentVariablesTest extends TestCase
     public function testUpdateEnvironmentVariablesSuccessfully(): void
     {
         $instanceId = 'instance-uuid-123';
-        $accountId = 'test-account-id';
+        $accountId  = 'test-account-id';
 
         $request = new Request();
         $request->request->set('instanceId', $instanceId);
@@ -105,7 +106,7 @@ final class InstancesControllerEnvironmentVariablesTest extends TestCase
                 $accountId,
                 $instanceId,
                 [
-                    'METABASE_URL' => 'https://demo.metabase.com',
+                    'METABASE_URL'     => 'https://demo.metabase.com',
                     'METABASE_API_KEY' => 'secret-key-123'
                 ]
             )
@@ -159,7 +160,7 @@ final class InstancesControllerEnvironmentVariablesTest extends TestCase
     public function testUpdateEnvironmentVariablesValidatesKeyFormat(): void
     {
         $instanceId = 'instance-uuid-123';
-        $accountId = 'test-account-id';
+        $accountId  = 'test-account-id';
 
         $request = new Request();
         $request->request->set('instanceId', $instanceId);
@@ -176,7 +177,7 @@ final class InstancesControllerEnvironmentVariablesTest extends TestCase
     public function testUpdateEnvironmentVariablesSkipsEmptyKeys(): void
     {
         $instanceId = 'instance-uuid-123';
-        $accountId = 'test-account-id';
+        $accountId  = 'test-account-id';
 
         $request = new Request();
         $request->request->set('instanceId', $instanceId);

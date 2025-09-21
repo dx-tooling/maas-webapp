@@ -222,10 +222,10 @@ final class McpInstancesDomainServiceTest extends TestCase
 
     public function testUpdateEnvironmentVariablesSuccessfully(): void
     {
-        $accountId = 'account-uuid-123';
+        $accountId  = 'account-uuid-123';
         $instanceId = 'instance-uuid-456';
-        $envVars = [
-            'METABASE_URL' => 'https://demo.metabase.com',
+        $envVars    = [
+            'METABASE_URL'     => 'https://demo.metabase.com',
             'METABASE_API_KEY' => 'secret-key-123'
         ];
 
@@ -250,7 +250,7 @@ final class McpInstancesDomainServiceTest extends TestCase
 
         $this->assertTrue($result);
         $this->assertCount(2, $instance->getEnvironmentVariables());
-        
+
         $envVarArray = $instance->getUserEnvironmentVariablesAsArray();
         $this->assertSame('https://demo.metabase.com', $envVarArray['METABASE_URL']);
         $this->assertSame('secret-key-123', $envVarArray['METABASE_API_KEY']);
@@ -258,9 +258,9 @@ final class McpInstancesDomainServiceTest extends TestCase
 
     public function testUpdateEnvironmentVariablesReturnsFalseWhenInstanceNotFound(): void
     {
-        $accountId = 'account-uuid-123';
+        $accountId  = 'account-uuid-123';
         $instanceId = 'nonexistent-instance';
-        $envVars = ['TEST_KEY' => 'test_value'];
+        $envVars    = ['TEST_KEY' => 'test_value'];
 
         $this->repo->method('findOneBy')
                    ->with(['id' => $instanceId, 'accountCoreId' => $accountId])
@@ -276,9 +276,9 @@ final class McpInstancesDomainServiceTest extends TestCase
 
     public function testUpdateEnvironmentVariablesReplacesExistingVariables(): void
     {
-        $accountId = 'account-uuid-123';
+        $accountId  = 'account-uuid-123';
         $instanceId = 'instance-uuid-456';
-        
+
         $instance = new McpInstance(
             $accountId,
             InstanceType::METABASE_V1,
@@ -290,12 +290,12 @@ final class McpInstancesDomainServiceTest extends TestCase
         );
 
         $instance->setUserEnvironmentVariables([
-            'OLD_KEY' => 'old_value',
+            'OLD_KEY'      => 'old_value',
             'METABASE_URL' => 'https://old.metabase.com'
         ]);
 
         $newEnvVars = [
-            'METABASE_URL' => 'https://new.metabase.com',
+            'METABASE_URL'     => 'https://new.metabase.com',
             'METABASE_API_KEY' => 'new-secret-key'
         ];
 
@@ -310,7 +310,7 @@ final class McpInstancesDomainServiceTest extends TestCase
 
         $this->assertTrue($result);
         $this->assertCount(2, $instance->getEnvironmentVariables());
-        
+
         $envVarArray = $instance->getUserEnvironmentVariablesAsArray();
         $this->assertSame('https://new.metabase.com', $envVarArray['METABASE_URL']);
         $this->assertSame('new-secret-key', $envVarArray['METABASE_API_KEY']);

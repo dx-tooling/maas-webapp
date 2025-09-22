@@ -7,7 +7,9 @@ const app = startStimulusApp();
 // register any custom, 3rd party controllers here
 // app.register('some_controller_name', SomeImportedController);
 
-app.register('mcp-instances-environment-variables', 
-    () => import('./controllers/mcp_instances_environment_variables_controller.js'));
+app.register(
+    "mcp-instances-environment-variables",
+    () => import("./controllers/mcp_instances_environment_variables_controller.js"),
+);
 
 webuiBootstrap(app);

@@ -56,6 +56,9 @@ final class InstancesControllerEnvironmentVariablesTest extends TestCase
                 parent::__construct($domain, $presentation);
             }
 
+            /**
+             * @param array<string, mixed> $parameters
+             */
             protected function render(string $view, array $parameters = [], ?Response $response = null): Response
             {
                 $html = $this->twig->render($view, $parameters);
@@ -77,6 +80,9 @@ final class InstancesControllerEnvironmentVariablesTest extends TestCase
             {
             }
 
+            /**
+             * @param array<string, mixed> $parameters
+             */
             protected function redirectToRoute(string $route, array $parameters = [], int $status = 302): RedirectResponse
             {
                 $url = $route;
@@ -115,6 +121,7 @@ final class InstancesControllerEnvironmentVariablesTest extends TestCase
         $response = $this->unitUnderTest->updateEnvironmentVariables($request);
 
         $this->assertSame(302, $response->getStatusCode());
+        $this->assertInstanceOf(RedirectResponse::class, $response);
         $this->assertStringContainsString('mcp_instances_management.presentation.detail', $response->getTargetUrl());
         $this->assertStringContainsString('id=' . $instanceId, $response->getTargetUrl());
     }
@@ -170,6 +177,7 @@ final class InstancesControllerEnvironmentVariablesTest extends TestCase
         $response = $this->unitUnderTest->updateEnvironmentVariables($request);
 
         $this->assertSame(302, $response->getStatusCode());
+        $this->assertInstanceOf(RedirectResponse::class, $response);
         $this->assertStringContainsString('mcp_instances_management.presentation.detail', $response->getTargetUrl());
         $this->assertStringContainsString('id=' . $instanceId, $response->getTargetUrl());
     }

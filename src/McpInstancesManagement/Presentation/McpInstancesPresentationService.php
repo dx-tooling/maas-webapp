@@ -73,7 +73,7 @@ final readonly class McpInstancesPresentationService
     }
 
     /**
-     * @return array<array{value:string,display:string,description:string}>
+     * @return array<array{value:string,display:string,description:string,required_env_vars:array<string,string>}>
      */
     public function getAvailableTypes(): array
     {
@@ -82,9 +82,10 @@ final readonly class McpInstancesPresentationService
                 $cfg = $this->typesConfig->getTypeConfig($t);
 
                 return [
-                    'value'       => $t->value,
-                    'display'     => ($cfg !== null) ? $cfg->displayName : $t->value,
-                    'description' => ($cfg !== null) ? $cfg->description : '',
+                    'value'             => $t->value,
+                    'display'           => ($cfg !== null) ? $cfg->displayName : $t->value,
+                    'description'       => ($cfg !== null) ? $cfg->description : '',
+                    'required_env_vars' => ($cfg !== null) ? $cfg->requiredUserEnvVars : [],
                 ];
             }, InstanceType::cases()),
             static fn (array $x): bool => $x['value'] !== InstanceType::_LEGACY->value
@@ -119,7 +120,7 @@ final readonly class McpInstancesPresentationService
             return null;
         }
 
-        return $this->dockerFacade->getInstanceStatus($instance->toDto());
+        return $this->dockerFacade->getInstanceStatus($this->domainService->createMcpInstanceDtoForDocker($instance));
     }
 
     /**
@@ -147,7 +148,7 @@ final readonly class McpInstancesPresentationService
 
             // Get container status for health check
             try {
-                $containerStatus = $this->dockerFacade->getContainerStatus($instance->toDto());
+                $containerStatus = $this->dockerFacade->getContainerStatus($this->domainService->createMcpInstanceDtoForDocker($instance));
                 $isHealthy       = $containerStatus->healthy;
                 $mcpEndpoint     = $containerStatus->mcpEndpoint;
                 $vncEndpoint     = $containerStatus->vncEndpoint;
@@ -221,6 +222,11 @@ final readonly class McpInstancesPresentationService
             throw new ValueError('mcpPaths must be a list');
         }
 
+        $requiredUserEnvVars = [];
+        if ($typeCfg !== null) {
+            $requiredUserEnvVars = $typeCfg->requiredUserEnvVars;
+        }
+
         return new McpInstanceInfoDto(
             $instance->getId() ?? '',
             $instance->getCreatedAt(),
@@ -240,6 +246,7 @@ final readonly class McpInstancesPresentationService
             $vncPaths,
             $mcpPaths,
             $instance->getUserEnvironmentVariablesAsArray(),
+            $requiredUserEnvVars,
         );
     }
 

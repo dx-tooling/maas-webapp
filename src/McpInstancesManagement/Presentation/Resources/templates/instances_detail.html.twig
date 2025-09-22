@@ -55,8 +55,26 @@
                 <span class="etfswui-card-title-text">Environment Variables</span>
             </div>
             <div class="etfswui-card-content bg-neutral-50 dark:bg-neutral-900">
+                {% if instance.requiredUserEnvVars|length > 0 %}
+                    <div class="mb-6">
+                        <h4 class="etfswui-text font-semibold mb-3 text-primary-600 dark:text-primary-400">Required Environment Variables</h4>
+                        <div class="space-y-3">
+                            {% for key, description in instance.requiredUserEnvVars %}
+                                <div class="p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-md">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <span class="etfswui-text font-medium text-yellow-800 dark:text-yellow-200">{{ key }}</span>
+                                        <span class="etfswui-text-small text-yellow-600 dark:text-yellow-400">(Required)</span>
+                                    </div>
+                                    <p class="etfswui-text-small text-yellow-700 dark:text-yellow-300">{{ description }}</p>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+
                 <form method="post" action="{{ path('mcp_instances_management.presentation.update_env_vars') }}">
                     <input type="hidden" name="instanceId" value="{{ instance.id }}" />
+                    <h4 class="etfswui-text font-semibold mb-3">User Environment Variables</h4>
                     <div {{ stimulus_target('mcp-instances-environment-variables', 'container') }}>
                         {% for key, value in instance.userEnvironmentVariables %}
                             <div class="flex gap-2 mb-2 env-var-row" data-test-class="env-var-row">
@@ -83,8 +101,21 @@
                     </template>
                     
                     <button type="button" {{ stimulus_action('mcp-instances-environment-variables', 'add') }} class="etfswui-button-secondary mb-4" data-test-id="add-env-var-button">Add Variable</button>
-                    <div>
-                        <button type="submit" class="etfswui-button-primary">Save Environment Variables</button>
+                    
+                    <div class="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md">
+                        <div class="flex items-start gap-2">
+                            <svg class="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+                            </svg>
+                            <div>
+                                <p class="etfswui-text-small text-blue-800 dark:text-blue-200 font-medium">Container Recreation Required</p>
+                                <p class="etfswui-text-small text-blue-700 dark:text-blue-300">Saving environment variables will recreate the Docker container to apply the new variables. This may cause a brief service interruption.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <button type="submit" class="etfswui-button-default" data-test-id="save-env-vars-button">Save Environment Variables</button>
                     </div>
                 </form>
             </div>

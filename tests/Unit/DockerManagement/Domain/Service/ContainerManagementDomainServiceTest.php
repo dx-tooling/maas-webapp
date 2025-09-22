@@ -258,6 +258,8 @@ final class ContainerManagementDomainServiceTest extends TestCase
             $e->getMcpBearer(),
             $e->getMcpSubdomain(),
             $e->getVncSubdomain(),
+            $e->getUserEnvironmentVariablesAsArray(),
+            [], // No required environment variables needed for this test
         );
     }
 

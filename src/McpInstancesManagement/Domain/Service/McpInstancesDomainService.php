@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\McpInstancesManagement\Domain\Service;
 
 use App\DockerManagement\Facade\DockerManagementFacadeInterface;
+use App\McpInstancesConfiguration\Facade\Service\InstanceTypesConfigFacadeInterface;
 use App\McpInstancesManagement\Domain\Entity\McpInstance;
+use App\McpInstancesManagement\Facade\Dto\McpInstanceDto;
 use App\McpInstancesManagement\Facade\Dto\ProcessStatusContainerDto;
 use App\McpInstancesManagement\Facade\Dto\ProcessStatusDto;
 use App\McpInstancesManagement\Facade\Dto\ServiceStatusDto;
@@ -18,8 +20,9 @@ use LogicException;
 final readonly class McpInstancesDomainService implements McpInstancesDomainServiceInterface
 {
     public function __construct(
-        private EntityManagerInterface          $entityManager,
-        private DockerManagementFacadeInterface $dockerFacade,
+        private EntityManagerInterface             $entityManager,
+        private DockerManagementFacadeInterface    $dockerFacade,
+        private InstanceTypesConfigFacadeInterface $typesConfig,
     ) {
     }
 
@@ -74,7 +77,7 @@ final readonly class McpInstancesDomainService implements McpInstancesDomainServ
         $this->entityManager->flush();
 
         // Create and start Docker container
-        if (!$this->dockerFacade->createAndStartContainer($instance->toDto())) {
+        if (!$this->dockerFacade->createAndStartContainer($this->createMcpInstanceDtoForDocker($instance))) {
             // If container creation fails, remove the database entry
             $this->entityManager->remove($instance);
             $this->entityManager->flush();
@@ -97,7 +100,7 @@ final readonly class McpInstancesDomainService implements McpInstancesDomainServ
         }
 
         // Stop and remove Docker container
-        $this->dockerFacade->stopAndRemoveContainer($instance->toDto());
+        $this->dockerFacade->stopAndRemoveContainer($this->createMcpInstanceDtoForDocker($instance));
 
         // Remove database entry
         $this->entityManager->remove($instance);
@@ -112,7 +115,7 @@ final readonly class McpInstancesDomainService implements McpInstancesDomainServ
             return false;
         }
 
-        $success = $this->dockerFacade->restartContainer($instance->toDto());
+        $success = $this->dockerFacade->restartContainer($this->createMcpInstanceDtoForDocker($instance));
 
         if ($success) {
             $instance->setContainerState(ContainerState::RUNNING);
@@ -138,7 +141,7 @@ final readonly class McpInstancesDomainService implements McpInstancesDomainServ
         }
 
         // Stop and remove old container (ignore result; it may not exist)
-        $this->dockerFacade->stopAndRemoveContainer($instance->toDto());
+        $this->dockerFacade->stopAndRemoveContainer($this->createMcpInstanceDtoForDocker($instance));
 
         // Ensure derived fields exist (container name/slug) before recreation
         if ($instance->getContainerName() === null || $instance->getInstanceSlug() === null) {
@@ -148,7 +151,7 @@ final readonly class McpInstancesDomainService implements McpInstancesDomainServ
         }
 
         // Create and start new container using the same instance data
-        $success = $this->dockerFacade->createAndStartContainer($instance->toDto());
+        $success = $this->dockerFacade->createAndStartContainer($this->createMcpInstanceDtoForDocker($instance));
         if ($success) {
             $instance->setContainerState(ContainerState::RUNNING);
         } else {
@@ -204,7 +207,7 @@ final readonly class McpInstancesDomainService implements McpInstancesDomainServ
             throw new LogicException('MCP instance not found.');
         }
 
-        $this->dockerFacade->stopAndRemoveContainer($instance->toDto());
+        $this->dockerFacade->stopAndRemoveContainer($this->createMcpInstanceDtoForDocker($instance));
         $this->entityManager->remove($instance);
         $this->entityManager->flush();
     }
@@ -222,7 +225,7 @@ final readonly class McpInstancesDomainService implements McpInstancesDomainServ
         }
 
         // Get Docker container status with partial endpoint checks
-        $containerStatus = $this->dockerFacade->getContainerStatus($instance->toDto());
+        $containerStatus = $this->dockerFacade->getContainerStatus($this->createMcpInstanceDtoForDocker($instance));
 
         $running     = $containerStatus->state === 'running';
         $xvfbUp      = $running; // container running implies Xvfb supervisor started
@@ -273,5 +276,58 @@ final readonly class McpInstancesDomainService implements McpInstancesDomainServ
         $this->entityManager->flush();
 
         return true;
+    }
+
+    /**
+     * Create a complete McpInstanceDto with all required data including required environment variables.
+     */
+    public function createMcpInstanceDto(McpInstance $instance): McpInstanceDto
+    {
+        $typeCfg             = $this->typesConfig->getTypeConfig(InstanceType::from($instance->getInstanceType()->value));
+        $requiredUserEnvVars = $typeCfg !== null ? $typeCfg->requiredUserEnvVars : [];
+
+        return new McpInstanceDto(
+            $instance->getId() ?? '',
+            $instance->getCreatedAt(),
+            $instance->getAccountCoreId(),
+            $instance->getInstanceSlug(),
+            $instance->getContainerName(),
+            ContainerState::from($instance->getContainerState()->value),
+            InstanceType::from($instance->getInstanceType()->value),
+            $instance->getScreenWidth(),
+            $instance->getScreenHeight(),
+            $instance->getColorDepth(),
+            $instance->getVncPassword(),
+            $instance->getMcpBearer(),
+            $instance->getMcpSubdomain(),
+            $instance->getVncSubdomain(),
+            $instance->getUserEnvironmentVariablesAsArray(),
+            $requiredUserEnvVars,
+        );
+    }
+
+    /**
+     * Create a McpInstanceDto for Docker operations (without required environment variables).
+     */
+    public function createMcpInstanceDtoForDocker(McpInstance $instance): McpInstanceDto
+    {
+        return new McpInstanceDto(
+            $instance->getId() ?? '',
+            $instance->getCreatedAt(),
+            $instance->getAccountCoreId(),
+            $instance->getInstanceSlug(),
+            $instance->getContainerName(),
+            ContainerState::from($instance->getContainerState()->value),
+            InstanceType::from($instance->getInstanceType()->value),
+            $instance->getScreenWidth(),
+            $instance->getScreenHeight(),
+            $instance->getColorDepth(),
+            $instance->getVncPassword(),
+            $instance->getMcpBearer(),
+            $instance->getMcpSubdomain(),
+            $instance->getVncSubdomain(),
+            $instance->getUserEnvironmentVariablesAsArray(),
+            [], // No required environment variables needed for Docker operations
+        );
     }
 }

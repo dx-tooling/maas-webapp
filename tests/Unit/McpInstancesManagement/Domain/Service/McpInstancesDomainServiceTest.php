@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\McpInstancesManagement\Domain\Service;
 
 use App\DockerManagement\Facade\DockerManagementFacadeInterface;
+use App\McpInstancesConfiguration\Facade\Service\InstanceTypesConfigFacadeInterface;
 use App\McpInstancesManagement\Domain\Entity\McpInstance;
 use App\McpInstancesManagement\Domain\Service\McpInstancesDomainService;
 use App\McpInstancesManagement\Facade\Dto\McpInstanceDto;
@@ -27,6 +28,9 @@ final class McpInstancesDomainServiceTest extends TestCase
     /** @var DockerManagementFacadeInterface&MockObject */
     private DockerManagementFacadeInterface $dockerFacade;
 
+    /** @var InstanceTypesConfigFacadeInterface&MockObject */
+    private InstanceTypesConfigFacadeInterface $typesConfig;
+
     private McpInstancesDomainService $unitUnderTest;
 
     protected function setUp(): void
@@ -34,13 +38,15 @@ final class McpInstancesDomainServiceTest extends TestCase
         $this->em           = $this->createMock(EntityManagerInterface::class);
         $this->repo         = $this->createMock(EntityRepository::class);
         $this->dockerFacade = $this->createMock(DockerManagementFacadeInterface::class);
+        $this->typesConfig  = $this->createMock(InstanceTypesConfigFacadeInterface::class);
 
         $this->em->method('getRepository')
                  ->willReturn($this->repo);
 
         $this->unitUnderTest = new McpInstancesDomainService(
             $this->em,
-            $this->dockerFacade
+            $this->dockerFacade,
+            $this->typesConfig
         );
     }
 
@@ -197,10 +203,11 @@ final class McpInstancesDomainServiceTest extends TestCase
 
     public function testGetMcpInstanceInfosForAccountDelegatesToRepo(): void
     {
-        $em     = $this->createMock(EntityManagerInterface::class);
-        $repo   = $this->createMock(EntityRepository::class);
-        $docker = $this->createMock(DockerManagementFacadeInterface::class);
-        $domain = new McpInstancesDomainService($em, $docker);
+        $em          = $this->createMock(EntityManagerInterface::class);
+        $repo        = $this->createMock(EntityRepository::class);
+        $docker      = $this->createMock(DockerManagementFacadeInterface::class);
+        $typesConfig = $this->createMock(InstanceTypesConfigFacadeInterface::class);
+        $domain      = new McpInstancesDomainService($em, $docker, $typesConfig);
 
         $em->method('getRepository')->willReturn($repo);
         $inst = new McpInstance(

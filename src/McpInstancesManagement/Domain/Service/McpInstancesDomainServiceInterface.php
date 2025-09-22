@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\McpInstancesManagement\Domain\Service;
 
 use App\McpInstancesManagement\Domain\Entity\McpInstance;
+use App\McpInstancesManagement\Facade\Dto\McpInstanceDto;
 use App\McpInstancesManagement\Facade\Dto\ProcessStatusDto;
 use App\McpInstancesManagement\Facade\Enum\InstanceType;
 use Exception;
@@ -62,4 +63,14 @@ interface McpInstancesDomainServiceInterface
      * @param array<string,string> $environmentVariables
      */
     public function updateEnvironmentVariables(string $accountCoreId, string $instanceId, array $environmentVariables): bool;
+
+    /**
+     * Create a complete McpInstanceDto with all required data including required environment variables.
+     */
+    public function createMcpInstanceDto(McpInstance $instance): McpInstanceDto;
+
+    /**
+     * Create a McpInstanceDto for Docker operations (without required environment variables).
+     */
+    public function createMcpInstanceDtoForDocker(McpInstance $instance): McpInstanceDto;
 }

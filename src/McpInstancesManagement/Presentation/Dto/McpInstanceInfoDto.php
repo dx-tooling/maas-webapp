@@ -10,6 +10,7 @@ final readonly class McpInstanceInfoDto
 {
     /**
      * @param array<string,string> $userEnvironmentVariables
+     * @param array<string,string> $requiredUserEnvVars
      */
     public function __construct(
         public string            $id,
@@ -32,6 +33,7 @@ final readonly class McpInstanceInfoDto
         /** @var list<string> */
         public array             $mcpExternalPaths = [],
         public array             $userEnvironmentVariables = [],
+        public array             $requiredUserEnvVars = [],
     ) {
     }
 }

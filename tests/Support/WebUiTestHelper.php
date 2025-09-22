@@ -61,13 +61,20 @@ TWIG,
             return 'data-controller="' . htmlspecialchars($name, ENT_QUOTES) . '"' . (!empty($dataAttrs) ? ' ' . implode(' ', $dataAttrs) : '');
         }, ['is_safe' => ['html']]));
 
-        $twig->addFunction(new TwigFunction('stimulus_action', function (string $controller, string $action, array $options = []): string {
-            $eventValue = $options['event'] ?? 'click';
-            $event      = '';
-            if (is_string($eventValue)) {
-                $event = $eventValue;
-            } elseif (is_scalar($eventValue)) {
-                $event = (string) $eventValue;
+        $twig->addFunction(new TwigFunction('stimulus_action', function (string $controller, string $action, string|array $options = []): string {
+            // Handle both array options and string event name
+            if (is_string($options)) {
+                $event = $options;
+            } else {
+                $eventValue = $options['event'] ?? 'click';
+                $event      = '';
+                if (is_string($eventValue)) {
+                    $event = $eventValue;
+                } elseif (is_scalar($eventValue)) {
+                    $event = (string) $eventValue;
+                } else {
+                    $event = 'click';
+                }
             }
 
             return 'data-action="' . htmlspecialchars($event . '->' . $controller . '#' . $action, ENT_QUOTES) . '"';

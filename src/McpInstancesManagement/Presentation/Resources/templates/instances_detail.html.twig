@@ -78,15 +78,15 @@
                     <div {{ stimulus_target('mcp-instances-environment-variables', 'container') }}>
                         {% for key, value in instance.userEnvironmentVariables %}
                             <div class="flex gap-2 mb-2 env-var-row" data-test-class="env-var-row">
-                                <input type="text" name="env_keys[]" value="{{ key }}" placeholder="KEY" class="etfswui-form-input flex-1" />
-                                <input type="text" name="env_values[]" value="{{ value }}" placeholder="value" class="etfswui-form-input flex-1" />
+                                <input type="text" name="env_keys[]" value="{{ key }}" placeholder="KEY" class="etfswui-form-input flex-1" {{ stimulus_action('mcp-instances-environment-variables', 'inputChanged', 'input') }} />
+                                <input type="text" name="env_values[]" value="{{ value }}" placeholder="value" class="etfswui-form-input flex-1" {{ stimulus_action('mcp-instances-environment-variables', 'inputChanged', 'input') }} />
                                 <button type="button" {{ stimulus_action('mcp-instances-environment-variables', 'remove') }} class="etfswui-button-danger">Remove</button>
                             </div>
                         {% endfor %}
                         {% if instance.userEnvironmentVariables|length == 0 %}
                             <div class="flex gap-2 mb-2 env-var-row" data-test-class="env-var-row">
-                                <input type="text" name="env_keys[]" placeholder="KEY" class="etfswui-form-input flex-1" />
-                                <input type="text" name="env_values[]" placeholder="value" class="etfswui-form-input flex-1" />
+                                <input type="text" name="env_keys[]" placeholder="KEY" class="etfswui-form-input flex-1" {{ stimulus_action('mcp-instances-environment-variables', 'inputChanged', 'input') }} />
+                                <input type="text" name="env_values[]" placeholder="value" class="etfswui-form-input flex-1" {{ stimulus_action('mcp-instances-environment-variables', 'inputChanged', 'input') }} />
                                 <button type="button" {{ stimulus_action('mcp-instances-environment-variables', 'remove') }} class="etfswui-button-danger">Remove</button>
                             </div>
                         {% endif %}
@@ -94,8 +94,8 @@
                     
                     <template {{ stimulus_target('mcp-instances-environment-variables', 'template') }}>
                         <div class="flex gap-2 mb-2 env-var-row" data-test-class="env-var-row">
-                            <input type="text" name="env_keys[]" placeholder="KEY" class="etfswui-form-input flex-1" />
-                            <input type="text" name="env_values[]" placeholder="value" class="etfswui-form-input flex-1" />
+                            <input type="text" name="env_keys[]" placeholder="KEY" class="etfswui-form-input flex-1" {{ stimulus_action('mcp-instances-environment-variables', 'inputChanged', 'input') }} />
+                            <input type="text" name="env_values[]" placeholder="value" class="etfswui-form-input flex-1" {{ stimulus_action('mcp-instances-environment-variables', 'inputChanged', 'input') }} />
                             <button type="button" {{ stimulus_action('mcp-instances-environment-variables', 'remove') }} class="etfswui-button-danger">Remove</button>
                         </div>
                     </template>
@@ -115,7 +115,7 @@
                     </div>
                     
                     <div class="mt-4">
-                        <button type="submit" class="etfswui-button-default" data-test-id="save-env-vars-button">Save Environment Variables</button>
+                        <button type="submit" class="etfswui-button-default-disabled" {{ stimulus_target('mcp-instances-environment-variables', 'saveButton') }} data-test-id="save-env-vars-button" disabled>Save Environment Variables</button>
                     </div>
                 </form>
             </div>

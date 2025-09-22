@@ -24,6 +24,8 @@ RUN apt-get update && apt-get install -y \
     novnc \
     websockify \
     curl \
+    procps \
+    net-tools \
     && rm -rf /var/lib/apt/lists/*
 
 # Create app directory

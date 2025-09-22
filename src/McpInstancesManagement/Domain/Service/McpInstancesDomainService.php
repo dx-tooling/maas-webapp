@@ -49,8 +49,8 @@ final readonly class McpInstancesDomainService implements McpInstancesDomainServ
         }
 
         // Create instance with default screen settings and generated secrets
-        $screenWidth  = 1280;
-        $screenHeight = 720;
+        $screenWidth  = 1920;
+        $screenHeight = 1200;
         $colorDepth   = 24;
         $vncPassword  = McpInstance::generateRandomPassword();
         $mcpBearer    = McpInstance::generateRandomBearer();

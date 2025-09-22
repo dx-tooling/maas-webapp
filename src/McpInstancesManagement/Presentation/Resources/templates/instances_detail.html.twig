@@ -102,7 +102,7 @@
                         This allows you to access the MCP session via VNC and watch your AI Agent at work.
                     </div>
                     <div class="flex gap-2 items-center">
-                        <a href="https://{{ instance.vncSubdomain }}{{ instance.vncExternalPaths.0 }}?password={{ instance.vncPassword|url_encode }}&autoconnect=true"
+                        <a href="https://{{ instance.vncSubdomain }}{{ instance.vncExternalPaths.0 }}?password={{ instance.vncPassword|url_encode }}&resize=scale&autoconnect=true"
                            class="etfswui-link-as-button-secondary"
                            target="_blank" rel="noopener noreferrer">
                             Open VNC Web Client

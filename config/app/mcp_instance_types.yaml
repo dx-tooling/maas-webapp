@@ -71,7 +71,7 @@ mcp_instance_types:
             mcp:
                 port: 8080
                 auth: bearer
-                external_paths: ["/mcp"]
+                external_paths: ["/sse"]
                 health:
                     http:
                         path: "/health"

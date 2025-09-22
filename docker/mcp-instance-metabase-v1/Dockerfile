@@ -1,5 +1,5 @@
 # Multi-stage build for Metabase MCP Server
-FROM node:20-slim AS builder
+FROM node:22-bookworm AS builder
 
 # Install git for npm dependencies that might need it
 RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
@@ -13,7 +13,7 @@ RUN npm install
 RUN npm run build
 
 # Production stage
-FROM node:20-slim
+FROM node:22-bookworm
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -33,6 +33,8 @@ WORKDIR /app
 
 # Copy built application from builder stage
 COPY --from=builder /app .
+
+RUN ln -s /app/build/server.js /app/build/index.js
 
 # Copy supervisor configuration
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf

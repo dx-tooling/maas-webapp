@@ -28,7 +28,28 @@ export default class extends Controller {
         this.updateSaveButtonState();
     }
 
-    inputChanged() {
+    inputChanged(event) {
+        // Sanitize key input to match server rules: uppercase letters, numbers, underscores; start with letter or underscore
+        const target = event && event.target ? event.target : null;
+        if (target && target.name === "env_keys[]" && target instanceof HTMLInputElement) {
+            const original = target.value;
+            let sanitized = original.toUpperCase().replace(/[^A-Z0-9_]/g, "_");
+            if (sanitized !== "" && /[^A-Z_]/.test(sanitized.charAt(0))) {
+                sanitized = "_" + sanitized;
+            }
+            if (sanitized !== original) {
+                const selectionStart = target.selectionStart;
+                const selectionEnd = target.selectionEnd;
+                target.value = sanitized;
+                // try to preserve cursor position
+                if (selectionStart !== null && selectionEnd !== null) {
+                    const delta = sanitized.length - original.length;
+                    const newStart = Math.max(0, selectionStart + delta);
+                    const newEnd = Math.max(0, selectionEnd + delta);
+                    target.setSelectionRange(newStart, newEnd);
+                }
+            }
+        }
         this.updateSaveButtonState();
     }
 
@@ -74,9 +95,10 @@ export default class extends Controller {
 
     updateSaveButtonState() {
         const hasChanges = this.hasChanges();
+        const inputsAreValid = this.inputsAreValid();
         const saveButton = this.saveButtonTarget;
 
-        if (hasChanges) {
+        if (hasChanges && inputsAreValid) {
             saveButton.disabled = false;
             saveButton.classList.remove("etfswui-button-default-disabled");
             saveButton.classList.add("etfswui-button-default");
@@ -85,6 +107,21 @@ export default class extends Controller {
             saveButton.classList.remove("etfswui-button-default");
             saveButton.classList.add("etfswui-button-default-disabled");
         }
+    }
+
+    inputsAreValid() {
+        const rows = this.containerTarget.querySelectorAll(".env-var-row");
+        const keyPattern = /^[A-Z_][A-Z0-9_]*$/;
+        for (const row of rows) {
+            const keyInput = row.querySelector('input[name="env_keys[]"]');
+            if (keyInput && keyInput instanceof HTMLInputElement) {
+                const k = keyInput.value.trim();
+                if (k !== "" && !keyPattern.test(k)) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     addEventListenersToRow(row) {

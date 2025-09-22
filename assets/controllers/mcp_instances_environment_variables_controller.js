@@ -13,10 +13,13 @@ export default class extends Controller {
 
     add() {
         const template = this.templateTarget.content.cloneNode(true);
+        const newRow = template.querySelector(".env-var-row");
         this.containerTarget.appendChild(template);
 
-        // Add event listeners to the new row
-        this.addEventListenersToRow(template.querySelector(".env-var-row"));
+        // Add event listeners to the new row (query BEFORE append; fragment gets emptied on append)
+        if (newRow) {
+            this.addEventListenersToRow(newRow);
+        }
         this.updateSaveButtonState();
     }
 

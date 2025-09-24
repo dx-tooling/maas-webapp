@@ -79,6 +79,20 @@ final readonly class YamlInstanceTypesConfigProvider implements InstanceTypesCon
             $image        = is_string($docker['image'] ?? null) ? (string) $docker['image'] : '';
             $dockerConfig = new InstanceDockerConfig($image, $env);
 
+            // Parse required user environment variables
+            $requiredUserEnvVars = [];
+            if (array_key_exists('required_user_env_vars', $typeData)) {
+                if (!is_array($typeData['required_user_env_vars'])) {
+                    throw new InvalidInstanceTypesConfigException('required_user_env_vars must be a map for ' . $typeKey);
+                }
+                foreach ($typeData['required_user_env_vars'] as $envKey => $envDescription) {
+                    if (!is_string($envKey) || !is_string($envDescription)) {
+                        throw new InvalidInstanceTypesConfigException('required_user_env_vars entries must be strings for ' . $typeKey);
+                    }
+                    $requiredUserEnvVars[$envKey] = $envDescription;
+                }
+            }
+
             // endpoints
             if (!array_key_exists('endpoints', $typeData) || !is_array($typeData['endpoints'])) {
                 throw new InvalidInstanceTypesConfigException('endpoints is required for ' . $typeKey);
@@ -169,7 +183,8 @@ final readonly class YamlInstanceTypesConfigProvider implements InstanceTypesCon
                 $displayName,
                 $description,
                 $dockerConfig,
-                $endpointMap
+                $endpointMap,
+                $requiredUserEnvVars
             );
         }
 

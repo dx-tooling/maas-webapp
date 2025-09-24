@@ -69,7 +69,11 @@ src/
         ├── Controller/   # Symfony controllers
         ├── Components/   # Live components
         ├── Dto/          # View models
-        └── Templates/    # Twig templates
+        ├── Resources/    # Feature-specific assets
+        │   ├── assets/   # Client-side code
+        │   │   └── controllers/  # Stimulus controllers
+        │   └── templates/  # Twig templates
+        └── Templates/    # Legacy template location (deprecated)
 ```
 
 **Note**: Features may implement `Api`, `Presentation`, or both adapter layers depending on their access requirements.
@@ -225,7 +229,118 @@ class YamlInstanceTypesConfigProvider implements InstanceTypesConfigProviderInte
 }
 ```
 
+## Client-Side Architecture
+
+### Stimulus Controller Organization
+
+Client-side JavaScript follows the same feature isolation principles as server-side code. Each feature manages its own Stimulus controllers within its presentation layer:
+
+```
+src/FeatureName/Presentation/Resources/assets/controllers/
+├── feature_specific_controller.js
+├── another_controller.js
+└── shared_utilities.js
+```
+
+### AssetMapper Configuration
+
+Feature-specific assets are included via AssetMapper configuration:
+
+```yaml
+# config/packages/asset_mapper.yaml
+framework:
+    asset_mapper:
+        paths:
+            - assets/                                    # Global assets
+            - src/*/Presentation/Resources/assets/       # Feature assets
+```
+
+### Stimulus Controller Registration
+
+Controllers are registered with feature-specific namespacing to prevent conflicts:
+
+```typescript
+// assets/bootstrap.ts
+app.register('feature-name-controller-name', 
+    () => import('../src/FeatureName/Presentation/Resources/assets/controllers/controller_name.js'));
+```
+
+### Twig Integration with Stimulus
+
+Symfony provides native Twig helper functions for clean Stimulus integration:
+
+```twig
+{# Use stimulus_controller() for controller binding #}
+<div {{ stimulus_controller('feature-name-controller', { 
+    'maxItems': 10,
+    'apiUrl': path('api_endpoint') 
+}) }}>
+
+    {# Use stimulus_target() for element targeting #}
+    <div {{ stimulus_target('feature-name-controller', 'container') }}>
+        <!-- content -->
+    </div>
+
+    {# Use stimulus_action() for event handling #}
+    <button {{ stimulus_action('feature-name-controller', 'add') }}>
+        Add Item
+    </button>
+</div>
+```
+
+### Benefits of Feature-Specific Client-Side Organization
+
+1. **Boundary Enforcement**: Client-side code respects the same hexagonal boundaries as server-side code
+2. **Reusability**: Controllers can be shared across templates within the same feature
+3. **Maintainability**: Changes to one feature's client-side code don't affect others
+4. **Testing Isolation**: Each feature's JavaScript can be tested independently
+5. **Type Safety**: Twig helpers provide compile-time validation of controller names and parameters
+
+### Client-Side Architectural Rules
+
+- **Feature Isolation**: Stimulus controllers belong to specific features, not global assets
+- **Naming Convention**: Use feature-prefixed controller names (`feature-name-action`)
+- **Twig Helpers**: Always use `stimulus_controller()`, `stimulus_action()`, and `stimulus_target()` instead of manual `data-*` attributes
+- **Asset Organization**: Place controllers in `src/FeatureName/Presentation/Resources/assets/controllers/`
+- **No Cross-Feature Dependencies**: Controllers should not directly reference other features' controllers
+
+### Legacy Inline JavaScript Migration
+
+When migrating from inline JavaScript to Stimulus controllers:
+
+1. **Extract Logic**: Move JavaScript functions to dedicated Stimulus controller files
+2. **Use Templates**: Replace `innerHTML` manipulation with HTML `<template>` elements
+3. **Apply Twig Helpers**: Replace manual `data-*` attributes with Twig helper functions
+4. **Maintain Functionality**: Ensure all existing behavior is preserved during migration
+
 ## Testing Architecture
+
+### Client-Side Testing
+
+Client-side testing follows the same isolation principles as server-side testing:
+
+- **Unit Testing**: Test Stimulus controllers in isolation using Jest or similar frameworks
+- **Integration Testing**: Test client-server interactions through browser automation
+- **UI Testing**: Use stable `data-test-*` attributes for reliable element selection
+
+```javascript
+// Example Stimulus controller test
+import { Application } from "@hotwired/stimulus"
+import EnvironmentVariablesController from "./environment_variables_controller"
+
+describe("EnvironmentVariablesController", () => {
+    let application, controller
+
+    beforeEach(() => {
+        application = Application.start()
+        application.register("environment-variables", EnvironmentVariablesController)
+    })
+
+    test("adds new environment variable row", () => {
+        // Test implementation
+    })
+})
+```
 
 ### Test Organization
 - **Unit Tests** (`tests/Unit/`): Isolated class testing with mocks

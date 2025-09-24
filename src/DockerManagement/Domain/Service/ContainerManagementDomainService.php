@@ -411,6 +411,18 @@ final readonly class ContainerManagementDomainService
             "VNC_PASSWORD={$instance->vncPassword}"
         ];
 
+        // Add instance type environment variables from configuration
+        $typeCfg = $this->instanceTypesConfigService->getTypeConfig($instance->instanceType);
+        if ($typeCfg !== null) {
+            foreach ($typeCfg->docker->env as $key => $value) {
+                $envVars[] = "{$key}={$value}";
+            }
+        }
+
+        foreach ($instance->userEnvironmentVariables as $key => $value) {
+            $envVars[] = "{$key}={$value}";
+        }
+
         $labels = $this->buildTraefikLabels(
             $instance->instanceType,
             $instanceSlug

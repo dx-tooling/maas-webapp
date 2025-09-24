@@ -10,6 +10,10 @@ use DateTimeImmutable;
 
 final readonly class McpInstanceDto
 {
+    /**
+     * @param array<string,string> $userEnvironmentVariables
+     * @param array<string,string> $requiredUserEnvVars
+     */
     public function __construct(
         public string            $id,
         public DateTimeImmutable $createdAt,
@@ -25,6 +29,8 @@ final readonly class McpInstanceDto
         public string            $mcpBearer,
         public ?string           $mcpSubdomain,
         public ?string           $vncSubdomain,
+        public array             $userEnvironmentVariables,
+        public array             $requiredUserEnvVars = [],
     ) {
     }
 }

@@ -1,6 +1,4 @@
-# MCP Instance Types Configuration (.dist)
-#
-# Copy this file to mcp_instance_types.yaml and adjust as needed.
+# MCP Instance Types Configuration (Examples and documentation)
 #
 # Schema overview:
 # mcp_instance_types:                       # required
@@ -11,6 +9,8 @@
 #       image: <string>                     # optional, overrides derived name
 #       env:                                # optional map<string,string>, extra env passed to container
 #         SOME_ENV: "value"
+#     required_user_env_vars:               # optional map<string,string>, required user env vars with descriptions
+#       REQUIRED_VAR: "Description of what this variable is for"
 #     endpoints:                            # required map keyed by endpoint id (e.g., mcp, vnc, ...)
 #       <endpointId>:                       # id also defines the first subdomain segment
 #         port: <int>                       # required internal container port for this endpoint
@@ -75,4 +75,28 @@ mcp_instance_types:
                         path: "/"
                         accept_status_lt: 500
 
-
+    # Example with required user environment variables (metabase-v1)
+    metabase-v1:
+        display_name: "Metabase MCP v1"
+        description: "A Metabase MCP instance which allows an AI agent to interact with Metabase dashboards and queries through the MCP protocol."
+        docker:
+            image: "maas-mcp-instance-metabase-v1"
+        required_user_env_vars:
+            METABASE_URL: "The base URL of your Metabase instance (e.g., https://metabase.example.com)"
+            METABASE_API_KEY: "Your Metabase API key for authentication"
+        endpoints:
+            mcp:
+                port: 8080
+                auth: bearer
+                external_paths: ["/mcp"]
+                health:
+                    http:
+                        path: "/health"
+                        accept_status_lt: 201
+            vnc:
+                port: 6080
+                external_paths: ["/vnc.html"]
+                health:
+                    http:
+                        path: "/"
+                        accept_status_lt: 500

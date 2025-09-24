@@ -12,6 +12,7 @@ use Exception;
 use LogicException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Throwable;
@@ -250,6 +251,80 @@ class InstancesController extends AbstractAccountAwareController
             }
         } catch (Throwable $e) {
             $this->addFlash('error', 'An error occurred while recreating the container: ' . $e->getMessage());
+        }
+
+        return $this->redirectToRoute('mcp_instances_management.presentation.detail', ['id' => $instanceId]);
+    }
+
+    #[Route('/account/mcp-instances/update-env-vars', name: 'mcp_instances_management.presentation.update_env_vars', methods: ['POST'])]
+    public function updateEnvironmentVariables(Request $request): Response
+    {
+        $instanceId = $request->request->get('instanceId');
+        if (!is_string($instanceId) || $instanceId === '') {
+            throw new BadRequestHttpException('Invalid instance ID');
+        }
+
+        $accountId = $this->getAuthenticatedAccountId();
+
+        $keys   = $request->request->all('env_keys');
+        $values = $request->request->all('env_values');
+
+        if (count($keys) !== count($values)) {
+            throw new BadRequestHttpException('Keys and values count mismatch');
+        }
+
+        $envVars = [];
+        for ($i = 0; $i < count($keys); ++$i) {
+            $keyValue = $keys[$i]   ?? '';
+            $valValue = $values[$i] ?? '';
+
+            // Ensure we have strings for processing
+            $key   = '';
+            $value = '';
+
+            if (is_string($keyValue)) {
+                $key = trim($keyValue);
+            } elseif (is_scalar($keyValue)) {
+                $key = trim((string) $keyValue);
+            }
+
+            if (is_string($valValue)) {
+                $value = trim($valValue);
+            } elseif (is_scalar($valValue)) {
+                $value = trim((string) $valValue);
+            }
+
+            if ($key === '') {
+                continue;
+            }
+
+            if (!preg_match('/^[A-Z_][A-Z0-9_]*$/', $key)) {
+                $this->addFlash('error', "Invalid environment variable key: {$key}. Keys must contain only uppercase letters, numbers, and underscores, and start with a letter or underscore.");
+
+                return $this->redirectToRoute('mcp_instances_management.presentation.detail', ['id' => $instanceId]);
+            }
+
+            $envVars[$key] = $value;
+        }
+
+        // Update environment variables in the database
+        $success = $this->domainService->updateEnvironmentVariables($accountId, $instanceId, $envVars);
+        if (!$success) {
+            $this->addFlash('error', 'Failed to update environment variables');
+
+            return $this->redirectToRoute('mcp_instances_management.presentation.detail', ['id' => $instanceId]);
+        }
+
+        // Recreate the container to apply the new environment variables
+        try {
+            $recreateSuccess = $this->domainService->recreateMcpInstanceContainer($instanceId);
+            if ($recreateSuccess) {
+                $this->addFlash('success', 'Environment variables updated and container recreated successfully');
+            } else {
+                $this->addFlash('warning', 'Environment variables updated but container recreation failed. Please try recreating manually.');
+            }
+        } catch (Exception $e) {
+            $this->addFlash('warning', 'Environment variables updated but container recreation failed: ' . $e->getMessage());
         }
 
         return $this->redirectToRoute('mcp_instances_management.presentation.detail', ['id' => $instanceId]);

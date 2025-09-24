@@ -65,6 +65,7 @@
                                 <div class="min-w-0">
                                     <div class="font-medium truncate">{{ i.instanceTypeDisplayName }}</div>
                                     <div class="etfswui-text-small text-dark-500 truncate">{{ i.containerName }}</div>
+                                    <div class="etfswui-text-small text-dark-400 truncate">{{ i.id }}</div>
                                 </div>
                                 <div class="flex items-center gap-2">
                                     <a href="{{ path('mcp_instances_management.presentation.detail', {id: i.id}) }}" class="etfswui-link-as-button-secondary" data-test-class="btn-details">Details</a>

@@ -47,7 +47,8 @@ final class ForwardAuthControllerTest extends TestCase
                     '',
                     'expected-token',
                     '',
-                    ''
+                    '',
+                    []
                 )
             );
 

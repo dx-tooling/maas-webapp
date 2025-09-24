@@ -6,13 +6,16 @@ namespace App\McpInstancesManagement\Facade;
 
 use App\McpInstancesManagement\Domain\Entity\McpInstance;
 use App\McpInstancesManagement\Domain\Entity\McpInstance as McpInstanceEntity;
+use App\McpInstancesManagement\Domain\Service\McpInstancesDomainServiceInterface;
 use App\McpInstancesManagement\Facade\Dto\McpInstanceDto;
 use Doctrine\ORM\EntityManagerInterface;
 
 final readonly class McpInstancesManagementFacade implements McpInstancesManagementFacadeInterface
 {
-    public function __construct(private EntityManagerInterface $entityManager)
-    {
+    public function __construct(
+        private EntityManagerInterface             $entityManager,
+        private McpInstancesDomainServiceInterface $domainService
+    ) {
     }
 
     public function getMcpInstanceById(string $id): ?McpInstanceDto
@@ -20,7 +23,7 @@ final readonly class McpInstancesManagementFacade implements McpInstancesManagem
         $repo = $this->entityManager->getRepository(McpInstanceEntity::class);
         $ent  = $repo->find($id);
 
-        return $ent?->toDto();
+        return $ent ? $this->domainService->createMcpInstanceDto($ent) : null;
     }
 
     public function getMcpInstanceBySlug(string $slug): ?McpInstanceDto
@@ -28,6 +31,6 @@ final readonly class McpInstancesManagementFacade implements McpInstancesManagem
         $repo = $this->entityManager->getRepository(McpInstance::class);
         $ent  = $repo->findOneBy(['instanceSlug' => $slug]);
 
-        return $ent?->toDto();
+        return $ent ? $this->domainService->createMcpInstanceDto($ent) : null;
     }
 }

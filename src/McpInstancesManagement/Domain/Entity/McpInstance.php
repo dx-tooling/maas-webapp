@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace App\McpInstancesManagement\Domain\Entity;
 
-use App\McpInstancesManagement\Facade\Dto\McpInstanceDto;
 use App\McpInstancesManagement\Facade\Enum\ContainerState;
 use App\McpInstancesManagement\Facade\Enum\InstanceType;
 use DateTimeImmutable;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use EnterpriseToolingForSymfony\SharedBundle\DateAndTime\Service\DateAndTimeService;
@@ -31,14 +32,15 @@ class McpInstance
         string       $vncPassword,
         string       $mcpBearer
     ) {
-        $this->accountCoreId = $accountCoreId;
-        $this->instanceType  = $instanceType;
-        $this->screenWidth   = $screenWidth;
-        $this->screenHeight  = $screenHeight;
-        $this->colorDepth    = $colorDepth;
-        $this->vncPassword   = $vncPassword;
-        $this->mcpBearer     = $mcpBearer;
-        $this->createdAt     = DateAndTimeService::getDateTimeImmutable();
+        $this->accountCoreId        = $accountCoreId;
+        $this->instanceType         = $instanceType;
+        $this->screenWidth          = $screenWidth;
+        $this->screenHeight         = $screenHeight;
+        $this->colorDepth           = $colorDepth;
+        $this->vncPassword          = $vncPassword;
+        $this->mcpBearer            = $mcpBearer;
+        $this->createdAt            = DateAndTimeService::getDateTimeImmutable();
+        $this->environmentVariables = new ArrayCollection();
 
         // Generate derived fields after ID is set
         $this->containerState = ContainerState::CREATED;
@@ -105,6 +107,12 @@ class McpInstance
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
     private ?string $vncSubdomain = null;
 
+    /**
+     * @var Collection<int, McpInstanceEnvironmentVariable>
+     */
+    #[ORM\OneToMany(mappedBy: 'mcpInstance', targetEntity: McpInstanceEnvironmentVariable::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
+    private Collection $environmentVariables;
+
     public function getAccountCoreId(): string
     {
         return $this->accountCoreId;
@@ -166,6 +174,58 @@ class McpInstance
         return $this->vncSubdomain;
     }
 
+    /**
+     * @return Collection<int, McpInstanceEnvironmentVariable>
+     */
+    public function getEnvironmentVariables(): Collection
+    {
+        return $this->environmentVariables;
+    }
+
+    /**
+     * @return array<string,string>
+     */
+    public function getUserEnvironmentVariablesAsArray(): array
+    {
+        $envVars = [];
+        foreach ($this->environmentVariables as $envVar) {
+            $envVars[$envVar->getKey()] = $envVar->getValue();
+        }
+
+        return $envVars;
+    }
+
+    /**
+     * @param array<string,string> $environmentVariables
+     */
+    public function setUserEnvironmentVariables(array $environmentVariables): void
+    {
+        $this->environmentVariables->clear();
+
+        foreach ($environmentVariables as $key => $value) {
+            $envVar = new McpInstanceEnvironmentVariable($key, $value, $this);
+            $this->environmentVariables->add($envVar);
+        }
+    }
+
+    public function addEnvironmentVariable(McpInstanceEnvironmentVariable $environmentVariable): void
+    {
+        if (!$this->environmentVariables->contains($environmentVariable)) {
+            $this->environmentVariables->add($environmentVariable);
+            $environmentVariable->setMcpInstance($this);
+        }
+    }
+
+    public function removeEnvironmentVariable(McpInstanceEnvironmentVariable $environmentVariable): void
+    {
+        if ($this->environmentVariables->removeElement($environmentVariable)) {
+            if ($environmentVariable->getMcpInstance() === $this) {
+                // Note: We can't set to null due to the ORM mapping, so we'll just remove from collection
+                // The ORM will handle the relationship cleanup
+            }
+        }
+    }
+
     public function setContainerState(ContainerState $containerState): void
     {
         $this->containerState = $containerState;
@@ -211,25 +271,5 @@ class McpInstance
         }
 
         return rtrim(strtr(base64_encode(random_bytes($length)), '+/', '-_'), '=');
-    }
-
-    public function toDto(): McpInstanceDto
-    {
-        return new McpInstanceDto(
-            $this->getId() ?? '',
-            $this->getCreatedAt(),
-            $this->getAccountCoreId(),
-            $this->getInstanceSlug(),
-            $this->getContainerName(),
-            ContainerState::from($this->getContainerState()->value),
-            InstanceType::from($this->getInstanceType()->value),
-            $this->getScreenWidth(),
-            $this->getScreenHeight(),
-            $this->getColorDepth(),
-            $this->getVncPassword(),
-            $this->getMcpBearer(),
-            $this->getMcpSubdomain(),
-            $this->getVncSubdomain(),
-        );
     }
 }

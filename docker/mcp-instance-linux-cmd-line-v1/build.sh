@@ -31,6 +31,19 @@ else
   exit 1
 fi
 
+# Verify sudo access for mcp user
+echo "Verifying mcp user sudo access..."
+SUDO_CHECK=$(docker exec -u mcp mcp-test sh -lc 'sudo -n id -u' || echo "")
+if [ "$SUDO_CHECK" = "0" ]; then
+  echo "✅ mcp can sudo to root (uid 0)"
+else
+  echo "❌ mcp cannot sudo to root"
+  docker exec -u mcp mcp-test sh -lc 'id && sudo -n id -u || true'
+  docker logs mcp-test || true
+  docker stop mcp-test || true
+  exit 1
+fi
+
 # Cleanup
 docker stop mcp-test
 

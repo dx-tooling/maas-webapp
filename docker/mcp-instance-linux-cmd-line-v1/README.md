@@ -6,6 +6,7 @@ This Docker image packages the Linux command-line MCP server with a minimal runt
 
 - **Node.js MCP Server (linux cmd-line)**: Node-based MCP server
 - **supervisord**: Process supervisor to manage the server
+ - **sudo (passwordless for mcp)**: Allows the `mcp` user to gain root privileges
 
 ## Source
 
@@ -46,6 +47,16 @@ docker run -d \
 
 Then access:
 - MCP endpoint: http://localhost:8080/mcp
+
+## Sudo Capability
+
+The container grants passwordless sudo to the `mcp` user for administrative operations initiated by the MCP server or tooling.
+
+- Configuration: `/etc/sudoers.d/mcp` contains `mcp ALL=(ALL) NOPASSWD:ALL`.
+- Quick check:
+```bash
+docker exec -u mcp mcp-test sh -lc 'sudo -n id -u'  # outputs 0
+```
 
 ## Building
 

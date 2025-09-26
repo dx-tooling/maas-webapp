@@ -8,6 +8,7 @@ RUN apt-get update && apt-get install -y \
     x11vnc \
     tigervnc-standalone-server \
     websockify \
+    sudo \
     supervisor \
     curl \
     ca-certificates \
@@ -43,6 +44,9 @@ COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 # Create necessary directories
 RUN mkdir -p /var/log/supervisor \
     && chown -R mcp:mcp /home/mcp
+
+# Allow passwordless sudo for mcp
+RUN echo 'mcp ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/mcp && chmod 0440 /etc/sudoers.d/mcp
 
 # Environment variables (defaults)
 ENV DISPLAY=:99 \

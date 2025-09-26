@@ -8,7 +8,7 @@ set -euo pipefail
 MCP_IMAGE_NAME="${MCP_IMAGE_NAME:-}"
 MCP_CONTAINER_PREFIX="${MCP_CONTAINER_PREFIX:-mcp-instance}"
 MCP_NETWORK="${MCP_NETWORK:-mcp_instances}"
-MCP_MEMORY_LIMIT="${MCP_MEMORY_LIMIT:-1g}"
+MCP_MEMORY_LIMIT="${MCP_MEMORY_LIMIT:-2g}"
 MCP_RESTART_POLICY="${MCP_RESTART_POLICY:-unless-stopped}"
 
 # Domain and Routing Configuration

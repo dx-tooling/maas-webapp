@@ -1,3 +1,6 @@
+includes:
+    - vendor/enterprise-tooling-for-symfony/shared-bundle/config/phpstan.app.dist.neon
+
 parameters:
     level: 10
     paths:

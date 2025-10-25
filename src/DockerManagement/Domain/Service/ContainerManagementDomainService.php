@@ -14,11 +14,14 @@ use App\McpInstancesManagement\Facade\Enum\InstanceType;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
 use ValueError;
 
 final readonly class ContainerManagementDomainService
 {
+    private const string DOCKER_NETWORK_NAME = 'mcp_instances';
+
     public function __construct(
         private LoggerInterface                    $logger,
         private ParameterBagInterface              $params,
@@ -428,7 +431,7 @@ final readonly class ContainerManagementDomainService
             $instanceSlug
         );
 
-        $args = ['run', '-d', '--name', (string) $containerName, '--memory=1g', '--restart=always', '--network=mcp_instances'];
+        $args = ['run', '-d', '--name', (string) $containerName, '--memory=1g', '--restart=always', '--network=' . self::DOCKER_NETWORK_NAME];
 
         foreach ($envVars as $env) {
             $args[] = '-e';
@@ -460,9 +463,17 @@ final readonly class ContainerManagementDomainService
 
         $rootDomain = getenv('APP_ROOT_DOMAIN') ?: 'mcp-as-a-service.com';
 
-        $forwardAuthUrl = $this->router->generate('authentication.presentation.mcp_bearer_check', [], RouterInterface::ABSOLUTE_URL);
+        $forwardAuthUrl = $this->router->generate(
+            'authentication.presentation.mcp_bearer_check',
+            [],
+            UrlGeneratorInterface::ABSOLUTE_URL
+        );
 
-        $labels = ['traefik.enable=true'];
+        $labels = [
+            'is_mcp_instance=true',
+            'traefik.enable=true',
+            'traefik.docker.network=' . self::DOCKER_NETWORK_NAME,
+        ];
 
         foreach ($typeCfg->endpoints as $endpointId => $ep) {
             $labels = array_merge(
@@ -500,8 +511,8 @@ final readonly class ContainerManagementDomainService
 
         $labels   = [];
         $labels[] = 'traefik.http.routers.' . $router . '.rule=Host(`' . $host . '`)';
-        $labels[] = 'traefik.http.routers.' . $router . '.entrypoints=websecure';
-        $labels[] = 'traefik.http.routers.' . $router . '.tls=true';
+        $labels[] = 'traefik.http.routers.' . $router . '.entrypoints=web';
+        $labels[] = 'traefik.http.routers.' . $router . '.tls=false';
         $labels[] = 'traefik.http.routers.' . $router . '.service=' . $service;
         $labels[] = 'traefik.http.services.' . $service . '.loadbalancer.server.port=' . $ep->port;
 

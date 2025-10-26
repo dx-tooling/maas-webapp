@@ -45,7 +45,7 @@ final class ContainerManagementDomainServiceTest extends TestCase
         ]);
 
         $this->router = $this->createMock(RouterInterface::class);
-        $this->router->method('generate')->willReturn('https://app.mcp-as-a-service.com/auth/mcp-bearer-check');
+        $this->router->method('generate')->willReturn('/auth/mcp-bearer-check');
     }
 
     public function testCreateContainerFailsWhenNamesMissing(): void
@@ -230,7 +230,7 @@ final class ContainerManagementDomainServiceTest extends TestCase
 
         $this->assertContains('traefik.enable=true', $labels);
         $this->assertTrue($this->hasLabel($labels, 'traefik.http.routers.mcp-abc123.rule=Host(`mcp-abc123.mcp-as-a-service.com`)'));
-        $this->assertTrue($this->hasLabel($labels, 'traefik.http.routers.mcp-abc123.entrypoints=websecure'));
+        $this->assertTrue($this->hasLabel($labels, 'traefik.http.routers.mcp-abc123.entrypoints=web'));
         $this->assertTrue($this->hasLabel($labels, 'traefik.http.services.mcp-abc123.loadbalancer.server.port=8080'));
         $this->assertTrue($this->hasLabel($labels, 'traefik.http.routers.vnc-abc123.rule=Host(`vnc-abc123.mcp-as-a-service.com`)'));
         $this->assertTrue($this->hasLabel($labels, 'traefik.http.services.vnc-abc123.loadbalancer.server.port=6080'));

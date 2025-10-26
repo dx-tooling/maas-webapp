@@ -6,8 +6,8 @@ set -euo pipefail
 
 # Configuration
 TRAEFIK_VERSION="${TRAEFIK_VERSION:-v3.5.3}"
-TRAEFIK_CONTAINER_NAME="${TRAEFIK_CONTAINER_NAME:-mcp-as-a-service-traefik}"
-TRAEFIK_NETWORK_SELF="${TRAEFIK_NETWORK_SELF:-mcp_instances}"
+TRAEFIK_CONTAINER_NAME="${TRAEFIK_CONTAINER_NAME:-maas-traefik}"
+TRAEFIK_NETWORK_SELF="${TRAEFIK_NETWORK_SELF:-maas-mcp-instances}"
 TRAEFIK_NETWORK_OUTERMOST_ROUTER="${TRAEFIK_NETWORK_OUTERMOST_ROUTER:-outermost_router}"
 TRAEFIK_DASHBOARD_PORT="${TRAEFIK_DASHBOARD_PORT:-8080}"
 TRAEFIK_HTTP_PORT="${TRAEFIK_HTTP_PORT:-80}"
@@ -18,7 +18,7 @@ DOMAIN_NAME="${DOMAIN_NAME:-mcp-as-a-service.com}"
 APP_SUBDOMAIN="${APP_SUBDOMAIN:-app}"
 MCP_SUBDOMAIN_PATTERN="${MCP_SUBDOMAIN_PATTERN:-mcp-*}"
 VNC_SUBDOMAIN_PATTERN="${VNC_SUBDOMAIN_PATTERN:-vnc-*}"
-TRAEFIK_LOG_PATH="${TRAEFIK_LOG_PATH:-/var/log/mcp-as-a-service-traefik}"
+TRAEFIK_LOG_PATH="${TRAEFIK_LOG_PATH:-/var/log/maas-traefik}"
 TRAEFIK_USER_ID="${TRAEFIK_USER_ID:-1000}"
 TRAEFIK_GROUP_ID="${TRAEFIK_GROUP_ID:-1000}"
 
@@ -314,11 +314,11 @@ launch_traefik() {
         --label outermost_router.enable=true
         --label traefik.enable=true
         --label traefik.docker.network=outermost_router
-        --label traefik.http.routers.mcp-as-a-service-traefik.entrypoints=websecure
-        --label traefik.http.routers.mcp-as-a-service-traefik.rule="${rule}"
-        --label traefik.http.routers.mcp-as-a-service-traefik.tls=true
-        --label traefik.http.routers.mcp-as-a-service-traefik.service=mcp-as-a-service-traefik
-        --label traefik.http.services.mcp-as-a-service-traefik.loadbalancer.server.port=80
+        --label traefik.http.routers.maas-traefik.entrypoints=websecure
+        --label traefik.http.routers.maas-traefik.rule="${rule}"
+        --label traefik.http.routers.maas-traefik.tls=true
+        --label traefik.http.routers.maas-traefik.service=maas-traefik
+        --label traefik.http.services.maas-traefik.loadbalancer.server.port=80
     )
 
     # Add host access for production (to reach native nginx on port 8080)
@@ -478,7 +478,7 @@ case "${1:-}" in
         echo "  APP_SUBDOMAIN           App subdomain (default: app)"
         echo "  MCP_SUBDOMAIN_PATTERN   MCP subdomain pattern (default: mcp-*)"
         echo "  VNC_SUBDOMAIN_PATTERN   VNC subdomain pattern (default: vnc-*)"
-        echo "  TRAEFIK_LOG_PATH        Log directory (default: /var/log/mcp-as-a-service-traefik)"
+        echo "  TRAEFIK_LOG_PATH        Log directory (default: /var/log/maas-traefik)"
         echo "  TRAEFIK_USER_ID         Traefik user ID (default: 1000)"
         echo "  TRAEFIK_GROUP_ID        Traefik group ID (default: 1000)"
         echo ""

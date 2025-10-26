@@ -14,13 +14,12 @@ use App\McpInstancesManagement\Facade\Enum\InstanceType;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
 use ValueError;
 
 final readonly class ContainerManagementDomainService
 {
-    private const string DOCKER_NETWORK_NAME = 'mcp_instances';
+    private const string DOCKER_NETWORK_NAME = 'maas-mcp-instances';
 
     public function __construct(
         private LoggerInterface                    $logger,
@@ -461,13 +460,13 @@ final readonly class ContainerManagementDomainService
             return [];
         }
 
-        $rootDomain = getenv('APP_ROOT_DOMAIN') ?: 'mcp-as-a-service.com';
+        $rootDomain   = getenv('APP_ROOT_DOMAIN') ?: 'mcp-as-a-service.com';
+        $webappDomain = getenv('APP_WEBAPP_DOMAIN') ?: 'app.mcp-as-a-service.com';
 
         $forwardAuthUrl = $this->router->generate(
-            'authentication.presentation.mcp_bearer_check',
-            [],
-            UrlGeneratorInterface::ABSOLUTE_URL
+            'authentication.presentation.mcp_bearer_check'
         );
+        $forwardAuthUrl = "https://$webappDomain$forwardAuthUrl";
 
         $labels = [
             'is_mcp_instance=true',

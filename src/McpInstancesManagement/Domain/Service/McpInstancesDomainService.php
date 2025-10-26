@@ -279,6 +279,37 @@ final readonly class McpInstancesDomainService implements McpInstancesDomainServ
     }
 
     /**
+     * Recreate all MCP instances by stopping and recreating their containers.
+     * Returns true if all instances were successfully recreated, false otherwise.
+     */
+    public function recreateAllMcpInstances(): bool
+    {
+        $instances = $this->getAllMcpInstances();
+
+        if (empty($instances)) {
+            return true; // No instances to recreate
+        }
+
+        $allSuccessful = true;
+
+        foreach ($instances as $instance) {
+            $instanceId = $instance->getId();
+            if ($instanceId === null) {
+                $allSuccessful = false;
+                continue;
+            }
+
+            // Reuse the existing recreateMcpInstanceContainer method
+            $success = $this->recreateMcpInstanceContainer($instanceId);
+            if (!$success) {
+                $allSuccessful = false;
+            }
+        }
+
+        return $allSuccessful;
+    }
+
+    /**
      * Create a complete McpInstanceDto with all required data including required environment variables.
      */
     public function createMcpInstanceDto(McpInstance $instance): McpInstanceDto

@@ -65,6 +65,12 @@ interface McpInstancesDomainServiceInterface
     public function updateEnvironmentVariables(string $accountCoreId, string $instanceId, array $environmentVariables): bool;
 
     /**
+     * Recreate all MCP instances by stopping and recreating their containers.
+     * Returns true if all instances were successfully recreated, false otherwise.
+     */
+    public function recreateAllMcpInstances(): bool;
+
+    /**
      * Create a complete McpInstanceDto with all required data including required environment variables.
      */
     public function createMcpInstanceDto(McpInstance $instance): McpInstanceDto;

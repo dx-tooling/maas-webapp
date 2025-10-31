@@ -1,0 +1,6 @@
+[tools]
+node = "22"
+
+[tasks.frontend]
+description = "Build all frontend assets"
+run = "bash bin/build-frontend.sh"

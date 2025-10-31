@@ -1,6 +1,8 @@
 [tools]
-node = "22"
+node = "24"
 
-[tasks.frontend]
-description = "Build all frontend assets"
-run = "bash bin/build-frontend.sh"
+[task_config]
+includes = [
+    ".mise/tasks",
+    "vendor/enterprise-tooling-for-symfony/shared-bundle/config/mise/tasks"
+]

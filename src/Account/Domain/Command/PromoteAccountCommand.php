@@ -23,7 +23,7 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 )]
 final class PromoteAccountCommand extends EnhancedCommand
 {
-    public function __construct(
+    public function     __construct(
         RolloutService         $rolloutService,
         EntityManagerInterface $entityManager,
         LoggerInterface        $logger,

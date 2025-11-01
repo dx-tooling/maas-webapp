@@ -7,7 +7,7 @@ alwaysApply: true
 
 <rule>
 name: software_tests
-description: On any code change, the `nvm use && .dxcli/dxcli.sh test` command line must be executed and pass successfully.
+description: On any code change, the `mise run tests` command line must be executed and pass successfully.
 filters:
   - type: event
     pattern: ".*"  # Match any event
@@ -15,7 +15,7 @@ filters:
     pattern: ".*"  # Match any file extension
 actions:
   - type: execute
-    command: "nvm use && .dxcli/dxcli.sh test"
+    command: "mise run tests"
     require_success: true
     message: "All software tests must pass before merging."
 </rule>

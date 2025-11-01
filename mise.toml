@@ -1,4 +1,5 @@
 [tools]
+bats = "1.12"
 node = "24"
 
 [task_config]

@@ -1409,12 +1409,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/dx-tooling/etfs-shared-bundle.git",
-                "reference": "c2d1c57622f356a973459011b1cacf3487ee8702"
+                "reference": "cb3103d060e96ed84d7b3f976f44da2235bcdfaa"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/dx-tooling/etfs-shared-bundle/zipball/c2d1c57622f356a973459011b1cacf3487ee8702",
-                "reference": "c2d1c57622f356a973459011b1cacf3487ee8702",
+                "url": "https://api.github.com/repos/dx-tooling/etfs-shared-bundle/zipball/cb3103d060e96ed84d7b3f976f44da2235bcdfaa",
+                "reference": "cb3103d060e96ed84d7b3f976f44da2235bcdfaa",
                 "shasum": ""
             },
             "require": {
@@ -1476,7 +1476,7 @@
                 "source": "https://github.com/dx-tooling/etfs-shared-bundle/tree/main",
                 "issues": "https://github.com/dx-tooling/etfs-shared-bundle/issues"
             },
-            "time": "2025-10-31T16:35:22+00:00"
+            "time": "2025-11-01T06:35:44+00:00"
         },
         {
             "name": "enterprise-tooling-for-symfony/webui-bundle",

@@ -1484,12 +1484,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/dx-tooling/etfs-webui-bundle.git",
-                "reference": "aec7659a823703ba0825b922f6a7f823a3c0bee2"
+                "reference": "9b09b2c418f585d1f13feeb4fd23f7011c1f3bba"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/dx-tooling/etfs-webui-bundle/zipball/aec7659a823703ba0825b922f6a7f823a3c0bee2",
-                "reference": "aec7659a823703ba0825b922f6a7f823a3c0bee2",
+                "url": "https://api.github.com/repos/dx-tooling/etfs-webui-bundle/zipball/9b09b2c418f585d1f13feeb4fd23f7011c1f3bba",
+                "reference": "9b09b2c418f585d1f13feeb4fd23f7011c1f3bba",
                 "shasum": ""
             },
             "require": {
@@ -1533,7 +1533,7 @@
                 "source": "https://github.com/dx-tooling/etfs-webui-bundle/tree/main",
                 "issues": "https://github.com/dx-tooling/etfs-webui-bundle/issues"
             },
-            "time": "2025-07-13T11:02:20+00:00"
+            "time": "2025-11-03T17:08:04+00:00"
         },
         {
             "name": "firebase/php-jwt",

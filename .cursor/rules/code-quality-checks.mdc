@@ -7,7 +7,7 @@ alwaysApply: true
 
 <rule>
 name: code_quality_checks
-description: On any code change, the `nvm use && .dxcli/dxcli.sh quality` command line must be executed and pass successfully.
+description: On any code change, the `mise run quality` command line must be executed and pass successfully.
 filters:
   - type: event
     pattern: ".*"  # Match any event
@@ -15,7 +15,7 @@ filters:
     pattern: ".*"  # Match any file extension
 actions:
   - type: execute
-    command: "nvm use && .dxcli/dxcli.sh quality"
+    command: "mise run quality"
     require_success: true
     message: "All code quality checks (formatting, linting, type checking) must pass before merging."
 </rule>

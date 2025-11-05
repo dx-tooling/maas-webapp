@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
-
-SCRIPT_FOLDER="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+#MISE description="Deploy to the production systems"
 
 rsync \
   -avc \
@@ -14,8 +13,8 @@ rsync \
   --exclude mcp-env/ \
   --exclude public/generated-content/ \
   --delete \
-  "$SCRIPT_FOLDER"/../../ \
-  www-data@152.53.168.103:/var/www/prod/
+  ./ \
+  www-data@152.53.168.103:/var/www/prod/maas-webapp/
 
 ssh www-data@152.53.168.103 -C ' \
 cd ~/prod/maas-webapp; \

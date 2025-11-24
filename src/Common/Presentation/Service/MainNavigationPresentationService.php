@@ -121,18 +121,12 @@ final readonly class MainNavigationPresentationService extends AbstractMainNavig
      */
     public function getTertiaryMainNavigationEntries(): array
     {
-        $entries = [];
-
-        if ($this->security->isGranted('ROLE_ADMIN')) {
-            $entries = [
-                $this->generateEntry(
-                    'Living Styleguide',
-                    'webui.living_styleguide.show',
-                )
-            ];
-        }
-
-        return $entries;
+        return [
+            $this->generateEntry(
+                'Living Styleguide',
+                'webui.living_styleguide.show',
+            )
+        ];
     }
 
     public function getBrandLogoHtml(): string

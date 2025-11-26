@@ -41,6 +41,8 @@ The following assumes a vanilla Ubuntu 22.04 Devin machine.
     source ~/.bashrc
     sudo add-apt-repository --yes ppa:ondrej/php
     sudo apt install php8.4-cli php8.4-curl php8.4-fpm php8.4-xml php8.4-mbstring php8.4-mysql php8.4-intl php8.4-gd php8.4-opcache php8.4-bcmath php8.4-zip php8.4-dev php8.4-apcu php8.4-igbinary php8.4-mcrypt php-pear libzstd-dev composer mariadb-client-10.6
+    curl -1sLf https://dl.cloudsmith.io/public/symfony/stable/setup.deb.sh | sudo -E bash 
+    sudo apt install symfony-cli
     docker run \
         --name maas-webapp-db \
         -p 127.0.0.1:3306:3306 \

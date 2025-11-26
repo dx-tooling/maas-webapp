@@ -54,6 +54,6 @@ The following assumes a vanilla Ubuntu 22.04 Devin machine.
     composer install
     npm install --no-save
     php bin/console doctrine:database:create
-    php bin/console doctrine:migrations:migrate
+    php bin/console doctrine:migrations:migrate --no-interaction
     mise run quality
     mise run tests

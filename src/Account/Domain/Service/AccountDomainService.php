@@ -45,4 +45,9 @@ final readonly class AccountDomainService
     {
         return $this->passwordHasher->isPasswordValid($account, $plainPassword);
     }
+
+    public function sendForgotPasswordMail(string $email): void
+    {
+
+    }
 }

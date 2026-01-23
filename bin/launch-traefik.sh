@@ -144,8 +144,14 @@ cleanup_existing() {
 
 # Generate Traefik configuration (split into static and dynamic)
 generate_config() {
-    local static_config_file="/tmp/traefik-${TRAEFIK_CONTAINER_NAME}.yml"
-    local dynamic_config_file="/tmp/traefik-${TRAEFIK_CONTAINER_NAME}-dynamic.yml"
+    # Store config in a permanent location (not /tmp/) so container can restart
+    local config_dir="/etc/maas-traefik"
+    if [[ ! -d "${config_dir}" ]]; then
+        log_info "Creating config directory: ${config_dir}" >&2
+        sudo mkdir -p "${config_dir}"
+    fi
+    local static_config_file="${config_dir}/traefik.yml"
+    local dynamic_config_file="${config_dir}/dynamic.yml"
 
     # Generate static configuration (traefik.yml)
     cat > "${static_config_file}" << EOF
@@ -445,13 +451,8 @@ main() {
     # Launch container
     launch_traefik "${config_files}"
 
-    # Cleanup temporary config files
-    if [[ -n "${config_files:-}" ]]; then
-        local static_config_file=$(echo "${config_files}" | cut -d' ' -f1)
-        local dynamic_config_file=$(echo "${config_files}" | cut -d' ' -f2)
-        rm -f "${static_config_file}" "${dynamic_config_file}"
-        log_info "Cleaned up temporary configuration files"
-    fi
+    # Note: Config files are kept in /etc/maas-traefik/ so the container
+    # can restart without issues. They are overwritten on each launch.
 }
 
 # Handle script arguments

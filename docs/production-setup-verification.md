@@ -100,7 +100,8 @@ cat /etc/sudoers.d/101-www-data-docker-cli-wrapper
 docker exec traefik-container curl http://host.docker.internal:8080
 
 # Alternative: Use host networking for Traefik
-docker run --network host traefik:v3.5 ...
+# (Traefik must be >= v3.6.1 for Docker Engine 29's minimum API version 1.44)
+docker run --network host traefik:v3.6.21 ...
 ```
 
 ### 3. Container Network Isolation

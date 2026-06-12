@@ -8,7 +8,11 @@ This document explains how the MCP/VNC orchestration works once the Docker-based
   - `app.mcp-as-a-service.com` → public IP of the production host
   - `*.mcp-as-a-service.com` (wildcard) → same public IP
 - Reverse proxy (Traefik)
-  - Runs as a single Docker container (Traefik v3.5) on the host
+  - Runs as a single Docker container (Traefik v3.6.21) on the host
+  - Requires Traefik **≥ v3.6.1**: Docker Engine 29 raised the minimum Docker API
+    version to 1.44, which older Traefik (≤ v3.5) cannot negotiate — its Docker
+    provider then discovers zero containers and every `mcp-*`/`vnc-*` route 404s.
+    The pinned version lives in `bin/launch-traefik.sh` (`TRAEFIK_VERSION`).
   - Listens on host ports 80/443
   - Terminates TLS for all domains/subdomains
   - Routes traffic to either the native webapp on the host or to per-instance containers

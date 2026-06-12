@@ -5,7 +5,12 @@ set -euo pipefail
 # Supports both development and production environments
 
 # Configuration
-TRAEFIK_VERSION="${TRAEFIK_VERSION:-v3.5.3}"
+# Traefik 3.6.1+ is REQUIRED on this host: Docker Engine 29 raised the minimum
+# Docker API version to 1.44. Traefik <3.6 negotiates only up to API 1.24, so its
+# Docker provider can no longer talk to the daemon — it silently discovers zero
+# containers and every mcp-*/vnc-* route returns a 404. v3.6.21 is the known-good
+# pin (same version the outermost router runs). Do not downgrade below v3.6.1.
+TRAEFIK_VERSION="${TRAEFIK_VERSION:-v3.6.21}"
 TRAEFIK_CONTAINER_NAME="${TRAEFIK_CONTAINER_NAME:-maas-traefik}"
 TRAEFIK_NETWORK_SELF="${TRAEFIK_NETWORK_SELF:-maas-mcp-instances}"
 TRAEFIK_NETWORK_OUTERMOST_ROUTER="${TRAEFIK_NETWORK_OUTERMOST_ROUTER:-outermost_router}"
@@ -467,7 +472,7 @@ case "${1:-}" in
         echo ""
         echo "Environment variables:"
         echo "  # Docker & Traefik Configuration"
-        echo "  TRAEFIK_VERSION         Traefik version (default: v3.5)"
+        echo "  TRAEFIK_VERSION         Traefik version (default: v3.6.21; do NOT use <v3.6.1 — Docker 29 API)"
         echo "  TRAEFIK_CONTAINER_NAME  Container name (default: traefik-mcp)"
         echo "  TRAEFIK_NETWORK_SELF         Docker network (default: mcp_as_a_service)"
         echo "  TRAEFIK_DASHBOARD_PORT  Dashboard port (default: 8080)"

@@ -42,3 +42,4 @@ node_modules/
 /var/minify/
 ###< sensiolabs/minify-bundle ###
 .cursor/mcp.json
+.DS_Store

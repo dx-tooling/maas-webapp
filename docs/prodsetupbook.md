@@ -42,8 +42,9 @@ Set www-data login shell to `/bin/bash`.
     npx playwright install chromium
 
 The host nginx vhosts, the `www-data` sudoers wrappers, and disabling the stock nginx
-default site are provisioned by the **infrastructure** repo (root-run) — not here. Run
-`ansible/host-config.yml` from that repo (canonical files in `rootserver-hosting/host/`).
+default site are provisioned by the [**infrastructure** repo](https://github.com/dx-tooling/infrastructure)
+(root-run) — not here. Run [`ansible/host-config.yml`](https://github.com/dx-tooling/infrastructure/blob/main/ansible/host-config.yml)
+from that repo (canonical files in [`rootserver-hosting/host/`](https://github.com/dx-tooling/infrastructure/tree/main/rootserver-hosting/host)).
 The stock `/etc/nginx/nginx.conf` is the Ubuntu package default. See
 [docs/infrastructure/README.md](infrastructure/README.md).
 

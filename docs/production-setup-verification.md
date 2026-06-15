@@ -8,7 +8,8 @@ This document outlines how to verify that the Docker management works correctly 
 Install and verify the sudo-based Docker wrapper approach:
 
 ```bash
-# The sudoers entry is installed by the infrastructure repo (ansible/host-config.yml).
+# The sudoers entry is installed by the infrastructure repo's ansible/host-config.yml:
+#   https://github.com/dx-tooling/infrastructure/blob/main/ansible/host-config.yml
 # Verify it is present and valid:
 test -f /etc/sudoers.d/101-www-data-docker-cli-wrapper && visudo -c
 

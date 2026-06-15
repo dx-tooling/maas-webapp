@@ -4,7 +4,7 @@ Operational guide for the Docker + Traefik architecture in production.
 
 ## Quick links
 - Architecture and routing: `docs/orchestration.md`
-- Docker wrapper sudoers entry: owned by the **infrastructure** repo (`rootserver-hosting/host/sudoers/101-www-data-docker-cli-wrapper`, installed by `ansible/host-config.yml`)
+- Docker wrapper sudoers entry: owned by the [infrastructure repo](https://github.com/dx-tooling/infrastructure) ([`rootserver-hosting/host/sudoers/101-www-data-docker-cli-wrapper`](https://github.com/dx-tooling/infrastructure/blob/main/rootserver-hosting/host/sudoers/101-www-data-docker-cli-wrapper), installed by [`ansible/host-config.yml`](https://github.com/dx-tooling/infrastructure/blob/main/ansible/host-config.yml))
 - Traefik launcher: `bin/launch-traefik.sh`
 
 ## Common operational tasks

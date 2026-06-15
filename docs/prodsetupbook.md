@@ -24,9 +24,7 @@ Store files `/etc/letsencrypt/live/mcp-as-a-service.com/fullchain.pem` and `/etc
     [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
     nvm install 22
     npx playwright install-deps
-    echo "www-data ALL=(root) NOPASSWD: /var/www/prod/maas-webapp/bin/generate-mcp-proxies.sh" > /etc/sudoers.d/100-www-data-mcp-proxy-gen
     touch /etc/nginx/mcp-server-proxies.conf
-    rm /etc/nginx/sites-enabled/default
 
 Set www-data login shell to `/bin/bash`.
 
@@ -43,11 +41,11 @@ Set www-data login shell to `/bin/bash`.
     npm install @playwright/mcp@latest
     npx playwright install chromium
 
-Place [nginx.conf](infrastructure/etc/nginx/nginx.conf) at /etc/nginx/nginx.conf.
-
-Place [webapp.conf](infrastructure/etc/nginx/sites-enabled/webapp.conf) at /etc/nginx/sites-enabled/webapp.conf.
-
-Place [webapp.conf](infrastructure/etc/nginx/sites-enabled/mcp-server-proxy-site.conf) at /etc/nginx/sites-enabled/mcp-server-proxy-site.conf.
+The host nginx vhosts, the `www-data` sudoers wrappers, and disabling the stock nginx
+default site are provisioned by the **infrastructure** repo (root-run) — not here. Run
+`ansible/host-config.yml` from that repo (canonical files in `rootserver-hosting/host/`).
+The stock `/etc/nginx/nginx.conf` is the Ubuntu package default. See
+[docs/infrastructure/README.md](infrastructure/README.md).
 
     nginx -T
     service nginx restart

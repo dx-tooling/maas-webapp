@@ -8,9 +8,9 @@ This document outlines how to verify that the Docker management works correctly 
 Install and verify the sudo-based Docker wrapper approach:
 
 ```bash
-# Install sudoers entry (as root)
-install -o root -g root -m 0440 /var/www/prod/maas-webapp/docs/infrastructure/etc/sudoers.d/101-www-data-docker-cli-wrapper /etc/sudoers.d/101-www-data-docker-cli-wrapper
-visudo -c
+# The sudoers entry is installed by the infrastructure repo (ansible/host-config.yml).
+# Verify it is present and valid:
+test -f /etc/sudoers.d/101-www-data-docker-cli-wrapper && visudo -c
 
 # Verify www-data can run controlled Docker commands via the wrapper (no password)
 sudo -u www-data sudo -n /var/www/prod/maas-webapp/bin/docker-cli-wrapper.sh ps

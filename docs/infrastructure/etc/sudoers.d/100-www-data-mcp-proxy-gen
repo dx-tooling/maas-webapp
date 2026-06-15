@@ -1,1 +1,0 @@
-www-data ALL=(root) NOPASSWD: /var/www/prod/maas-webapp/bin/generate-mcp-proxies.sh
